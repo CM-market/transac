@@ -1,11 +1,11 @@
-use sqlx::{postgres::PgPoolOptions, PgPool};
+mod stores;
+
+use sea_orm::{Database, DatabaseConnection};
 use crate::config::Config;
 
-pub async fn create_pool(config: &Config) -> anyhow::Result<PgPool> {
-    let pool = PgPoolOptions::new()
-        .max_connections(5)
-        .connect(&config.database_url)
+pub async fn create_connection(config: &Config) -> anyhow::Result<DatabaseConnection> {
+    let db = Database::connect(&config.database_url)
         .await
-        .map_err(|e| anyhow::anyhow!("Failed to create PgPool: {e}"))?;
-    Ok(pool)
+        .map_err(|e| anyhow::anyhow!("Failed to create DatabaseConnection: {e}"))?;
+    Ok(db)
 }

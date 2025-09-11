@@ -6,7 +6,9 @@ edition = "2021"
 [dependencies]
 axum = "0.7"
 tokio = { version = "1", features = ["full"] }
-sqlx = { version = "0.7", features = ["runtime-tokio", "postgres", "macros", "uuid", "chrono", "migrate"] }
+sea-orm = { version = "2.0.0-rc.6", features = ["macros", "runtime-tokio-rustls", "sqlx-postgres", "with-uuid", "with-chrono"] }
+sea-orm-macros = "2.0.0-rc.6"
+sea-orm-codegen = "2.0.0-rc.6"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = "0.1"
@@ -21,6 +23,7 @@ jsonwebtoken = "9"
 argon2 = "0.5"
 time = "0.3"
 chrono = { version = "0.4", features = ["serde"] }
+entity = "0.3.2"
 
 [dev-dependencies]
 tokio-test = "0.4"

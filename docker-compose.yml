@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16
+    container_name: transac_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: transac_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - transac_db_data:/var/lib/postgresql/data
+
+volumes:
+  transac_db_data:
+    driver: local

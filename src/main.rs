@@ -1,3 +1,4 @@
+pub mod entity;
 use axum::{
     routing::get,
     Router,
@@ -11,7 +12,7 @@ mod config;
 mod db;
 
 use config::Config;
-use db::create_pool;
+use db::create_connection;
 
 #[derive(Serialize)]
 struct HealthResponse {
@@ -32,7 +33,7 @@ async fn main() -> anyhow::Result<()> {
     let config = Config::from_env()?;
 
     // Initialize database pool
-    let pool = create_pool(&config).await?;
+    let pool = create_connection(&config).await?;
 
     let app = Router::new()
         .route("/healthz", get(healthz))

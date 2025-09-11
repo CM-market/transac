@@ -176,11 +176,11 @@ erDiagram
     PRODUCTS {
         UUID id PK
         UUID store_id FK
-        VARCHAR sku
         VARCHAR name
         TEXT description
         NUMERIC price
         INT quantity_available
+        UUID image_id
         TIMESTAMP created_at
     }
  
@@ -205,19 +205,7 @@ erDiagram
 * `GET /stores`
 * `GET /stores/:storeId/products`
 * `GET /products/:id`
-* `POST /carts` → {cartId}
-* `POST /carts/:id/items` → add item
-* `PATCH /carts/:id/items/:itemId` → update qty
-* `POST /orders` → create order and payment session
-* `POST /payments/webhook` → handle provider webhooks (verify signature)
-* `GET /orders/:id` → order status
-* `POST /auth/login`, `POST /auth/register`
-
-**Auth**
-
-* Use JWT access tokens for API access. Refresh tokens in secure HTTP-only cookies.
-* Merchant endpoints protected by merchant role claim.
-
+* 
 **Idempotency**
 
 * `POST /orders` should accept an `Idempotency-Key` header to avoid duplicate orders.
@@ -289,7 +277,6 @@ graph LR
   Frontend --> Ingress
   Ingress --> API
   API -->|SQL| Postgres
-  API -->|MQ| MessageBroker
   API --> S3
 ```
 
