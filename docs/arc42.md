@@ -4,7 +4,6 @@
 
 **Main goals**
 
-* Fast, secure buying experience with product catalog, cart, checkout and payments.
 * Data integrity and ACID consistency for orders/payments.
 * Scalable: handle bursts of shoppers.
 * Maintainable, testable Rust backend with clear module boundaries.
@@ -21,9 +20,8 @@
 **Technical constraints**
 
 * Frontend must be TypeScript (React or equivalent).
-* Backend must be Rust (actix-web / axum / warp).
+* Backend must be Rust (axum ).
 * PostgreSQL as relational DB.
-* Use third-party payment provider (Stripe/PayPal) — PCI scope minimized.
 * Prefer containerized deployment (Docker + Kubernetes).
 
 **Organizational**
@@ -33,7 +31,6 @@
 
 **Non-functional constraints**
 
-* Strong consistency for orders/payments.
 * GDPR / local data protection compliance.
 * Target latency: page loads < 300ms (cached pages); API p95 < 200ms.
 
@@ -41,17 +38,9 @@
 
 # 3. Context and Scope (System Context)
 
-**External systems**
-
-* Payment gateway (Stripe/PayPal).
-* Email/SMS provider (mailgun/twilio).
-* Identity provider (OAuth2 or internal auth service / Keycloak).
-* CDN (for static assets).
-* External analytics/monitoring (Prometheus/Grafana, Sentry).
-
 **In-scope**
 
-* Product catalog, stores management, cart, checkout, order processing, payment integration, merchant dashboards.
+* Product catalog, stores management, cart, merchant dashboards.
 
 **Out-of-scope**
 
@@ -64,8 +53,6 @@ flowchart LR
   User[Buyer/Customer] -->|HTTP| WebApp[TypeScript Frontend SPA]
   WebApp -->|REST/GraphQL| API[Marketplace API Rust]
   API -->|SQL| DB[PostgreSQL]
-  API -->|HTTPS| Payment[Payment Provider]
-  API -->|SMTP/HTTP| Email[Email Provider]
   Admin[Merchant Dashboard] --> API
 ```
 
@@ -136,8 +123,6 @@ graph TD
   API --> DB[Postgres]
   API -->|Queue| MQ[Message Broker]
   API -->|S3| Storage[S3]
-  API -->|HTTPS| Payment
-  API -->|SMTP| Email
 ```
 
 ---
@@ -150,22 +135,6 @@ graph TD
 2. Backend queries read replica or primary → returns JSON.
 3. User clicks Add to Cart → Frontend POST `/carts/:cartId/items` (creates cart if absent).
 
-## 6.2 Checkout & Payment (critical flow)
-
-1. Frontend: POST `/orders` with cart id, shipping, billing info.
-2. Backend `orders.create` begins DB transaction:
-
-    * Lock product/stock rows (SELECT ... FOR UPDATE if inventory tracked).
-    * Validate cart state, prices.
-    * Create Order row (`orders`) + `order_items`.
-    * Mark cart as converted.
-3. Create payment session with Payment Provider (Stripe Checkout/Session).
-4. Save `payment` row with provider reference and status `pending`.
-5. Commit DB transaction.
-6. Return payment session URL to frontend.
-7. Payment provider sends webhook on success → Backend processes webhook, verifies signature, idempotently updates `payment` and `order` status (paid), emits `order.paid` event to MQ.
-8. Consumers process `order.paid` → send confirmation emails, allocate inventory, trigger shipment flows.
-
 Sequence (mermaid)
 
 ```mermaid
@@ -173,18 +142,15 @@ sequenceDiagram
   participant F as Frontend
   participant A as API
   participant DB as PostgreSQL
-  participant P as Payment
   participant MQ as MessageQueue
 
   F->>A: POST /orders {cartId, billing}
   A->>DB: BEGIN transaction
   A->>DB: validate cart
   A->>DB: insert orders and items
-  A->>P: createPaymentSession orderId
   A->>DB: insert payment with provider_ref
   A->>DB: COMMIT
   A->>F: 200 {payment_url}
-  P->>A: webhook(payment_success)
   A->>DB: idempotent update payment.status, order.status
   A->>MQ: publish order.paid event
 ```
@@ -217,56 +183,10 @@ erDiagram
         INT quantity_available
         TIMESTAMP created_at
     }
-    USERS {
-        UUID id PK
-        VARCHAR email
-        VARCHAR name
-        VARCHAR password_hash
-    }
-    CARTS {
-        UUID id PK
-        UUID user_id FK
-        TIMESTAMP created_at
-        BOOLEAN converted
-    }
-    CART_ITEMS {
-        UUID id PK
-        UUID cart_id FK
-        UUID product_id FK
-        INT quantity
-        NUMERIC unit_price
-    }
-    ORDERS {
-        UUID id PK
-        UUID user_id FK
-        UUID cart_id FK
-        VARCHAR status
-        NUMERIC total_amount
-        TIMESTAMP created_at
-    }
-    ORDER_ITEMS {
-        UUID id PK
-        UUID order_id FK
-        UUID product_id FK
-        INT quantity
-        NUMERIC unit_price
-    }
-    PAYMENTS {
-        UUID id PK
-        UUID order_id FK
-        VARCHAR provider_ref
-        VARCHAR status
-        NUMERIC amount
-        TIMESTAMP processed_at
-    }
+ 
 
     STORES ||--o{ PRODUCTS : "has"
-    USERS ||--o{ CARTS : "owns"
-    CARTS ||--o{ CART_ITEMS : "contains"
-    PRODUCTS ||--o{ CART_ITEMS : "referenced"
-    CARTS ||--|| ORDERS : "converted_to"
-    ORDERS ||--o{ ORDER_ITEMS : "has"
-    ORDERS ||--|| PAYMENTS : "paid_by"
+
 ```
 
 **DB design notes**
