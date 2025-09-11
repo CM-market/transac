@@ -1,6 +1,5 @@
 import * as CryptoJS from "crypto-js";
 import * as jose from "jose";
-import type { EventPackage } from "../../types/event";
 
 function hashPayload(payload: string): string {
   return CryptoJS.SHA256(payload).toString(CryptoJS.enc.Hex);
@@ -10,7 +9,7 @@ function hashPayload(payload: string): string {
 export async function generateEventJWT(
   privateKeyJWK: jose.JWK,
   publicKeyJWK: jose.JWK,
-  eventPackage: EventPackage,
+  eventPackage: Record<string, unknown>,
   deviceCertToken?: string,
 ): Promise<string> {
   // Create the JWT payload with the complete event data
