@@ -1,3 +1,4 @@
+pub mod entity;
 use axum::{
     routing::get,
     Router,
@@ -23,13 +24,14 @@ use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 use config::Config;
-// use db::create_pool;
 
 #[derive(Clone)]
 pub struct ApiContext {
     // pool: sqlx::PgPool,
     pow_service: Arc<PowService>,
 }
+use db::create_connection;
+
 
 #[derive(Serialize)]
 struct HealthResponse {
@@ -104,6 +106,8 @@ async fn main() -> anyhow::Result<()> {
     let api_routes = Router::new()
         .nest("/api/v1/pow", pow_routes())
         .layer(middleware::from_fn(crypto_validation_middleware));
+
+    let pool = create_connection(&config).await?;
 
     let app = Router::new()
         .route("/healthz", get(healthz))
