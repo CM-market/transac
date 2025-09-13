@@ -161,14 +161,13 @@ sequenceDiagram
 
 **Entities from sketch**
 
-* `stores`, `products`, `carts`, `cart_items`, `orders`, `order_items`, `payments`, `users`, `addresses`.
-
-Mermaid ER (refined)
+* `stores`, `products``REVOCATION` Mermaid ER (refined)
 
 ```mermaid
 erDiagram
     STORES {
         UUID id PK
+        INT phone_number FK
         VARCHAR name
         TEXT description
         TIMESTAMP created_at
@@ -183,9 +182,15 @@ erDiagram
         UUID image_id
         TIMESTAMP created_at
     }
- 
+    REVOCATION {
+        UUID id PK
+        INT phone_number FK
+        BOOL is_revocked
+        TIMESTAMP revoked_at
+    }
 
     STORES ||--o{ PRODUCTS : "has"
+    STORES ||--o{ REVOCATION : "revokes"
 
 ```
 
@@ -204,12 +209,7 @@ erDiagram
 
 * `GET /stores`
 * `GET /stores/:storeId/products`
-* `GET /products/:id`
-* 
-**Idempotency**
-
-* `POST /orders` should accept an `Idempotency-Key` header to avoid duplicate orders.
-* Webhook handlers must be idempotent: check existing `payment` by provider\_ref.
+* `GET /products/:id` 
 
 ---
 

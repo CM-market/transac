@@ -4,7 +4,7 @@ use sea_orm::{
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
 use tracing::{error, debug};
-use entity::product::{self, Entity as ProductEntity, Model as ProductModel, ActiveModel as ProductActiveModel};
+use crate::entity::product::{self, Entity as ProductEntity, Model as ProductModel, ActiveModel as ProductActiveModel};
 
 pub struct Product;
 
@@ -12,7 +12,6 @@ impl Product {
     pub async fn create(
         db: &DatabaseConnection,
         store_id: Uuid,
-        sku: Option<&str>,
         name: &str,
         description: Option<&str>,
         price: f64,
@@ -20,7 +19,6 @@ impl Product {
     ) -> Result<ProductModel, String> {
         let mut product = ProductActiveModel {
             store_id: Set(store_id),
-            sku: Set(sku.map(|s| s.to_owned())),
             name: Set(name.to_owned()),
             description: Set(description.map(|d| d.to_owned())),
             price: Set(price),
@@ -63,7 +61,6 @@ impl Product {
     pub async fn update(
         db: &DatabaseConnection,
         id: Uuid,
-        sku: Option<&str>,
         name: &str,
         description: Option<&str>,
         price: f64,
@@ -77,14 +74,13 @@ impl Product {
                 "Failed to update product. Please try again later.".to_string()
             })?
             .ok_or_else(|| "Product not found.".to_string())?;
-
+    
         let mut active: ProductActiveModel = product.into();
-        active.sku = Set(sku.map(|s| s.to_owned()));
         active.name = Set(name.to_owned());
         active.description = Set(description.map(|d| d.to_owned()));
         active.price = Set(price);
         active.quantity_available = Set(quantity_available);
-
+    
         let res = active.update(db).await.map_err(|e| {
             error!("Failed to update product {}: {:?}", id, e);
             "Failed to update product. Please try again later.".to_string()

@@ -4,7 +4,7 @@ use std::env;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
-    // pub database_url: String,
+    pub database_url: String,
     pub pow_difficulty: u32,
     pub pow_timeout_minutes: i64,
 }
@@ -13,8 +13,8 @@ impl Config {
     /// Loads configuration from environment variables, using dotenvy to load from .env if present.
     pub fn from_env() -> anyhow::Result<Self> {
         dotenv().ok();
-        // let database_url = env::var("DATABASE_URL")
-        //     .map_err(|_| anyhow::anyhow!("DATABASE_URL must be set in environment"))?;
+        let database_url = env::var("DATABASE_URL")
+            .map_err(|_| anyhow::anyhow!("DATABASE_URL must be set in environment"))?;
         
         let pow_difficulty = env::var("POW_DIFFICULTY")
             .unwrap_or_else(|_| "4".to_string())
@@ -25,7 +25,7 @@ impl Config {
             .parse::<i64>()?;
 
         Ok(Config {
-            // database_url,
+            database_url,
             pow_difficulty,
             pow_timeout_minutes,
         })

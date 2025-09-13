@@ -1,0 +1,38 @@
+use sea_orm::{DatabaseConnection, EntityTrait, Set, ActiveModelTrait, ColumnTrait, QueryFilter};
+use crate::entity::revocation;
+use crate::entity::revocation::{Entity as Revocation, Model as RevocationModel, ActiveModel as RevocationActiveModel};
+
+pub struct RevocationRepo;
+
+impl RevocationRepo {
+    pub async fn is_revoked(db: &DatabaseConnection, device_id: &str) -> Result<bool, sea_orm::DbErr> {
+        let record = Revocation::find_by_id(device_id).one(db).await?;
+        Ok(record.map(|r| r.is_revocked).unwrap_or(false))
+    }
+
+    pub async fn revoke(db: &DatabaseConnection, device_id: &str) -> Result<(), sea_orm::DbErr> {
+        let record = Revocation::find_by_id(device_id).one(db).await?;
+        if let Some(mut rec) = record {
+            let mut active: RevocationActiveModel = rec.into();
+            active.is_revocked = Set(true);
+            active.update(db).await?;
+        } else {
+            let new = RevocationActiveModel {
+                device_id: Set(device_id.to_string()),
+                is_revocked: Set(true),
+            };
+            new.insert(db).await?;
+        }
+        Ok(())
+    }
+
+    pub async fn clear_revocation(db: &DatabaseConnection, device_id: &str) -> Result<(), sea_orm::DbErr> {
+        let record = Revocation::find_by_id(device_id).one(db).await?;
+        if let Some(mut rec) = record {
+            let mut active: RevocationActiveModel = rec.into();
+            active.is_revocked = Set(false);
+            active.update(db).await?;
+        }
+        Ok(())
+    }
+}

@@ -96,4 +96,5 @@ impl Store {
         debug!("Store deleted: {}", id);
         Ok(())
     }
+    // get_by_phone removed: stores table does not have a phone_number column
 }

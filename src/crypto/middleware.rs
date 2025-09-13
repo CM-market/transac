@@ -1,10 +1,15 @@
 use axum::{
-    extract::Request,
+    extract::{Request, State},
     http::{HeaderMap, StatusCode},
     middleware::Next,
     response::Response,
 };
 use tracing::{info, warn};
+use std::sync::Arc;
+use sea_orm::DatabaseConnection;
+use crate::db::stores::Store;
+use crate::db::revocation::RevocationRepo;
+use crate::auth::validate_jwt;
 
 /// Determine if cryptographic validation should be skipped for a given path
 pub fn should_skip_validation(path: &str) -> bool {
@@ -38,7 +43,7 @@ fn extract_token(headers: &HeaderMap) -> Option<String> {
 /// Cryptographic validation middleware
 /// This middleware ensures all incoming requests are properly authenticated
 pub async fn crypto_validation_middleware(
-    request: Request,
+    mut request: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
     let path = request.uri().path().to_string();
@@ -58,13 +63,39 @@ pub async fn crypto_validation_middleware(
     if let Some(token) = extract_token(&headers) {
         info!(path = %path, "Detected token, validating authentication");
 
-        // TODO: Implement full token validation logic, e.g., JWT verification
-        if token.starts_with("valid_token") {
-            info!(path = %path, "Token validation successful");
-            return Ok(next.run(request).await);
+        // Validate JWT and extract claims
+        let claims = match validate_jwt(&token) {
+            Ok(data) => data.claims,
+            Err(_) => {
+                warn!(path = %path, "JWT validation failed");
+                return Err(StatusCode::UNAUTHORIZED);
+            }
+        };
+
+        // Get DB connection from request extensions (assumes Arc<DatabaseConnection> is set as "db")
+        let db = if let Some(db) = request.extensions().get::<Arc<DatabaseConnection>>() {
+            db.clone()
         } else {
-            warn!(path = %path, "Token validation failed");
-            return Err(StatusCode::UNAUTHORIZED);
+            warn!(path = %path, "Database connection not found in request extensions");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        };
+
+        // Phone number existence in STORES cannot be checked (no phone_number column)
+
+        // Check revocation status
+        match RevocationRepo::is_revoked(&db, &claims.device_id).await {
+            Ok(true) => {
+                warn!(path = %path, "Device certificate is revoked");
+                return Err(StatusCode::UNAUTHORIZED);
+            }
+            Ok(false) => {
+                info!(path = %path, "Token and device are valid");
+                return Ok(next.run(request).await);
+            }
+            Err(_) => {
+                warn!(path = %path, "Error checking revocation status");
+                return Err(StatusCode::INTERNAL_SERVER_ERROR);
+            }
         }
     }
 

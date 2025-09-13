@@ -1,3 +1,4 @@
+mod migrator;
 pub mod entity;
 use axum::{
     routing::get,
@@ -12,6 +13,8 @@ mod config;
 mod db;
 mod crypto;
 mod error;
+pub mod auth;
+mod api;
 
 use axum::middleware;
 use crypto::middleware::crypto_validation_middleware;
@@ -81,8 +84,16 @@ async fn verify_pow_solution(
     Json(request): Json<crypto::types::VerificationRequest>,
 ) -> Result<Json<crypto::types::TokenResponse>, AppError> {
     ctx.pow_service.verify_solution(&request.solution)?;
-    // TODO: Generate a real token
-    let token = "valid_token_".to_string() + &request.solution.challenge_id;
+    // Generate a real JWT for the device after successful PoW
+    // For demonstration, use challenge_id as device_id (replace with real device_id logic as needed)
+    let device_id = request.solution.challenge_id.clone();
+    let user_role = "buyer";
+    let phone_number = None;
+    let expires_in_secs = 3600;
+    let token = match crate::auth::issue_jwt(&device_id, user_role, phone_number, expires_in_secs) {
+        Ok(t) => t,
+        Err(e) => return Err(AppError::Validation(format!("JWT error: {e}"))),
+    };
     Ok(Json(crypto::types::TokenResponse { token }))
 }
 

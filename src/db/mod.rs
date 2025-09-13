@@ -1,4 +1,6 @@
-mod stores;
+pub mod stores;
+pub mod revocation;
+mod products;
 
 use sea_orm::{Database, DatabaseConnection};
 use crate::config::Config;
