@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Request, State},
+    extract::Request,
     http::{HeaderMap, StatusCode},
     middleware::Next,
     response::Response,
@@ -7,7 +7,6 @@ use axum::{
 use tracing::{info, warn};
 use std::sync::Arc;
 use sea_orm::DatabaseConnection;
-use crate::db::stores::Store;
 use crate::db::revocation::RevocationRepo;
 use crate::auth::validate_jwt;
 
@@ -43,7 +42,7 @@ fn extract_token(headers: &HeaderMap) -> Option<String> {
 /// Cryptographic validation middleware
 /// This middleware ensures all incoming requests are properly authenticated
 pub async fn crypto_validation_middleware(
-    mut request: Request,
+    request: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
     let path = request.uri().path().to_string();

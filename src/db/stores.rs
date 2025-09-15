@@ -1,20 +1,20 @@
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set, QueryOrder,
+    ActiveModelTrait, DatabaseConnection, EntityTrait, Set, QueryOrder,
 };
-use uuid::Uuid;
-use chrono::{DateTime, Utc};
 use tracing::{error, debug};
 use crate::entity::store::{self, Entity as StoreEntity, Model as StoreModel, ActiveModel as StoreActiveModel};
 
+#[allow(dead_code)]
 pub struct Store;
 
+#[allow(dead_code)]
 impl Store {
-    pub async fn create(
+        pub async fn create(
         db: &DatabaseConnection,
         name: &str,
         description: Option<&str>,
     ) -> Result<StoreModel, String> {
-        let mut store = StoreActiveModel {
+        let store = StoreActiveModel {
             name: Set(name.to_owned()),
             description: Set(description.map(|d| d.to_owned())),
             ..Default::default()
@@ -27,7 +27,7 @@ impl Store {
         Ok(res)
     }
 
-    pub async fn get(db: &DatabaseConnection, id: Uuid) -> Result<StoreModel, String> {
+    pub async fn get(db: &DatabaseConnection, id: i64) -> Result<StoreModel, String> {
         let store = StoreEntity::find_by_id(id)
             .one(db)
             .await
@@ -53,7 +53,7 @@ impl Store {
 
     pub async fn update(
         db: &DatabaseConnection,
-        id: Uuid,
+        id: i64,
         name: &str,
         description: Option<&str>,
     ) -> Result<StoreModel, String> {
@@ -65,11 +65,11 @@ impl Store {
                 "Failed to update store. Please try again later.".to_string()
             })?
             .ok_or_else(|| "Store not found.".to_string())?;
-
+    
         let mut active: StoreActiveModel = store.into();
         active.name = Set(name.to_owned());
         active.description = Set(description.map(|d| d.to_owned()));
-
+    
         let res = active.update(db).await.map_err(|e| {
             error!("Failed to update store {}: {:?}", id, e);
             "Failed to update store. Please try again later.".to_string()
@@ -78,7 +78,7 @@ impl Store {
         Ok(res)
     }
 
-    pub async fn delete(db: &DatabaseConnection, id: Uuid) -> Result<(), String> {
+    pub async fn delete(db: &DatabaseConnection, id: i64) -> Result<(), String> {
         let store = StoreEntity::find_by_id(id)
             .one(db)
             .await
@@ -87,8 +87,8 @@ impl Store {
                 "Failed to delete store. Please try again later.".to_string()
             })?
             .ok_or_else(|| "Store not found.".to_string())?;
-
-        let mut active: StoreActiveModel = store.into();
+    
+        let active: StoreActiveModel = store.into();
         active.delete(db).await.map_err(|e| {
             error!("Failed to delete store {}: {:?}", id, e);
             "Failed to delete store. Please try again later.".to_string()

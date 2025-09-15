@@ -105,8 +105,8 @@ impl PowService {
     }
 
     fn generate_secure_random_string(&self, num_bytes: usize) -> String {
-        let mut rng = rand::thread_rng();
-        let random_bytes: Vec<u8> = (0..num_bytes).map(|_| rng.gen::<u8>()).collect();
+        let mut rng = rand::rng();
+        let random_bytes: Vec<u8> = (0..num_bytes).map(|_| rng.random::<u8>()).collect();
         base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(&random_bytes)
     }
 }

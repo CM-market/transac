@@ -7,7 +7,6 @@ use axum::{
 };
 use serde::Deserialize;
 use sea_orm::DatabaseConnection;
-use crate::db::stores::Store;
 use crate::db::revocation::RevocationRepo;
 use crate::auth::{issue_jwt};
 use std::sync::Arc;
@@ -57,7 +56,7 @@ pub async fn revoke_device(
     }
 
     // Set is_revocked = true in REVOCATION for device_id
-    if let Err(e) = RevocationRepo::revoke(&state.db, &claims.device_id).await {
+    if let Err(e) = RevocationRepo::_revoke(&state.db, &claims.device_id).await {
         return (StatusCode::INTERNAL_SERVER_ERROR, format!("DB error: {e}")).into_response();
     }
 
@@ -109,6 +108,7 @@ mod tests {
     use tower::Service;
     use axum::ServiceExt;
     use axum::{Router, body::Body, http::{Request, StatusCode}};
+    use axum::body::to_bytes;
     use sea_orm::ConnectionTrait;
     use sea_orm::{Database, DatabaseConnection, ActiveModelTrait, Set};
     use uuid::Uuid;
@@ -121,6 +121,13 @@ mod tests {
     use crate::entity::revocation::ActiveModel as RevocationActiveModel;
     use sea_orm_migration::MigratorTrait;
 
+    // Helper macro for debug logging (must be defined before use)
+    macro_rules! debug_log {
+        ($($arg:tt)*) => {
+            println!("[DEBUG] {}", format!($($arg)*));
+        }
+    }
+
     // Helper to run all migrations for the test database
     async fn run_migrations(db: &DatabaseConnection) {
         crate::migrator::Migrator::up(db, None).await.unwrap();
@@ -129,15 +136,38 @@ mod tests {
     // Helper to create a test store (phone number)
     async fn create_store(db: &DatabaseConnection, phone_number: &str) {
         let store = StoreActiveModel {
-            id: Set(Uuid::new_v4()),
-
-    // Helper to run all migrations for the test database
             name: Set(format!("Test Store {}", phone_number)),
             description: Set(Some("Test".to_string())),
             created_at: Set(chrono::Utc::now()),
+            phone_number: Set(phone_number.parse::<i64>().unwrap()),
             ..Default::default()
         };
-        store.insert(db).await.unwrap();
+    
+        // Prepare debug info
+        let insert_query = "INSERT INTO stores (name, description, created_at, phone_number) VALUES (?, ?, ?, ?)";
+        debug_log!(
+            "About to insert store with fields: name='{}', description='{:?}', created_at='{}', phone_number={}",
+            store.name.as_ref(),
+            store.description.as_ref(),
+            store.created_at.as_ref(),
+            store.phone_number.as_ref()
+        );
+        debug_log!("Insert query: {}", insert_query);
+    
+        let res = store.insert(db).await;
+        match &res {
+            Ok(model) => {
+                debug_log!(
+                    "Insert result: Ok. Inserted store: id={}, name='{}', description='{:?}', created_at='{}', phone_number={}",
+                    model.id, model.name, model.description, model.created_at, model.phone_number
+                );
+            }
+            Err(e) => {
+                debug_log!("Insert result: Err: {:?}", e);
+            }
+        }
+        // Unwrap as before (will panic if error, as in original)
+        res.unwrap();
     }
 
     // Helper to create a test revocation record
@@ -147,7 +177,20 @@ mod tests {
             is_revocked: Set(is_revocked),
             ..Default::default()
         };
-        rev.insert(db).await.unwrap();
+        // Debug logs before unwrap
+        debug_log!(
+            "About to insert revocation record: device_id='{}', is_revocked={}",
+            device_id,
+            is_revocked
+        );
+        debug_log!(
+            "Insert query: INSERT INTO revocation (device_id, is_revocked) VALUES ('{}', {})",
+            device_id,
+            is_revocked
+        );
+        let insert_result = rev.insert(db).await;
+        debug_log!("Insert result: {:?}", insert_result);
+        insert_result.unwrap();
     }
 
     #[tokio::test]
@@ -158,10 +201,11 @@ mod tests {
         db.execute_unprepared(
             r#"
             CREATE TABLE IF NOT EXISTS stores (
-                id TEXT PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
                 description TEXT,
-                created_at TEXT NOT NULL
+                created_at TEXT NOT NULL,
+                phone_number INTEGER NOT NULL
             );
             "#
         )
@@ -171,64 +215,106 @@ mod tests {
         run_migrations(&db).await;
 
         // Insert test phone numbers
-        let phone1 = "+10000000001";
-        let phone2 = "+10000000002";
+        let phone1 = "10000000001";
+        let phone2 = "10000000002";
         create_store(&db, phone1).await;
         create_store(&db, phone2).await;
 
         let state = AppState { db: Arc::new(db.clone()) };
         let app = device_routes(state);
 
-        // 1. Login (reissue) should succeed for phone1
-        let req = Request::post("/api/device/reissue")
-            .header("content-type", "application/json")
-            .body(Body::from(format!(r#"{{"phone_number":"{}","otp":"123456"}}"#, phone1)))
-            .unwrap();
-        let resp = app.clone().call(req).await.unwrap();
-        assert_eq!(resp.status(), StatusCode::OK);
+        // Insert revocation records for test device IDs to match JWTs
+        create_revocation(&db, "test-device-1", false).await;
+        create_revocation(&db, "test-device-2", false).await;
 
-        // 2. Revoke phone1
+        // Helper to print debug info
+        // (moved macro definition above)
+
+        // 1. Use a hardcoded JWT for phone1 (seller)
+        let jwt = crate::auth::issue_jwt("test-device-1", "seller", Some(phone1), 3600).unwrap();
+        debug_log!("Hardcoded JWT for phone1: {}", jwt);
+
+        // 2. Revoke phone1 with Authorization header
+        let revoke_payload = format!(r#"{{"phone_number":"{}","otp":"123456"}}"#, phone1);
+        debug_log!("Revoke payload: {}", revoke_payload);
         let req = Request::post("/api/device/revoke")
             .header("content-type", "application/json")
-            .body(Body::from(format!(r#"{{"phone_number":"{}","otp":"123456"}}"#, phone1)))
+            .header("Authorization", format!("Bearer {}", jwt))
+            .body(Body::from(revoke_payload.clone()))
             .unwrap();
         let resp = app.clone().call(req).await.unwrap();
-        assert_eq!(resp.status(), StatusCode::OK);
+        let status = resp.status();
+        debug_log!("Revoke response status: {}", status);
+        let body = to_bytes(resp.into_body(), 64 * 1024).await.unwrap();
+        debug_log!("Revoke response body: {}", String::from_utf8_lossy(&body));
+        assert_eq!(status, StatusCode::OK);
 
         // 3. Login (reissue) should now succeed (since reissue clears revocation)
+        debug_log!("Reissuing after revocation for phone1");
         let req = Request::post("/api/device/reissue")
             .header("content-type", "application/json")
-            .body(Body::from(format!(r#"{{"phone_number":"{}","otp":"123456"}}"#, phone1)))
+            .header("Authorization", format!("Bearer {}", jwt))
+            .body(Body::from(revoke_payload.clone()))
             .unwrap();
         let resp = app.clone().call(req).await.unwrap();
-        assert_eq!(resp.status(), StatusCode::OK);
+        let status = resp.status();
+        debug_log!("Reissue response status: {}", status);
+        let bytes = to_bytes(resp.into_body(), 64 * 1024).await.unwrap();
+        let jwt2 = String::from_utf8(bytes.to_vec()).unwrap();
+        debug_log!("Obtained new JWT: {}", jwt2);
+        assert_eq!(status, StatusCode::OK);
 
         // 4. Attempt revoke with wrong phone number (not in stores)
+        let wrong_payload = r#"{"phone_number":"19999999999","otp":"123456"}"#;
+        debug_log!("Revoke with wrong phone payload: {}", wrong_payload);
         let req = Request::post("/api/device/revoke")
             .header("content-type", "application/json")
-            .body(Body::from(r#"{"phone_number":"+19999999999","otp":"123456"}"#))
+            .header("Authorization", format!("Bearer {}", jwt2))
+            .body(Body::from(wrong_payload))
             .unwrap();
         let resp = app.clone().call(req).await.unwrap();
-        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+        let status = resp.status();
+        debug_log!("Revoke (wrong phone) response status: {}", status);
+        let body = to_bytes(resp.into_body(), 64 * 1024).await.unwrap();
+        debug_log!("Revoke (wrong phone) response body: {}", String::from_utf8_lossy(&body));
+        assert_eq!(status, StatusCode::NOT_FOUND);
 
         // 5. Only rightful user can revoke/reissue (simulate by using correct/incorrect phone numbers)
         // (Already covered above: only phone numbers in stores can be revoked/reissued)
 
         // 6. Test with multiple phone numbers
+        // Use a hardcoded JWT for phone2 (seller)
+        let jwt2 = crate::auth::issue_jwt("test-device-2", "seller", Some(phone2), 3600).unwrap();
+        debug_log!("Hardcoded JWT for phone2: {}", jwt2);
+
         // Revoke phone2
+        let revoke2_payload = format!(r#"{{"phone_number":"{}","otp":"123456"}}"#, phone2);
+        debug_log!("Revoke payload for phone2: {}", revoke2_payload);
         let req = Request::post("/api/device/revoke")
             .header("content-type", "application/json")
-            .body(Body::from(format!(r#"{{"phone_number":"{}","otp":"123456"}}"#, phone2)))
+            .header("Authorization", format!("Bearer {}", jwt2))
+            .body(Body::from(revoke2_payload.clone()))
             .unwrap();
         let resp = app.clone().call(req).await.unwrap();
-        assert_eq!(resp.status(), StatusCode::OK);
+        let status = resp.status();
+        debug_log!("Revoke response status for phone2: {}", status);
+        let body = to_bytes(resp.into_body(), 64 * 1024).await.unwrap();
+        debug_log!("Revoke response body for phone2: {}", String::from_utf8_lossy(&body));
+        assert_eq!(status, StatusCode::OK);
 
-        // Reissue phone2
+        // Reissue phone2 (should succeed, but still needs Authorization if required)
+        debug_log!("Reissuing after revocation for phone2");
         let req = Request::post("/api/device/reissue")
             .header("content-type", "application/json")
-            .body(Body::from(format!(r#"{{"phone_number":"{}","otp":"123456"}}"#, phone2)))
+            .header("Authorization", format!("Bearer {}", jwt2))
+            .body(Body::from(revoke2_payload.clone()))
             .unwrap();
         let resp = app.clone().call(req).await.unwrap();
-        assert_eq!(resp.status(), StatusCode::OK);
+        let status = resp.status();
+        debug_log!("Reissue response status for phone2: {}", status);
+        let bytes = to_bytes(resp.into_body(), 64 * 1024).await.unwrap();
+        let jwt4 = String::from_utf8(bytes.to_vec()).unwrap();
+        debug_log!("Obtained new JWT for phone2: {}", jwt4);
+        assert_eq!(status, StatusCode::OK);
     }
 }

@@ -1,6 +1,5 @@
 use sea_orm_migration::prelude::*;
 
-#[allow(dead_code)]
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
@@ -21,8 +20,7 @@ impl MigrationTrait for Migration {
                     .col(
                         ColumnDef::new(Revocation::IsRevocked)
                             .boolean()
-                            .not_null()
-                            .default(false),
+                            .not_null(),
                     )
                     .to_owned(),
             )
@@ -36,7 +34,6 @@ impl MigrationTrait for Migration {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Iden)]
 enum Revocation {
     Table,
