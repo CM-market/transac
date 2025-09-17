@@ -8,6 +8,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: Uuid,
     pub store_id: Uuid,
+    pub sku: Option<String>,
     pub name: String,
     pub description: Option<String>,
     pub image_id: Uuid,

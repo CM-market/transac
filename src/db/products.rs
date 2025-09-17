@@ -15,6 +15,7 @@ impl Product {
         sku: Option<&str>,
         name: &str,
         description: Option<&str>,
+        image_id: Uuid,
         price: f64,
         quantity_available: i32,
     ) -> Result<ProductModel, String> {
@@ -23,6 +24,7 @@ impl Product {
             sku: Set(sku.map(|s| s.to_owned())),
             name: Set(name.to_owned()),
             description: Set(description.map(|d| d.to_owned())),
+            image_id: Set(image_id),
             price: Set(price),
             quantity_available: Set(quantity_available),
             ..Default::default()
@@ -66,6 +68,7 @@ impl Product {
         sku: Option<&str>,
         name: &str,
         description: Option<&str>,
+        image_id: Uuid,
         price: f64,
         quantity_available: i32,
     ) -> Result<ProductModel, String> {
@@ -82,6 +85,7 @@ impl Product {
         active.sku = Set(sku.map(|s| s.to_owned()));
         active.name = Set(name.to_owned());
         active.description = Set(description.map(|d| d.to_owned()));
+        active.image_id = Set(image_id);
         active.price = Set(price);
         active.quantity_available = Set(quantity_available);
 
@@ -109,6 +113,29 @@ impl Product {
             "Failed to delete product. Please try again later.".to_string()
         })?;
         debug!("Product deleted: {}", id);
+        Ok(())
+    }
+    pub async fn update_image_id(
+        db: &DatabaseConnection,
+        id: Uuid,
+        image_id: Uuid,
+    ) -> Result<(), String> {
+        let product = ProductEntity::find_by_id(id)
+            .one(db)
+            .await
+            .map_err(|e| {
+                error!("Failed to fetch product {}: {:?}", id, e);
+                "Failed to update product image. Please try again later.".to_string()
+            })?
+            .ok_or_else(|| "Product not found.".to_string())?;
+
+        let mut active: ProductActiveModel = product.into();
+        active.image_id = Set(image_id);
+
+        active.update(db).await.map_err(|e| {
+            error!("Failed to update product image {}: {:?}", id, e);
+            "Failed to update product image. Please try again later.".to_string()
+        })?;
         Ok(())
     }
 }
