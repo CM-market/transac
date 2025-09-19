@@ -52,10 +52,308 @@
           "422": { "description": "Invalid solution" }
         }
       }
+    },
+    "/healthz": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Health check endpoint",
+        "operationId": "healthz",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "tags": ["Products"],
+        "summary": "List products by store ID",
+        "operationId": "list_products",
+        "parameters": [
+          {
+            "name": "store_id",
+            "in": "query",
+            "description": "Store ID to filter products",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/Uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ProductModel" }
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad request - invalid store ID" }
+        }
+      },
+      "post": {
+        "tags": ["Products"],
+        "summary": "Create a new product",
+        "operationId": "create_product",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateProductRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Product created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProductModel" }
+              }
+            }
+          },
+          "400": { "description": "Bad request - invalid data" }
+        }
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "tags": ["Products"],
+        "summary": "Get a product by ID",
+        "operationId": "get_product",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product ID",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/Uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProductModel" }
+              }
+            }
+          },
+          "404": { "description": "Product not found" }
+        }
+      },
+      "put": {
+        "tags": ["Products"],
+        "summary": "Update a product by ID",
+        "operationId": "update_product",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product ID",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/Uuid" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateProductRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Product updated successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProductModel" }
+              }
+            }
+          },
+          "400": { "description": "Bad request - invalid data" },
+          "404": { "description": "Product not found" }
+        }
+      },
+      "delete": {
+        "tags": ["Products"],
+        "summary": "Delete a product by ID",
+        "operationId": "delete_product",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product ID",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/Uuid" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Product deleted successfully" },
+          "400": { "description": "Bad request - invalid data" },
+          "404": { "description": "Product not found" }
+        }
+      }
+    },
+    "/products/{id}/media": {
+      "post": {
+        "tags": ["Products"],
+        "summary": "Upload media for a product",
+        "operationId": "upload_product_media",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product ID",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/Uuid" }
+          }
+        ],
+        "requestBody": {
+          "content": { "text/plain": { "schema": { "type": "string" } } },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Media uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MediaUploadResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid image or analysis failed"
+          },
+          "404": { "description": "Product not found" },
+          "500": { "description": "Internal server error - upload failed" }
+        }
+      },
+      "put": {
+        "tags": ["Products"],
+        "summary": "Replace media for a product",
+        "operationId": "edit_product_media",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product ID",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/Uuid" }
+          }
+        ],
+        "requestBody": {
+          "content": { "text/plain": { "schema": { "type": "string" } } },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Media replaced successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MediaUploadResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid image or analysis failed"
+          },
+          "404": { "description": "Product not found" },
+          "500": { "description": "Internal server error - upload failed" }
+        }
+      },
+      "delete": {
+        "tags": ["Products"],
+        "summary": "Delete media for a product",
+        "operationId": "delete_product_media",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product ID",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/Uuid" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Media deleted successfully" },
+          "404": { "description": "Product not found" },
+          "500": { "description": "Internal server error - deletion failed" }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "CreateProductRequest": {
+        "type": "object",
+        "required": [
+          "store_id",
+          "name",
+          "image_id",
+          "price",
+          "quantity_available"
+        ],
+        "properties": {
+          "description": { "type": "string", "nullable": true },
+          "image_id": { "$ref": "#/components/schemas/Uuid" },
+          "name": { "type": "string" },
+          "price": { "type": "number", "format": "double" },
+          "quantity_available": { "type": "integer", "format": "int32" },
+          "sku": { "type": "string", "nullable": true },
+          "store_id": { "$ref": "#/components/schemas/Uuid" }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "required": ["message"],
+        "properties": { "message": { "type": "string" } }
+      },
+      "ListProductsQuery": {
+        "type": "object",
+        "required": ["store_id"],
+        "properties": { "store_id": { "$ref": "#/components/schemas/Uuid" } }
+      },
+      "MediaUploadResponse": {
+        "type": "object",
+        "required": ["image_id", "s3_key"],
+        "properties": {
+          "image_id": { "$ref": "#/components/schemas/Uuid" },
+          "s3_key": { "type": "string" }
+        }
+      },
+      "Model": {
+        "type": "object",
+        "required": [
+          "id",
+          "store_id",
+          "name",
+          "image_id",
+          "price",
+          "quantity_available",
+          "created_at"
+        ],
+        "properties": {
+          "created_at": { "type": "string", "format": "date-time" },
+          "description": { "type": "string", "nullable": true },
+          "id": { "$ref": "#/components/schemas/Uuid" },
+          "image_id": { "$ref": "#/components/schemas/Uuid" },
+          "name": { "type": "string" },
+          "price": { "type": "number", "format": "double" },
+          "quantity_available": { "type": "integer", "format": "int32" },
+          "sku": { "type": "string", "nullable": true },
+          "store_id": { "$ref": "#/components/schemas/Uuid" }
+        }
+      },
       "PowCertificateRequest": {
         "type": "object",
         "description": "Proof of Work request for certificate issuance",
@@ -116,6 +414,18 @@
         "required": ["token"],
         "properties": { "token": { "type": "string" } }
       },
+      "UpdateProductRequest": {
+        "type": "object",
+        "required": ["name", "image_id", "price", "quantity_available"],
+        "properties": {
+          "description": { "type": "string", "nullable": true },
+          "image_id": { "$ref": "#/components/schemas/Uuid" },
+          "name": { "type": "string" },
+          "price": { "type": "number", "format": "double" },
+          "quantity_available": { "type": "integer", "format": "int32" },
+          "sku": { "type": "string", "nullable": true }
+        }
+      },
       "VerificationRequest": {
         "type": "object",
         "description": "Request for PoW verification",
@@ -128,5 +438,9 @@
       }
     }
   },
-  "tags": [{ "name": "transac", "description": "Transac API" }]
+  "tags": [
+    { "name": "System", "description": "System health and status endpoints" },
+    { "name": "POW", "description": "Proof of Work authentication endpoints" },
+    { "name": "Products", "description": "Product management endpoints" }
+  ]
 }

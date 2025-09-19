@@ -1,14 +1,17 @@
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set, QueryOrder,
+use crate::entity::product::{
+    self, ActiveModel as ProductActiveModel, Entity as ProductEntity, Model as ProductModel,
 };
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder, Set,
+};
+use tracing::{debug, error};
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
-use tracing::{error, debug};
-use entity::product::{self, Entity as ProductEntity, Model as ProductModel, ActiveModel as ProductActiveModel};
 
 pub struct Product;
 
+#[warn(clippy::too_many_arguments)]
 impl Product {
+
     pub async fn create(
         db: &DatabaseConnection,
         store_id: Uuid,
@@ -19,7 +22,7 @@ impl Product {
         price: f64,
         quantity_available: i32,
     ) -> Result<ProductModel, String> {
-        let mut product = ProductActiveModel {
+        let product = ProductActiveModel {
             store_id: Set(store_id),
             sku: Set(sku.map(|s| s.to_owned())),
             name: Set(name.to_owned()),
@@ -49,7 +52,10 @@ impl Product {
         Ok(product)
     }
 
-    pub async fn list_by_store(db: &DatabaseConnection, store_id: Uuid) -> Result<Vec<ProductModel>, String> {
+    pub async fn list_by_store(
+        db: &DatabaseConnection,
+        store_id: Uuid,
+    ) -> Result<Vec<ProductModel>, String> {
         let products = ProductEntity::find()
             .filter(product::Column::StoreId.eq(store_id))
             .order_by_desc(product::Column::CreatedAt)
@@ -61,7 +67,7 @@ impl Product {
             })?;
         Ok(products)
     }
-
+    #[warn(clippy::too_many_arguments)]
     pub async fn update(
         db: &DatabaseConnection,
         id: Uuid,
@@ -107,7 +113,7 @@ impl Product {
             })?
             .ok_or_else(|| "Product not found.".to_string())?;
 
-        let mut active: ProductActiveModel = product.into();
+        let active: ProductActiveModel = product.into();
         active.delete(db).await.map_err(|e| {
             error!("Failed to delete product {}: {:?}", id, e);
             "Failed to delete product. Please try again later.".to_string()

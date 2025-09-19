@@ -42,7 +42,7 @@ pub async fn crypto_validation_middleware(
     next: Next,
 ) -> Result<Response, StatusCode> {
     let path = request.uri().path();
-    
+
     // Skip validation for public endpoints
     if should_skip_validation(path) {
         info!(path = %path, "Skipping crypto validation for public endpoint");

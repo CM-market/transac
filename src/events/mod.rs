@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
+use uuid::Uuid;
 
 /// Event types for the system
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -25,6 +25,7 @@ pub struct Event {
 }
 
 /// Event handler trait
+#[async_trait::async_trait]
 pub trait EventHandler: Send + Sync {
     async fn handle_event(&self, event: &Event) -> Result<(), String>;
 }
@@ -47,14 +48,14 @@ impl EventDispatcher {
 
     pub async fn dispatch(&self, event: Event) -> Result<(), String> {
         info!("Dispatching event: {:?}", event);
-        
+
         for handler in &self.handlers {
             if let Err(e) = handler.handle_event(&event).await {
                 warn!("Event handler failed: {}", e);
                 // Continue with other handlers even if one fails
             }
         }
-        
+
         Ok(())
     }
 }

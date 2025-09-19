@@ -1,7 +1,5 @@
 use axum::extract::Multipart;
-use bytes::Bytes;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// Image analysis result
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -15,6 +13,7 @@ pub struct ImageAnalysisResult {
 }
 
 /// Image analysis service
+#[allow(dead_code)]
 pub struct ImageAnalysisService {
     max_file_size: u64,
     allowed_types: Vec<String>,
@@ -35,16 +34,31 @@ impl ImageAnalysisService {
         }
     }
 
-    pub async fn analyze_image(&self, multipart: &mut Multipart) -> Result<ImageAnalysisResult, String> {
+    #[allow(dead_code)]
+    pub async fn analyze_image(
+        &self,
+        multipart: &mut Multipart,
+    ) -> Result<ImageAnalysisResult, String> {
         let mut file_data = Vec::new();
         let mut content_type = String::new();
-        
+
         // Extract file from multipart
-        while let Some(field) = multipart.next_field().await.map_err(|e| format!("Failed to read multipart field: {}", e))? {
+        while let Some(mut field) = multipart
+            .next_field()
+            .await
+            .map_err(|e| format!("Failed to read multipart field: {e}"))?
+        {
             if field.name() == Some("file") {
-                content_type = field.content_type().unwrap_or("application/octet-stream").to_string();
-                
-                while let Some(chunk) = field.chunk().await.map_err(|e| format!("Failed to read chunk: {}", e))? {
+                content_type = field
+                    .content_type()
+                    .unwrap_or("application/octet-stream")
+                    .to_string();
+
+                while let Some(chunk) = field
+                    .chunk()
+                    .await
+                    .map_err(|e| format!("Failed to read chunk: {e}"))?
+                {
                     file_data.extend_from_slice(&chunk);
                 }
                 break;
@@ -67,12 +81,18 @@ impl ImageAnalysisService {
 
         // Check file size
         if file_size > self.max_file_size {
-            violations.push(format!("File size {} exceeds maximum allowed size {}", file_size, self.max_file_size));
+            violations.push(format!(
+                "File size {} exceeds maximum allowed size {}",
+                file_size, self.max_file_size
+            ));
         }
 
         // Check content type
         if !self.allowed_types.contains(&content_type) {
-            violations.push(format!("Content type {} is not allowed. Allowed types: {:?}", content_type, self.allowed_types));
+            violations.push(format!(
+                "Content type {} is not allowed. Allowed types: {:?}",
+                content_type, self.allowed_types
+            ));
         }
 
         // Basic image validation (check magic bytes)
@@ -87,8 +107,10 @@ impl ImageAnalysisService {
 
         if let (Some(w), Some(h)) = (width, height) {
             if w > self.max_dimensions.0 || h > self.max_dimensions.1 {
-                violations.push(format!("Image dimensions {}x{} exceed maximum allowed {}x{}", 
-                    w, h, self.max_dimensions.0, self.max_dimensions.1));
+                violations.push(format!(
+                    "Image dimensions {}x{} exceed maximum allowed {}x{}",
+                    w, h, self.max_dimensions.0, self.max_dimensions.1
+                ));
             }
         }
 
@@ -109,22 +131,30 @@ impl ImageAnalysisService {
 
         // Check for common image format magic bytes
         let magic_bytes = &data[0..4];
-        
+
         // JPEG: FF D8 FF
         if magic_bytes[0] == 0xFF && magic_bytes[1] == 0xD8 && magic_bytes[2] == 0xFF {
             return true;
         }
-        
+
         // PNG: 89 50 4E 47
-        if magic_bytes[0] == 0x89 && magic_bytes[1] == 0x50 && magic_bytes[2] == 0x4E && magic_bytes[3] == 0x47 {
+        if magic_bytes[0] == 0x89
+            && magic_bytes[1] == 0x50
+            && magic_bytes[2] == 0x4E
+            && magic_bytes[3] == 0x47
+        {
             return true;
         }
-        
+
         // GIF: 47 49 46 38
-        if magic_bytes[0] == 0x47 && magic_bytes[1] == 0x49 && magic_bytes[2] == 0x46 && magic_bytes[3] == 0x38 {
+        if magic_bytes[0] == 0x47
+            && magic_bytes[1] == 0x49
+            && magic_bytes[2] == 0x46
+            && magic_bytes[3] == 0x38
+        {
             return true;
         }
-        
+
         // WebP: Check for "WEBP" in the first 12 bytes
         if data.len() >= 12 && &data[8..12] == b"WEBP" {
             return true;
@@ -149,10 +179,15 @@ impl Default for ImageAnalysisService {
 }
 
 /// Stub implementation for development/testing
+#[allow(dead_code)]
 pub struct StubImageAnalysisService;
 
 impl StubImageAnalysisService {
-    pub async fn analyze_image(&self, _multipart: &mut Multipart) -> Result<ImageAnalysisResult, String> {
+    #[allow(dead_code)]
+    pub async fn analyze_image(
+        &self,
+        _multipart: &mut Multipart,
+    ) -> Result<ImageAnalysisResult, String> {
         // Always return valid for stub implementation
         Ok(ImageAnalysisResult {
             is_valid: true,

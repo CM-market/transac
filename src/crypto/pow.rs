@@ -5,8 +5,8 @@ use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use crate::error::AppError;
 use super::types::{PowChallenge, PowSolution};
+use crate::error::AppError;
 
 #[derive(Debug, Clone)]
 pub struct PowService {
@@ -52,10 +52,15 @@ impl PowService {
             .unwrap()
             .get(&solution.challenge_id)
             .cloned()
-            .ok_or_else(|| AppError::Validation(format!("Challenge not found: {}", solution.challenge_id)))?;
+            .ok_or_else(|| {
+                AppError::Validation(format!("Challenge not found: {}", solution.challenge_id))
+            })?;
 
         if Utc::now() > challenge.expires_at {
-            self.challenges.lock().unwrap().remove(&solution.challenge_id);
+            self.challenges
+                .lock()
+                .unwrap()
+                .remove(&solution.challenge_id);
             return Err(AppError::Validation("Challenge has expired".to_string()));
         }
 
@@ -71,7 +76,10 @@ impl PowService {
             )));
         }
 
-        self.challenges.lock().unwrap().remove(&solution.challenge_id);
+        self.challenges
+            .lock()
+            .unwrap()
+            .remove(&solution.challenge_id);
 
         Ok(())
     }
@@ -105,8 +113,8 @@ impl PowService {
     }
 
     fn generate_secure_random_string(&self, num_bytes: usize) -> String {
-        let mut rng = rand::thread_rng();
-        let random_bytes: Vec<u8> = (0..num_bytes).map(|_| rng.gen::<u8>()).collect();
+        let mut rng = rand::rng();
+        let random_bytes: Vec<u8> = (0..num_bytes).map(|_| rng.random::<u8>()).collect();
         base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(&random_bytes)
     }
 }
