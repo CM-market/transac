@@ -9,9 +9,8 @@ use uuid::Uuid;
 
 pub struct Product;
 
-#[warn(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments)]
 impl Product {
-
     pub async fn create(
         db: &DatabaseConnection,
         store_id: Uuid,
@@ -67,7 +66,6 @@ impl Product {
             })?;
         Ok(products)
     }
-    #[warn(clippy::too_many_arguments)]
     pub async fn update(
         db: &DatabaseConnection,
         id: Uuid,

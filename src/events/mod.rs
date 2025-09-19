@@ -4,6 +4,7 @@ use tracing::{info, warn};
 use uuid::Uuid;
 
 /// Event types for the system
+#[allow(clippy::enum_variant_names)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum EventType {
     ProductCreated,
