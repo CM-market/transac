@@ -148,7 +148,6 @@ pub async fn database_logging_middleware(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum::http::HeaderValue;
 
     #[test]
     fn test_get_client_ip_x_forwarded_for() {

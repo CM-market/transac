@@ -166,7 +166,7 @@ async fn main() -> anyhow::Result<()> {
         .merge(api_routes)
         // .merge(api::api_router(pool))  // Temporarily disabled due to state mismatch
         .layer(middleware::from_fn(
-           request_middleware::request_logging_middleware,
+            request_middleware::request_logging_middleware,
         ))
         .layer(
             TraceLayer::new_for_http()

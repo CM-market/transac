@@ -1,9 +1,7 @@
 use crate::entity::store::{
     self, ActiveModel as StoreActiveModel, Entity as StoreEntity, Model as StoreModel,
 };
-use sea_orm::{
-    ActiveModelTrait, DatabaseConnection, EntityTrait, QueryOrder, Set,
-};
+use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, QueryOrder, Set};
 use tracing::{debug, error};
 use uuid::Uuid;
 
@@ -12,7 +10,6 @@ pub struct Store;
 
 #[allow(dead_code)]
 impl Store {
-
     pub async fn create(
         db: &DatabaseConnection,
         name: &str,
