@@ -23,7 +23,7 @@ pub struct ImageAnalysisService {
 impl ImageAnalysisService {
     pub fn new() -> Self {
         Self {
-            max_file_size: 10 * 1024 * 1024, // 10MB
+            max_file_size: 6 * 1024 * 1024, // 10MB
             allowed_types: vec![
                 "image/jpeg".to_string(),
                 "image/png".to_string(),
