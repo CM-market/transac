@@ -40,6 +40,11 @@ struct HealthResponse {
     message: &'static str,
 }
 
+// Uuid schema for OpenAPI - represents a UUID string
+#[derive(Serialize, ToSchema)]
+#[schema(value_type = String, format = "uuid")]
+struct UuidSchema;
+
 /// Health check endpoint
 #[utoipa::path(
     get,
@@ -234,6 +239,7 @@ async fn main() -> anyhow::Result<()> {
     components(
         schemas(
             HealthResponse,
+            UuidSchema,
             crypto::types::PowChallenge,
             crypto::types::PowSolution,
             crypto::types::PowCertificateRequest,

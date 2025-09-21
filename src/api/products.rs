@@ -22,10 +22,12 @@ use uuid::Uuid;
 #[derive(Deserialize, ToSchema)]
 #[allow(dead_code)]
 pub struct CreateProductRequest {
+    #[schema(value_type = String, format = "uuid")]
     pub store_id: Uuid,
     pub sku: Option<String>,
     pub name: String,
     pub description: Option<String>,
+    #[schema(value_type = String, format = "uuid")]
     pub image_id: Uuid,
     pub price: f64,
     pub quantity_available: i32,
@@ -37,6 +39,7 @@ pub struct UpdateProductRequest {
     pub sku: Option<String>,
     pub name: String,
     pub description: Option<String>,
+    #[schema(value_type = String, format = "uuid")]
     pub image_id: Uuid,
     pub price: f64,
     pub quantity_available: i32,
@@ -45,6 +48,7 @@ pub struct UpdateProductRequest {
 #[allow(dead_code)]
 #[derive(Deserialize, ToSchema)]
 pub struct ListProductsQuery {
+    #[schema(value_type = String, format = "uuid")]
     pub store_id: Uuid,
 }
 #[allow(dead_code)]
@@ -95,7 +99,7 @@ pub struct ProductApiState {
     path = "/products",
     request_body = CreateProductRequest,
     responses(
-        (status = 201, description = "Product created successfully", body = ProductModel),
+        (status = 201, description = "Product created successfully", body = Model),
         (status = 400, description = "Bad request - invalid data")
     ),
     tag = "Products"
@@ -140,10 +144,10 @@ async fn create_product(
     get,
     path = "/products/{id}",
     params(
-        ("id" = Uuid, Path, description = "Product ID")
+        ("id" = UuidSchema, Path, description = "Product ID")
     ),
     responses(
-        (status = 200, description = "Product found", body = ProductModel),
+        (status = 200, description = "Product found", body = Model),
         (status = 404, description = "Product not found")
     ),
     tag = "Products"
@@ -163,10 +167,10 @@ async fn get_product(
     get,
     path = "/products",
     params(
-        ("store_id" = Uuid, Query, description = "Store ID to filter products")
+        ("store_id" = UuidSchema, Query, description = "Store ID to filter products")
     ),
     responses(
-        (status = 200, description = "Products found", body = Vec<ProductModel>),
+        (status = 200, description = "Products found", body = Vec<Model>),
         (status = 400, description = "Bad request - invalid store ID")
     ),
     tag = "Products"
@@ -186,11 +190,11 @@ async fn list_products(
     put,
     path = "/products/{id}",
     params(
-        ("id" = Uuid, Path, description = "Product ID")
+        ("id" = UuidSchema, Path, description = "Product ID")
     ),
     request_body = UpdateProductRequest,
     responses(
-        (status = 200, description = "Product updated successfully", body = ProductModel),
+        (status = 200, description = "Product updated successfully", body = Model),
         (status = 400, description = "Bad request - invalid data"),
         (status = 404, description = "Product not found")
     ),
@@ -237,7 +241,7 @@ async fn update_product(
     delete,
     path = "/products/{id}",
     params(
-        ("id" = Uuid, Path, description = "Product ID")
+        ("id" = UuidSchema, Path, description = "Product ID")
     ),
     responses(
         (status = 204, description = "Product deleted successfully"),
@@ -271,6 +275,7 @@ async fn delete_product(
 
 #[derive(Serialize, ToSchema)]
 pub struct MediaUploadResponse {
+    #[schema(value_type = String, format = "uuid")]
     image_id: Uuid,
     s3_key: String,
 }
@@ -280,7 +285,7 @@ pub struct MediaUploadResponse {
     post,
     path = "/products/{id}/media",
     params(
-        ("id" = Uuid, Path, description = "Product ID")
+        ("id" = UuidSchema, Path, description = "Product ID")
     ),
     request_body = String,
     responses(
@@ -373,7 +378,7 @@ pub async fn upload_product_media(
     put,
     path = "/products/{id}/media",
     params(
-        ("id" = Uuid, Path, description = "Product ID")
+        ("id" = UuidSchema, Path, description = "Product ID")
     ),
     request_body = String,
     responses(
@@ -478,7 +483,7 @@ pub async fn edit_product_media(
     delete,
     path = "/products/{id}/media",
     params(
-        ("id" = Uuid, Path, description = "Product ID")
+        ("id" = UuidSchema, Path, description = "Product ID")
     ),
     responses(
         (status = 200, description = "Media deleted successfully"),

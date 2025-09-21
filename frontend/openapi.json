@@ -81,7 +81,7 @@
             "in": "query",
             "description": "Store ID to filter products",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/Uuid" }
+            "schema": { "$ref": "#/components/schemas/UuidSchema" }
           }
         ],
         "responses": {
@@ -91,7 +91,7 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/ProductModel" }
+                  "items": { "$ref": "#/components/schemas/Model" }
                 }
               }
             }
@@ -116,7 +116,7 @@
             "description": "Product created successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProductModel" }
+                "schema": { "$ref": "#/components/schemas/Model" }
               }
             }
           },
@@ -135,7 +135,7 @@
             "in": "path",
             "description": "Product ID",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/Uuid" }
+            "schema": { "$ref": "#/components/schemas/UuidSchema" }
           }
         ],
         "responses": {
@@ -143,7 +143,7 @@
             "description": "Product found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProductModel" }
+                "schema": { "$ref": "#/components/schemas/Model" }
               }
             }
           },
@@ -160,7 +160,7 @@
             "in": "path",
             "description": "Product ID",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/Uuid" }
+            "schema": { "$ref": "#/components/schemas/UuidSchema" }
           }
         ],
         "requestBody": {
@@ -176,7 +176,7 @@
             "description": "Product updated successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ProductModel" }
+                "schema": { "$ref": "#/components/schemas/Model" }
               }
             }
           },
@@ -194,7 +194,7 @@
             "in": "path",
             "description": "Product ID",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/Uuid" }
+            "schema": { "$ref": "#/components/schemas/UuidSchema" }
           }
         ],
         "responses": {
@@ -215,7 +215,7 @@
             "in": "path",
             "description": "Product ID",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/Uuid" }
+            "schema": { "$ref": "#/components/schemas/UuidSchema" }
           }
         ],
         "requestBody": {
@@ -248,7 +248,7 @@
             "in": "path",
             "description": "Product ID",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/Uuid" }
+            "schema": { "$ref": "#/components/schemas/UuidSchema" }
           }
         ],
         "requestBody": {
@@ -281,7 +281,7 @@
             "in": "path",
             "description": "Product ID",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/Uuid" }
+            "schema": { "$ref": "#/components/schemas/UuidSchema" }
           }
         ],
         "responses": {
@@ -305,12 +305,12 @@
         ],
         "properties": {
           "description": { "type": "string", "nullable": true },
-          "image_id": { "$ref": "#/components/schemas/Uuid" },
+          "image_id": { "$ref": "#/components/schemas/UuidSchema" },
           "name": { "type": "string" },
           "price": { "type": "number", "format": "double" },
           "quantity_available": { "type": "integer", "format": "int32" },
           "sku": { "type": "string", "nullable": true },
-          "store_id": { "$ref": "#/components/schemas/Uuid" }
+          "store_id": { "$ref": "#/components/schemas/UuidSchema" }
         }
       },
       "HealthResponse": {
@@ -321,13 +321,15 @@
       "ListProductsQuery": {
         "type": "object",
         "required": ["store_id"],
-        "properties": { "store_id": { "$ref": "#/components/schemas/Uuid" } }
+        "properties": {
+          "store_id": { "$ref": "#/components/schemas/UuidSchema" }
+        }
       },
       "MediaUploadResponse": {
         "type": "object",
         "required": ["image_id", "s3_key"],
         "properties": {
-          "image_id": { "$ref": "#/components/schemas/Uuid" },
+          "image_id": { "$ref": "#/components/schemas/UuidSchema" },
           "s3_key": { "type": "string" }
         }
       },
@@ -345,13 +347,13 @@
         "properties": {
           "created_at": { "type": "string", "format": "date-time" },
           "description": { "type": "string", "nullable": true },
-          "id": { "$ref": "#/components/schemas/Uuid" },
-          "image_id": { "$ref": "#/components/schemas/Uuid" },
+          "id": { "$ref": "#/components/schemas/UuidSchema" },
+          "image_id": { "$ref": "#/components/schemas/UuidSchema" },
           "name": { "type": "string" },
           "price": { "type": "number", "format": "double" },
           "quantity_available": { "type": "integer", "format": "int32" },
           "sku": { "type": "string", "nullable": true },
-          "store_id": { "$ref": "#/components/schemas/Uuid" }
+          "store_id": { "$ref": "#/components/schemas/UuidSchema" }
         }
       },
       "PowCertificateRequest": {
@@ -419,13 +421,14 @@
         "required": ["name", "image_id", "price", "quantity_available"],
         "properties": {
           "description": { "type": "string", "nullable": true },
-          "image_id": { "$ref": "#/components/schemas/Uuid" },
+          "image_id": { "$ref": "#/components/schemas/UuidSchema" },
           "name": { "type": "string" },
           "price": { "type": "number", "format": "double" },
           "quantity_available": { "type": "integer", "format": "int32" },
           "sku": { "type": "string", "nullable": true }
         }
       },
+      "UuidSchema": { "default": null, "nullable": true },
       "VerificationRequest": {
         "type": "object",
         "description": "Request for PoW verification",
