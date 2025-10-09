@@ -53,7 +53,7 @@ services:
       - transac_net
 
   backend:
-    image: ghcr.io/${REPO_LOWER:-yourorg/yourrepo}/backend:latest
+    image: ghcr.io/cm-market/transac/backend:latest
     container_name: transac_backend
     depends_on:
       db:
@@ -76,7 +76,7 @@ services:
       - transac_net
 
   frontend:
-    image: ghcr.io/${REPO_LOWER:-yourorg/yourrepo}/frontend:latest
+    image: ghcr.io/cm-market/transac/frontend:latest
     container_name: transac_frontend
     depends_on:
       backend:
