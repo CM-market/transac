@@ -1,47 +1,126 @@
-## Docker Compose Deployment
+# Deployment Guide for transac.site
 
-### Prerequisites
-- Docker and Docker Compose installed
+This guide explains how to deploy the Transac application using the provided GitHub Actions workflow and Docker Compose configuration.
 
-### Services
-- Postgres `db` on internal network
-- MinIO `minio` with console on 9001 and S3 on 9000; `minio-mc` job ensures bucket `transac-media`
-- Rust backend `backend` (Axum) on port 3001 (internal), connects to Postgres and MinIO
-- Frontend `frontend` (Nginx) on port 8080, proxies `/api` and `/swagger-ui` to backend, serves SPA and `/openapi.json`
+---
 
-### Environment
-Copy and adapt values into your shell or a `.env` file before running compose:
+## 1. Prerequisites
 
-```bash
-export DATABASE_URL=postgres://user:password@db:5432/transac_db
-export POW_DIFFICULTY=4
-export POW_TIMEOUT_MINUTES=10
-export RUST_LOG=info
+- **Production server** (Ubuntu recommended) with:
+  - Docker and Docker Compose installed
+  - Sufficient disk space and memory
+  - Open ports: 80, 443, 3001, 9000, 9001 (as needed)
+- **SSL certificates** for `transac.site` placed at `/etc/ssl/certs/transac.site/fullchain.pem` and `/etc/ssl/certs/transac.site/privkey.pem` on the server
+- **GitHub repository access** with Actions enabled and secrets configured:
+  - `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY` (for SSH deployment)
+  - `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `JWT_SECRET`, `VITE_TRANSAC_WEBAUTH_RP_ID`, `VITE_TRANSAC_WEBAUTH_RP_NAME` (as needed)
 
-export S3_BUCKET_NAME=transac-media
-export AWS_REGION=us-east-1
-export AWS_ACCESS_KEY_ID=minioadmin
-export AWS_SECRET_ACCESS_KEY=minioadmin
-export AWS_ENDPOINT_URL=http://minio:9000
+---
 
-export VITE_TRANSAC_WEBAUTH_RP_ID=localhost
-export VITE_TRANSAC_WEBAUTH_RP_NAME="Transac Dev"
-```
+## 2. CI/CD Workflow
 
-### Build and Run
+### Build and Push Images
 
-```bash
-docker compose build --pull
-docker compose up -d
-```
+- On every push to `main`, GitHub Actions will:
+  - Build Docker images for `frontend` and `backend`
+  - Tag and push them to GitHub Container Registry (`ghcr.io`)
 
-### Access
-- Frontend: http://localhost:8080
-- API health: http://localhost:8080/healthz (proxied)
-- Swagger UI: http://localhost:8080/swagger-ui
-- MinIO console: http://localhost:9001 (user/pass: `minioadmin`/`minioadmin`)
+### Deploy Job
 
-### Notes
-- Frontend determines API base from current origin and proxies via Nginx.
-- Backend exposes OpenAPI at `/api-docs/openapi.json` but the frontend ships `/openapi.json` statically; you can update it during CI if needed.
-- Adjust Postgres credentials or ports as required.
+- The workflow will:
+  - SSH into your production server
+  - Pull the latest code and images
+  - Generate `docker-compose.prod.yml` with correct image tags and environment
+  - Mount SSL certs for HTTPS
+  - Start all services with Docker Compose
+  - Perform a health check and rollback if needed
+
+---
+
+## 3. Manual Deployment Steps
+
+If you need to deploy manually or troubleshoot:
+
+1. **Clone the repository** (if not already present):
+
+   ```sh
+   git clone https://github.com/<your-org>/<your-repo>.git
+   cd <your-repo>
+   ```
+
+2. **Ensure SSL certs are present:**
+
+   - Place `fullchain.pem` and `privkey.pem` for `transac.site` in `/etc/ssl/certs/transac.site/` on the server.
+
+3. **Set up environment variables** (if not using GitHub Actions):
+
+   - Create a `.env` file or export variables as needed for secrets.
+
+4. **Pull latest images:**
+
+   ```sh
+   docker compose -f docker-compose.yml pull
+   ```
+
+5. **Start services:**
+
+   ```sh
+   docker compose -f docker-compose.yml up -d
+   ```
+
+6. **Verify deployment:**
+
+   - Visit `https://transac.site` in your browser.
+   - Check logs with `docker compose logs -f`.
+
+---
+
+## 4. Service Overview
+
+- **Frontend**: React app served by Nginx, HTTPS enabled via mounted certs.
+- **Backend**: Rust API, listens on port 3001.
+- **Database**: Postgres, internal only.
+- **MinIO**: S3-compatible storage, internal only.
+- **Certbot/letsencrypt**: Used for certificate renewal (if configured).
+
+---
+
+## 5. Troubleshooting
+
+- **SSL Issues**: Ensure certs are present and permissions are correct.
+- **Health Check Failures**: Check backend logs and database connectivity.
+- **Image Pull Issues**: Ensure GitHub Container Registry access and authentication.
+
+---
+
+## 6. Useful Commands
+
+- Restart all services:
+
+  ```sh
+  docker compose -f docker-compose.yml restart
+  ```
+
+- View logs for a service:
+
+  ```sh
+  docker compose logs -f frontend
+  ```
+
+- Renew certificates (if using certbot):
+
+  ```sh
+  docker compose run --rm certbot renew
+  ```
+
+---
+
+## 7. References
+
+- [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml)
+- [`docker-compose.yml`](../docker-compose.yml)
+- [frontend/nginx.ssl.template.conf](../frontend/nginx.ssl.template.conf)
+
+---
+
+**Deployment is now fully automated and production-ready for transac.site.**

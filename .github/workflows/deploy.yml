@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - '**'
 
 env:
   REGISTRY: ghcr.io
@@ -60,7 +61,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
-          file: ./frontend/Dockerfile
+          file: ./frontend/Dockerfile.frontend
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:latest
@@ -72,8 +73,8 @@ jobs:
       - name: Build and push Backend image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: .
+          file: ./Dockerfile.backend
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:latest
@@ -116,16 +117,14 @@ jobs:
                 - "80:80"
                 - "443:443"
               environment:
-                - BACKEND_URL=http://backend:8000
-                - VITE_API_URL=https://rustcameroon.com/api
-                - NGINX_CONFIG=https
+                - VITE_TRANSAC_WEBAUTH_RP_ID=${{ secrets.VITE_TRANSAC_WEBAUTH_RP_ID || 'prod-id' }}
+                - VITE_TRANSAC_WEBAUTH_RP_NAME=${{ secrets.VITE_TRANSAC_WEBAUTH_RP_NAME || 'prod-name' }}
               volumes:
-                - /root/certs/rustcameroon.com-0001:/etc/letsencrypt/live/rustcameroon.com-0001:ro
+                - /etc/ssl/certs/transac.site:/etc/letsencrypt/live/transac.site:ro
               user: "0:0"
               depends_on:
                 - backend
                 - minio
-              restart: unless-stopped
               ulimits:
                 nofile:
                   soft: 65536
@@ -135,18 +134,15 @@ jobs:
               image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${IMAGE_TAG}
               restart: unless-stopped
               environment:
-                - RUST_LOG=info
-                - PORT=8000
-                - DATABASE_URL=postgres://user:password@localhost:5432/rustcameroon
-                - MINIO_ENDPOINT=http://minio:9000
-                - MINIO_ACCESS_KEY=minioadmin
-                - MINIO_SECRET_KEY=minioadmin123
-                - MINIO_BUCKET=rust-cameroon-images
-              volumes:
-                - ./backend/posts.json:/app/posts.json:rw
+                - DATABASE_URL=postgres://user:password@db:5432/transac_db
+                - POW_DIFFICULTY=4
+                - POW_TIMEOUT_MINUTES=10
+                - S3_BUCKET_NAME=transac-media
+                - JWT_SECRET=${{ secrets.JWT_SECRET || 'your-secret-key-change-in-production' }}
+              ports:
+                - "3001:3001"
               depends_on:
-                - minio
-              restart: unless-stopped
+                - db
 
             minio:
               image: minio/minio:latest
@@ -178,7 +174,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             # Set application directory
-            APP_DIR="${EC2_APP_DIR:-Newsletter}"
+            APP_DIR="${EC2_APP_DIR:-transac}"
             
             echo "=== DEBUGGING INFORMATION ==="
             echo "Current user: $(whoami)"
@@ -242,7 +238,7 @@ jobs:
           username: ${{ secrets.EC2_USER || 'ubuntu' }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            APP_DIR="${EC2_APP_DIR:-Newsletter}"
+            APP_DIR="${EC2_APP_DIR:-transac}"
             
             sudo bash -c '
               # Navigate to root home directory first
@@ -275,7 +271,7 @@ jobs:
           username: ${{ secrets.EC2_USER || 'ubuntu' }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            APP_DIR="${EC2_APP_DIR:-Newsletter}"
+            APP_DIR="${EC2_APP_DIR:-transac}"
             HEALTH_CHECK_URL="https://rustcameroon.com/api"
             
             sudo bash -c '
@@ -296,29 +292,29 @@ jobs:
               echo "Changed to app directory: $(pwd)"
               echo "Directory contents:"
               ls -la
-            
+              
               echo "Pulling latest images..."
               docker compose -f docker-compose.prod.yml pull
-            
+              
               echo "Stopping old containers..."
               docker compose -f docker-compose.prod.yml down
-            
+              
               echo "Starting new containers..."
               docker compose -f docker-compose.prod.yml up -d --no-deps
-            
+              
               # Health check with proper rollback
               echo "Waiting for services to start..."
               sleep 30
-            
+              
               echo "Performing health check on: '"$HEALTH_CHECK_URL"'"
               if ! curl -f -s --max-time 10 "'"$HEALTH_CHECK_URL"'" > /dev/null; then
                 echo "Health check failed! Attempting rollback..."
                 docker compose -f docker-compose.prod.yml down
-            
+              
                 if [ -f "docker-compose.rollback.yml" ]; then
                   echo "Rolling back to previous deployment..."
                   docker compose -f docker-compose.rollback.yml up -d --no-deps
-            
+              
                   # Wait and check if rollback was successful
                   sleep 30
                   if curl -f -s --max-time 10 "'"$HEALTH_CHECK_URL"'" > /dev/null; then
@@ -333,7 +329,7 @@ jobs:
                   # Try to restart with the same compose file but force pull latest
                   docker compose -f docker-compose.prod.yml pull
                   docker compose -f docker-compose.prod.yml up -d --no-deps
-            
+              
                   # Wait and check again
                   sleep 30
                   if curl -f -s --max-time 10 "'"$HEALTH_CHECK_URL"'" > /dev/null; then
@@ -345,7 +341,7 @@ jobs:
                   fi
                 fi
               fi
-            
+              
               echo "Deployment successful!"
               echo "Saving successful deployment SHA: ${{ env.GIT_SHA }}"
               echo "${{ env.GIT_SHA }}" > .last-successful-deploy

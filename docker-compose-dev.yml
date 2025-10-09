@@ -53,7 +53,9 @@ services:
       - transac_net
 
   backend:
-    image: ghcr.io/${REPO_LOWER:-yourorg/yourrepo}/backend:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
     container_name: transac_backend
     depends_on:
       db:
@@ -62,10 +64,14 @@ services:
       DATABASE_URL: postgres://user:password@db:5432/transac_db
       POW_DIFFICULTY: 4
       POW_TIMEOUT_MINUTES: 10
+      RUST_LOG: info
       S3_BUCKET_NAME: transac-media
-      JWT_SECRET: your-secret-key-change-in-production
-    ports:
-      - "3001:3001"
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_ENDPOINT_URL: http://minio:9000
+    expose:
+      - "3001"
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:3001/healthz"]
       interval: 5s
@@ -76,7 +82,9 @@ services:
       - transac_net
 
   frontend:
-    image: ghcr.io/${REPO_LOWER:-yourorg/yourrepo}/frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
     container_name: transac_frontend
     depends_on:
       backend:
@@ -84,10 +92,6 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    environment:
-      - VITE_TRANSAC_WEBAUTH_RP_ID=dev-id
-      - VITE_TRANSAC_WEBAUTH_RP_NAME=dev-name
-      - SERVER_NAME=transac.site
     volumes:
       - letsencrypt:/etc/letsencrypt
       - certbot_challenges:/var/www/certbot
