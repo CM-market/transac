@@ -7,11 +7,117 @@ services:
       POSTGRES_DB: transac_db
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-    ports:
-      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d transac_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     volumes:
       - transac_db_data:/var/lib/postgresql/data
+    networks:
+      - transac_net
+
+  minio:
+    image: minio/minio:latest
+    container_name: transac_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - minio_data:/data
+    networks:
+      - transac_net
+
+  minio-mc:
+    image: minio/mc:latest
+    container_name: transac_minio_mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command: >-
+      "mc alias set local http://minio:9000 minioadmin minioadmin &&
+      mc mb --ignore-existing local/transac-media &&
+      mc anonymous set download local/transac-media &&
+      echo 'MinIO bucket ensured' && sleep 2 && exit 0"
+    networks:
+      - transac_net
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: transac_backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://user:password@db:5432/transac_db
+      POW_DIFFICULTY: 4
+      POW_TIMEOUT_MINUTES: 10
+      RUST_LOG: info
+      S3_BUCKET_NAME: transac-media
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_ENDPOINT_URL: http://minio:9000
+    expose:
+      - "3001"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3001/healthz"]
+      interval: 5s
+      timeout: 5s
+      start_period: 40s
+      retries: 30
+    networks:
+      - transac_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: transac_frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot_challenges:/var/www/certbot
+    networks:
+      - transac_net
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: transac_certbot
+    depends_on:
+      frontend:
+        condition: service_started
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot_challenges:/var/www/certbot
+    # Use `docker compose run --rm --entrypoint certbot certbot <args>` via the script
+
+networks:
+  transac_net: {}
 
 volumes:
   transac_db_data:
+    driver: local
+  minio_data:
+    driver: local
+  letsencrypt:
+    driver: local
+  certbot_challenges:
     driver: local
