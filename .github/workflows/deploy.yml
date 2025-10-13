@@ -165,6 +165,9 @@ jobs:
           volumes:
             minio_data:
           EOF
+          
+          # Verify the creation of docker-compose.prod.yml
+          ls -la docker-compose.prod.yml
 
       - name: Validate deployment environment
         uses: appleboy/ssh-action@v0.1.10
@@ -272,7 +275,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             APP_DIR="${EC2_APP_DIR:-transac}"
-            HEALTH_CHECK_URL="https://rustcameroon.com/api"
+            HEALTH_CHECK_URL="https://transac.site/api"
             
             sudo bash -c '
               echo "=== DEPLOYMENT DEBUGGING ==="
