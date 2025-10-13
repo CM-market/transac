@@ -30,14 +30,9 @@ docker compose run --rm --entrypoint certbot certbot \
 	--agree-tos --no-eff-email \
 	-m "$EMAIL" -d "$DOMAIN"
 
-# Render SSL nginx config from template
-TMP_CONF=$(mktemp)
-sed "s/${SERVER_NAME}/${DOMAIN}/g" frontend/nginx.ssl.template.conf > "$TMP_CONF"
-
-# Copy SSL config into the running frontend container
+# Directly copy the existing SSL config into the running frontend container
 CID=$(docker compose ps -q frontend)
-docker cp "$TMP_CONF" "$CID":/etc/nginx/conf.d/default.conf
-rm -f "$TMP_CONF"
+docker cp frontend/nginx.ssl.template.conf "$CID":/etc/nginx/conf.d/default.conf
 
 # Reload nginx
 docker exec "$CID" nginx -s reload
