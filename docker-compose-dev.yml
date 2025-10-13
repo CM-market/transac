@@ -91,23 +91,8 @@ services:
         condition: service_healthy
     ports:
       - "80:80"
-      - "443:443"
-    volumes:
-      - letsencrypt:/etc/letsencrypt
-      - certbot_challenges:/var/www/certbot
     networks:
       - transac_net
-
-  certbot:
-    image: certbot/certbot:latest
-    container_name: transac_certbot
-    depends_on:
-      frontend:
-        condition: service_started
-    volumes:
-      - letsencrypt:/etc/letsencrypt
-      - certbot_challenges:/var/www/certbot
-    # Use `docker compose run --rm --entrypoint certbot certbot <args>` via the script
 
 networks:
   transac_net: {}
@@ -116,8 +101,4 @@ volumes:
   transac_db_data:
     driver: local
   minio_data:
-    driver: local
-  letsencrypt:
-    driver: local
-  certbot_challenges:
     driver: local
