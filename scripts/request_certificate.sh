@@ -36,8 +36,17 @@ sed "s/${SERVER_NAME}/${DOMAIN}/g" frontend/nginx.ssl.template.conf > "$TMP_CONF
 
 # Copy SSL config into the running frontend container
 CID=$(docker compose ps -q frontend)
-docker cp "$TMP_CONF" "$CID":/etc/nginx/conf.d/default.conf
-rm -f "$TMP_CONF"
+# Check if the temporary file exists before copying
+if [ -f "$TMP_CONF" ]; then
+    docker cp "$TMP_CONF" "$CID":/etc/nginx/conf.d/default.conf
+    rm -f "$TMP_CONF"
+else
+    echo "Temporary configuration file not found. Creating a new one."
+    TMP_CONF=$(mktemp)
+    sed "s/${SERVER_NAME}/${DOMAIN}/g" frontend/nginx.ssl.template.conf > "$TMP_CONF"
+    docker cp "$TMP_CONF" "$CID":/etc/nginx/conf.d/default.conf
+    rm -f "$TMP_CONF"
+fi
 
 # Reload nginx
 docker exec "$CID" nginx -s reload
