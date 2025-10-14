@@ -98,7 +98,7 @@ jobs:
           echo "IMAGE_NAME_BACKEND=$REPO_LOWER/backend" >> $GITHUB_ENV
           echo "GIT_SHA=${{ needs.build-and-push.outputs.git-sha }}" >> $GITHUB_ENV
 
-      - name: Generate docker-compose.prod.yml
+      - name: Generate docker-compose.yml
         run: |
           # Use latest tag for main branch, SHA tag for other branches
           if [ "${{ github.ref_name }}" = "main" ]; then
@@ -107,7 +107,7 @@ jobs:
             IMAGE_TAG="${{ env.GIT_SHA }}"
           fi
           
-          cat > docker-compose.prod.yml <<EOF
+          cat > docker-compose.yml <<EOF
           version: "3.9"
           services:
             frontend:
@@ -166,8 +166,8 @@ jobs:
             minio_data:
           EOF
           
-          # Verify the creation of docker-compose.prod.yml
-          ls -la docker-compose.prod.yml
+          # Verify the creation of docker-compose.yml
+          ls -la docker-compose.yml
 
       - name: Validate deployment environment
         uses: appleboy/ssh-action@v0.1.10
@@ -258,9 +258,9 @@ jobs:
               echo "Git pull completed"
             
               # Save current deployment state for rollback
-              if [ -f "docker-compose.prod.yml" ]; then
+              if [ -f "docker-compose.yml" ]; then
                 echo "Saving current deployment state..."
-                cp docker-compose.prod.yml docker-compose.rollback.yml
+                cp docker-compose.yml docker-compose.rollback.yml
                 echo "Current state saved for rollback"
               else
                 echo "No existing deployment found, skipping rollback preparation"
@@ -297,13 +297,13 @@ jobs:
               ls -la
               
               echo "Pulling latest images..."
-              docker compose -f docker-compose.prod.yml pull
+              docker compose -f docker-compose.yml pull
               
               echo "Stopping old containers..."
-              docker compose -f docker-compose.prod.yml down
+              docker compose -f docker-compose.yml down
               
               echo "Starting new containers..."
-              docker compose -f docker-compose.prod.yml up -d --no-deps
+              docker compose -f docker-compose.yml up -d --no-deps
               
               # Health check with proper rollback
               echo "Waiting for services to start..."
@@ -312,7 +312,7 @@ jobs:
               echo "Performing health check on: '"$HEALTH_CHECK_URL"'"
               if ! curl -f -s --max-time 10 "'"$HEALTH_CHECK_URL"'" > /dev/null; then
                 echo "Health check failed! Attempting rollback..."
-                docker compose -f docker-compose.prod.yml down
+                docker compose -f docker-compose.yml down
               
                 if [ -f "docker-compose.rollback.yml" ]; then
                   echo "Rolling back to previous deployment..."
@@ -330,8 +330,8 @@ jobs:
                 else
                   echo "No rollback file found. Trying to restart with latest images..."
                   # Try to restart with the same compose file but force pull latest
-                  docker compose -f docker-compose.prod.yml pull
-                  docker compose -f docker-compose.prod.yml up -d --no-deps
+                  docker compose -f docker-compose.yml pull
+                  docker compose -f docker-compose.yml up -d --no-deps
               
                   # Wait and check again
                   sleep 30
