@@ -1,12 +1,12 @@
 //! Cryptographic module for Proof of Work (POW) implementation
-//! 
+//!
 //! This module provides:
 //! - POW challenge generation and verification
 //! - Cryptographic middleware for request validation
 //! - Certificate-based authentication
 
-pub mod pow;
 pub mod middleware;
+pub mod pow;
 
 // Re-export main components
 pub use pow::PowService;

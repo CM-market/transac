@@ -1,3 +1,4 @@
+use sea_orm::prelude::Uuid;
 use sea_orm::{
     ActiveModelTrait, DatabaseConnection, EntityTrait, Set, QueryOrder,
 };
@@ -27,7 +28,7 @@ impl Store {
         Ok(res)
     }
 
-    pub async fn get(db: &DatabaseConnection, id: i64) -> Result<StoreModel, String> {
+    pub async fn get(db: &DatabaseConnection, id: Uuid) -> Result<StoreModel, String> {
         let store = StoreEntity::find_by_id(id)
             .one(db)
             .await
@@ -53,7 +54,7 @@ impl Store {
 
     pub async fn update(
         db: &DatabaseConnection,
-        id: i64,
+        id: Uuid,
         name: &str,
         description: Option<&str>,
     ) -> Result<StoreModel, String> {
@@ -65,11 +66,11 @@ impl Store {
                 "Failed to update store. Please try again later.".to_string()
             })?
             .ok_or_else(|| "Store not found.".to_string())?;
-    
+
         let mut active: StoreActiveModel = store.into();
         active.name = Set(name.to_owned());
         active.description = Set(description.map(|d| d.to_owned()));
-    
+
         let res = active.update(db).await.map_err(|e| {
             error!("Failed to update store {}: {:?}", id, e);
             "Failed to update store. Please try again later.".to_string()
@@ -78,7 +79,7 @@ impl Store {
         Ok(res)
     }
 
-    pub async fn delete(db: &DatabaseConnection, id: i64) -> Result<(), String> {
+    pub async fn delete(db: &DatabaseConnection, id: Uuid) -> Result<(), String> {
         let store = StoreEntity::find_by_id(id)
             .one(db)
             .await
@@ -87,8 +88,8 @@ impl Store {
                 "Failed to delete store. Please try again later.".to_string()
             })?
             .ok_or_else(|| "Store not found.".to_string())?;
-    
-        let active: StoreActiveModel = store.into();
+
+        let mut active: StoreActiveModel = store.into();
         active.delete(db).await.map_err(|e| {
             error!("Failed to delete store {}: {:?}", id, e);
             "Failed to delete store. Please try again later.".to_string()
@@ -96,5 +97,4 @@ impl Store {
         debug!("Store deleted: {}", id);
         Ok(())
     }
-    // get_by_phone removed: stores table does not have a phone_number column
 }

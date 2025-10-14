@@ -1,5 +1,5 @@
-use serde::Deserialize;
 use dotenvy::dotenv;
+use serde::Deserialize;
 use std::env;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -15,11 +15,11 @@ impl Config {
         dotenv().ok();
         let database_url = env::var("DATABASE_URL")
             .map_err(|_| anyhow::anyhow!("DATABASE_URL must be set in environment"))?;
-        
+
         let pow_difficulty = env::var("POW_DIFFICULTY")
             .unwrap_or_else(|_| "4".to_string())
             .parse::<u32>()?;
-            
+
         let pow_timeout_minutes = env::var("POW_TIMEOUT_MINUTES")
             .unwrap_or_else(|_| "10".to_string())
             .parse::<i64>()?;

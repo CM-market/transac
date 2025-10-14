@@ -1,3 +1,6 @@
+mod jwt_service;
+pub use jwt_service::JwtService;
+
 use serde::{Deserialize, Serialize};
 use jsonwebtoken::{encode, decode, Header, Validation, EncodingKey, DecodingKey, TokenData, errors::Error as JwtError};
 use chrono::{Utc, Duration};

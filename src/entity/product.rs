@@ -1,14 +1,21 @@
-use sea_orm::entity::prelude::*;
 use chrono::{DateTime, Utc};
+use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
+use uuid::Uuid;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, ToSchema)]
 #[sea_orm(table_name = "products")]
 pub struct Model {
     #[sea_orm(primary_key)]
+    #[schema(value_type = String, format = "uuid")]
     pub id: Uuid,
-    pub store_id: i64,
+    #[schema(value_type = String, format = "uuid")]
+    pub store_id: Uuid,
+    pub sku: Option<String>,
     pub name: String,
     pub description: Option<String>,
+    #[schema(value_type = String, format = "uuid")]
     pub image_id: Uuid,
     pub price: f64,
     pub quantity_available: i32,

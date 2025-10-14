@@ -3,10 +3,9 @@ mod tests {
     // This is a placeholder integration test for the /healthz endpoint.
     // Replace with actual server setup and request logic as needed.
 
+    #[ignore]
     #[tokio::test]
     async fn healthz_returns_200() {
-        // Placeholder: In a real test, you would start the server and use reqwest or similar.
-        // For now, just assert true as a placeholder.
-        assert!(true, "Replace with actual /healthz endpoint test");
+        // TODO: Implement a real /healthz endpoint test when the server setup is available.
     }
 }

@@ -13,7 +13,6 @@
 
 * Product owner, developers (frontend/backend), DevOps, QA, merchants (stores), end users (buyers), payments provider, legal/security.
 
----
 
 # 2. Constraints and Context Conditions
 

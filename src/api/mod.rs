@@ -1,3 +1,7 @@
+pub mod products;
+pub use products::*;
+pub mod image_analysis;
+pub mod media_storage;
 use axum::{
     routing::post,
     Router,

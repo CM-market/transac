@@ -5,8 +5,8 @@ use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use crate::error::AppError;
 use super::types::{PowChallenge, PowSolution};
+use crate::error::AppError;
 
 #[derive(Debug, Clone)]
 pub struct PowService {
@@ -52,10 +52,15 @@ impl PowService {
             .unwrap()
             .get(&solution.challenge_id)
             .cloned()
-            .ok_or_else(|| AppError::Validation(format!("Challenge not found: {}", solution.challenge_id)))?;
+            .ok_or_else(|| {
+                AppError::Validation(format!("Challenge not found: {}", solution.challenge_id))
+            })?;
 
         if Utc::now() > challenge.expires_at {
-            self.challenges.lock().unwrap().remove(&solution.challenge_id);
+            self.challenges
+                .lock()
+                .unwrap()
+                .remove(&solution.challenge_id);
             return Err(AppError::Validation("Challenge has expired".to_string()));
         }
 
@@ -71,7 +76,10 @@ impl PowService {
             )));
         }
 
-        self.challenges.lock().unwrap().remove(&solution.challenge_id);
+        self.challenges
+            .lock()
+            .unwrap()
+            .remove(&solution.challenge_id);
 
         Ok(())
     }
