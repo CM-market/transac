@@ -89,8 +89,15 @@ services:
       - VITE_TRANSAC_WEBAUTH_RP_NAME=dev-name
       - SERVER_NAME=transac.site
     volumes:
+      # Mount your HTTPS-enabled nginx config
+      - ./nginx_conf:/etc/nginx/conf.d:ro
+
+      # Mount the SSL certificate and challenge volumes
       - letsencrypt:/etc/letsencrypt
       - certbot_challenges:/var/www/certbot
+
+      # Mount your frontend app build if needed
+      - ./frontend/dist:/usr/share/nginx/html:ro
     networks:
       - transac_net
 
@@ -103,7 +110,7 @@ services:
     volumes:
       - letsencrypt:/etc/letsencrypt
       - certbot_challenges:/var/www/certbot
-    # Use `docker compose run --rm --entrypoint certbot certbot <args>` via the script
+    # Use `docker compose run --rm certbot ...` for cert generation
 
 networks:
   transac_net: {}
