@@ -14,6 +14,7 @@ use sea_orm::DatabaseConnection;
 use crate::db::revocation::RevocationRepo;
 use crate::auth::{issue_jwt};
 use std::sync::Arc;
+use sea_orm_migration::MigratorTrait;
 
 #[derive(Clone)]
 pub struct AppState {

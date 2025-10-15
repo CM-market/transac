@@ -1,3 +1,4 @@
+mod migrator;
 pub mod entity;
 use axum::{response::IntoResponse, routing::get, Json, Router};
 use serde::Serialize;

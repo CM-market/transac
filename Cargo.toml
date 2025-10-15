@@ -30,5 +30,6 @@ aws-config = "1.1.7"
 aws-sdk-s3 = "1.17.0"
 bytes = "1.5"
 async-trait = "0.1"
+tower = "0.5.2"
 
 [dev-dependencies]
