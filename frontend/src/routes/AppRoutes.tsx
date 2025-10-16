@@ -1,7 +1,18 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { MainLayout } from "../layouts";
-import { ErrorPage, LoadingPage } from "../pages";
+import {
+  ErrorPage,
+  LoadingPage,
+  About,
+  Cart,
+  NotFound,
+  Orders,
+  ProductDetails,
+  ProductList,
+  Search,
+  Favorites,
+} from "../pages";
 import PowScreen from "../components/PowScreen";
 import MarketplaceWelcome from "../components/MarketplaceWelcome";
 import type { AuthenticationStatus } from "../hooks/useAuthenticationFlow";
@@ -40,17 +51,24 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
     return <PowScreen onPowComplete={onPowComplete} authStatus={authStatus} />;
   }
 
-  // Show marketplace welcome after successful authentication
+  // Main application routes after successful authentication
   return (
     <Routes>
-      <Route path="/" element={<MainLayout />}>
-        <Route
-          index
-          element={<MarketplaceWelcome onBuy={onBuy} onSell={onSell} />}
-        />
-        {/* Default redirect */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+      <Route
+        path="/"
+        element={<MarketplaceWelcome onBuy={onBuy} onSell={onSell} />}
+      />
+      <Route element={<MainLayout />}>
+        <Route path="about" element={<About />} />
+        <Route path="cart" element={<Cart />} />
+        <Route path="orders" element={<Orders />} />
+        <Route path="products" element={<ProductList />} />
+        <Route path="product/:id" element={<ProductDetails />} />
+        <Route path="search" element={<Search />} />
+        <Route path="favorites" element={<Favorites />} />
       </Route>
+      {/* Default redirect */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

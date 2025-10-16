@@ -1,36 +1,44 @@
-use crate::api::image_analysis::ImageAnalysisService;
 use crate::api::media_storage::{MediaStorage, S3MediaStorage, StubMediaStorage};
-use crate::auth::JwtService;
 use crate::db::products::Product;
 use crate::entity::product::Model as ProductModel;
-use crate::events::{
-    create_event, EventDispatcher, EventType, LoggingEventHandler, WebSocketEventHandler,
-};
+use crate::events::{create_event, EventType};
 use axum::{
     extract::{Multipart, Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
-    routing::{get, post},
+    routing::{post, get},
     Json, Router,
 };
-use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
 #[derive(Deserialize, ToSchema)]
 #[allow(dead_code)]
 pub struct CreateProductRequest {
-    #[schema(value_type = String, format = "uuid")]
-    pub store_id: Uuid,
     pub sku: Option<String>,
     pub name: String,
     pub description: Option<String>,
-    #[schema(value_type = String, format = "uuid")]
-    pub image_id: Uuid,
+    #[schema(value_type = Vec<String>, format = "uuid")]
+    pub image_ids: Vec<Uuid>,
     pub price: f64,
     pub quantity_available: i32,
+    pub category: String,
+    pub return_policy: String,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[allow(dead_code)]
+pub struct CreateReviewRequest {
+    pub user_id: Uuid,
+    pub rating: i32,
+    pub comment: String,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[allow(dead_code)]
+pub struct ListReviewsQuery {
+    pub product_id: Uuid,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -39,58 +47,36 @@ pub struct UpdateProductRequest {
     pub sku: Option<String>,
     pub name: String,
     pub description: Option<String>,
-    #[schema(value_type = String, format = "uuid")]
-    pub image_id: Uuid,
+    #[schema(value_type = Vec<String>, format = "uuid")]
+    pub image_ids: Vec<Uuid>,
     pub price: f64,
     pub quantity_available: i32,
+    pub category: String,
+    pub return_policy: String,
 }
 
 #[allow(dead_code)]
 #[derive(Deserialize, ToSchema)]
 pub struct ListProductsQuery {
-    #[schema(value_type = String, format = "uuid")]
-    pub store_id: Uuid,
+    pub store_id: Option<i32>,
 }
+use crate::ApiContext;
+
 #[allow(dead_code)]
-pub fn router(db: DatabaseConnection) -> Router {
-    // Initialize event dispatcher
-    let mut event_dispatcher = EventDispatcher::new();
-    event_dispatcher.add_handler(Box::new(LoggingEventHandler));
-    event_dispatcher.add_handler(Box::new(WebSocketEventHandler));
-
-    // Initialize JWT service
-    let jwt_service = Arc::new(JwtService::new().unwrap_or_default());
-
-    // Initialize image analysis service
-    let image_analysis = Arc::new(ImageAnalysisService::new());
-
+pub fn router() -> Router<ApiContext> {
     Router::new()
-        .route("/products", post(create_product).get(list_products))
+        .route("/", post(create_product).get(list_products))
         .route(
-            "/products/:id",
+            "/:id",
             get(get_product).put(update_product).delete(delete_product),
         )
         .route(
-            "/products/:id/media",
+            "/:id/media",
             post(upload_product_media)
                 .put(edit_product_media)
                 .delete(delete_product_media),
         )
-        .with_state(ProductApiState {
-            db,
-            event_dispatcher: Arc::new(event_dispatcher),
-            jwt_service,
-            image_analysis,
-        })
-}
-
-#[derive(Clone)]
-#[allow(dead_code)]
-pub struct ProductApiState {
-    pub db: DatabaseConnection,
-    pub event_dispatcher: Arc<EventDispatcher>,
-    pub jwt_service: Arc<JwtService>,
-    pub image_analysis: Arc<ImageAnalysisService>,
+        .route("/:id/reviews", post(create_review).get(list_reviews))
 }
 
 /// Create a new product
@@ -105,18 +91,19 @@ pub struct ProductApiState {
     tag = "Products"
 )]
 async fn create_product(
-    State(state): State<ProductApiState>,
+    State(state): State<ApiContext>,
     Json(payload): Json<CreateProductRequest>,
 ) -> impl IntoResponse {
     match Product::create(
-        &state.db,
-        payload.store_id,
+        &state.pool,
         payload.sku.as_deref(),
         &payload.name,
         payload.description.as_deref(),
-        payload.image_id,
+        payload.image_ids,
         payload.price,
         payload.quantity_available,
+        &payload.category,
+        &payload.return_policy,
     )
     .await
     {
@@ -126,7 +113,6 @@ async fn create_product(
                 EventType::ProductCreated,
                 product.id,
                 serde_json::json!({
-                    "store_id": product.store_id,
                     "name": product.name,
                     "price": product.price
                 }),
@@ -153,10 +139,10 @@ async fn create_product(
     tag = "Products"
 )]
 async fn get_product(
-    State(state): State<ProductApiState>,
+    State(state): State<ApiContext>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    match Product::get(&state.db, id).await {
+    match Product::get(&state.pool, id).await {
         Ok(product) => Json::<ProductModel>(product).into_response(),
         Err(e) => (axum::http::StatusCode::NOT_FOUND, e).into_response(),
     }
@@ -176,12 +162,22 @@ async fn get_product(
     tag = "Products"
 )]
 async fn list_products(
-    State(state): State<ProductApiState>,
+    State(state): State<ApiContext>,
     Query(query): Query<ListProductsQuery>,
 ) -> impl IntoResponse {
-    match Product::list_by_store(&state.db, query.store_id).await {
-        Ok(products) => Json::<Vec<ProductModel>>(products).into_response(),
-        Err(e) => (axum::http::StatusCode::BAD_REQUEST, e).into_response(),
+    tracing::info!("Attempting to list products with query: {:?}", query.store_id);
+
+    let result = Product::list_all(&state.pool).await;
+
+    match result {
+        Ok(products) => {
+            tracing::info!("Successfully fetched {} products", products.len());
+            Json(products).into_response()
+        }
+        Err(e) => {
+            tracing::error!("Failed to list products: {}", e);
+            (StatusCode::BAD_REQUEST, e).into_response()
+        }
     }
 }
 
@@ -201,19 +197,21 @@ async fn list_products(
     tag = "Products"
 )]
 async fn update_product(
-    State(state): State<ProductApiState>,
+    State(state): State<ApiContext>,
     Path(id): Path<Uuid>,
     Json(payload): Json<UpdateProductRequest>,
 ) -> impl IntoResponse {
     match Product::update(
-        &state.db,
+        &state.pool,
         id,
         payload.sku.as_deref(),
         &payload.name,
         payload.description.as_deref(),
-        payload.image_id,
+        payload.image_ids,
         payload.price,
         payload.quantity_available,
+        &payload.category,
+        &payload.return_policy,
     )
     .await
     {
@@ -223,7 +221,6 @@ async fn update_product(
                 EventType::ProductUpdated,
                 product.id,
                 serde_json::json!({
-                    "store_id": product.store_id,
                     "name": product.name,
                     "price": product.price
                 }),
@@ -251,10 +248,10 @@ async fn update_product(
     tag = "Products"
 )]
 async fn delete_product(
-    State(state): State<ProductApiState>,
+    State(state): State<ApiContext>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    match Product::delete(&state.db, id).await {
+    match Product::delete(&state.pool, id).await {
         Ok(_) => {
             // Trigger real-time event: product deleted
             let event = create_event(
@@ -297,7 +294,7 @@ pub struct MediaUploadResponse {
     tag = "Products"
 )]
 pub async fn upload_product_media(
-    State(state): State<ProductApiState>,
+    State(state): State<ApiContext>,
     Path(id): Path<Uuid>,
     mut multipart: Multipart,
 ) -> impl IntoResponse {
@@ -333,7 +330,9 @@ pub async fn upload_product_media(
                 Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
             };
             // Continue with stub result
-            if let Err(e) = Product::update_image_id(&state.db, id, image_id).await {
+            let mut product = Product::get(&state.pool, id).await.unwrap();
+            product.image_ids.push(image_id);
+            if let Err(e) = Product::update_image_ids(&state.pool, id, product.image_ids).await {
                 return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
             }
             return (
@@ -348,7 +347,9 @@ pub async fn upload_product_media(
         Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
     };
     // 5. Update product's image_id in DB
-    if let Err(e) = Product::update_image_id(&state.db, id, image_id).await {
+    let mut product = Product::get(&state.pool, id).await.unwrap();
+    product.image_ids.push(image_id);
+    if let Err(e) = Product::update_image_ids(&state.pool, id, product.image_ids).await {
         return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
     }
 
@@ -390,7 +391,7 @@ pub async fn upload_product_media(
     tag = "Products"
 )]
 pub async fn edit_product_media(
-    State(state): State<ProductApiState>,
+    State(state): State<ApiContext>,
     Path(id): Path<Uuid>,
     mut multipart: Multipart,
 ) -> impl IntoResponse {
@@ -424,7 +425,9 @@ pub async fn edit_product_media(
                 Ok(key) => key,
                 Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
             };
-            if let Err(e) = Product::update_image_id(&state.db, id, image_id).await {
+            let mut product = Product::get(&state.pool, id).await.unwrap();
+            product.image_ids.push(image_id);
+            if let Err(e) = Product::update_image_ids(&state.pool, id, product.image_ids).await {
                 return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
             }
 
@@ -453,7 +456,9 @@ pub async fn edit_product_media(
         Ok(key) => key,
         Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
     };
-    if let Err(e) = Product::update_image_id(&state.db, id, image_id).await {
+    let mut product = Product::get(&state.pool, id).await.unwrap();
+    product.image_ids.push(image_id);
+    if let Err(e) = Product::update_image_ids(&state.pool, id, product.image_ids).await {
         return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
     }
 
@@ -493,11 +498,11 @@ pub async fn edit_product_media(
     tag = "Products"
 )]
 pub async fn delete_product_media(
-    State(state): State<ProductApiState>,
+    State(state): State<ApiContext>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
     // 1. Get product to find current image_id
-    let product = match Product::get(&state.db, id).await {
+    let product = match Product::get(&state.pool, id).await {
         Ok(product) => product,
         Err(_) => return (StatusCode::NOT_FOUND, "Product not found").into_response(),
     };
@@ -512,7 +517,7 @@ pub async fn delete_product_media(
                 return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
             }
             // Update product's image_id to null
-            if let Err(e) = Product::update_image_id(&state.db, id, Uuid::nil()).await {
+            if let Err(e) = Product::update_image_ids(&state.pool, id, vec![]).await {
                 return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
             }
 
@@ -522,7 +527,7 @@ pub async fn delete_product_media(
                 id,
                 serde_json::json!({
                     "product_id": id,
-                    "previous_image_id": product.image_id
+                    "previous_image_ids": product.image_ids
                 }),
             );
             let _ = state.event_dispatcher.dispatch(event).await;
@@ -539,7 +544,7 @@ pub async fn delete_product_media(
     }
 
     // 3. Update product's image_id to null
-    if let Err(e) = Product::update_image_id(&state.db, id, Uuid::nil()).await {
+    if let Err(e) = Product::update_image_ids(&state.pool, id, vec![]).await {
         return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
     }
 
@@ -549,10 +554,70 @@ pub async fn delete_product_media(
         id,
         serde_json::json!({
             "product_id": id,
-            "previous_image_id": product.image_id
+            "previous_image_ids": product.image_ids
         }),
     );
     let _ = state.event_dispatcher.dispatch(event).await;
 
     (StatusCode::OK, "Media deleted").into_response()
+}
+
+/// Create a new review for a product
+#[utoipa::path(
+    post,
+    path = "/products/{id}/reviews",
+    request_body = CreateReviewRequest,
+    responses(
+        (status = 201, description = "Review created successfully", body = Model),
+        (status = 400, description = "Bad request - invalid data")
+    ),
+    tag = "Reviews"
+)]
+async fn create_review(
+    State(state): State<ApiContext>,
+    Path(product_id): Path<Uuid>,
+    Json(payload): Json<CreateReviewRequest>,
+) -> impl IntoResponse {
+    match crate::db::reviews::Review::create(
+        &state.pool,
+        product_id,
+        payload.user_id,
+        payload.rating,
+        &payload.comment,
+    )
+    .await
+    {
+        Ok(review) => {
+            // Update product's average rating and review count
+            if let Err(e) = Product::update_rating_and_review_count(&state.pool, product_id).await {
+                tracing::error!("Failed to update product rating and review count: {}", e);
+                // Log the error but don't fail the review creation
+            }
+            (axum::http::StatusCode::CREATED, Json(review)).into_response()
+        }
+        Err(e) => (axum::http::StatusCode::BAD_REQUEST, e).into_response(),
+    }
+}
+
+/// List reviews for a product
+#[utoipa::path(
+    get,
+    path = "/products/{id}/reviews",
+    params(
+        ("id" = UuidSchema, Path, description = "Product ID")
+    ),
+    responses(
+        (status = 200, description = "Reviews found", body = Vec<Model>),
+        (status = 404, description = "Product not found")
+    ),
+    tag = "Reviews"
+)]
+async fn list_reviews(
+    State(state): State<ApiContext>,
+    Path(product_id): Path<Uuid>,
+) -> impl IntoResponse {
+    match crate::db::reviews::Review::get_by_product_id(&state.pool, product_id).await {
+        Ok(reviews) => Json(reviews).into_response(),
+        Err(e) => (axum::http::StatusCode::NOT_FOUND, e).into_response(),
+    }
 }

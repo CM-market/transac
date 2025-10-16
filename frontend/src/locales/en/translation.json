@@ -1,0 +1,384 @@
+{
+  "common": {
+    "language": "Language",
+    "english": "English",
+    "french": "French",
+    "cart": "Cart",
+    "profile": "Profile",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register"
+  },
+  "admin": {
+    "title": "Transac",
+    "panel": "Admin",
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "orders": "Orders",
+    "producers": "Producers",
+    "approvals": "Approvals",
+    "settings": "Settings",
+    "account": "Account"
+  },
+  "navigation": {
+    "home": "Home",
+    "products": "Products",
+    "about": "About",
+    "categories": "Categories",
+    "contact": "Contact"
+  },
+  "mainNavbar": {
+    "searchPlaceholder": "Search for products...",
+    "signedInAs": "Signed in as",
+    "accountInfo": "Account Info",
+    "settings": "Settings",
+    "account": "Account",
+    "logout": "Logout",
+    "login": "Login",
+    "signUp": "Sign Up",
+    "confirmLogoutTitle": "Confirm Logout",
+    "confirmLogoutMessage": "Are you sure you want to log out?",
+    "cancel": "Cancel",
+    "yesLogout": "Yes, logout"
+  },
+  "marketplaceWelcome": {
+    "title": "Welcome to Transac",
+    "subtitle": "B2B Marketplace for Cameroon",
+    "buyProducts": "Buy Products",
+    "forBusinesses": "For Businesses in Cameroon",
+    "connect": "Connect with trusted B2B partners",
+    "secureTransactions": "Secure transactions and verification",
+    "localMarket": "Local market focused on Cameroonian businesses",
+    "back": "Back",
+    "footer": "Transac - Powering B2B Commerce in Cameroon"
+  },
+  "productCard": {
+    "imageNotAvailable": "Image not available",
+    "inStock": "{{count}} in stock"
+  },
+  "productForm": {
+    "tabs": {
+      "details": "Product Details",
+      "attributes": "Attributes & Images",
+      "preview": "Preview"
+    },
+    "basicInfo": {
+      "title": "Basic Information",
+      "description": "Enter the basic details of your product."
+    },
+    "buttons": {
+      "saving": "Saving...",
+      "saveDraft": "Save Draft",
+      "nextAttributes": "Next: Attributes & Images",
+      "backToDetails": "Back to Details",
+      "previewProduct": "Preview Product",
+      "backToEdit": "Back to Edit",
+      "submitting": "Submitting...",
+      "submitProduct": "Submit Product"
+    },
+    "attributes": {
+      "title": "Product Attributes & Images",
+      "description": "Add specific details and images of your product.",
+      "materials": "Materials",
+      "materialsPlaceholder": "What is your product made of?",
+      "size": "Size",
+      "sizePlaceholder": "Size or dimensions (optional)",
+      "refundPolicy": "Refund Policy",
+      "refundPolicyPlaceholder": "Refund policy (optional)",
+      "shippingInfo": "Shipping Information",
+      "shippingInfoPlaceholder": "Shipping details (optional)"
+    },
+    "preview": {
+      "title": "Product Preview",
+      "description": "Review how your product will appear to customers before submitting."
+    }
+  },
+  "about": {
+    "title": "Transac",
+    "subtitle": "Your Gateway to Cameroonian Commerce and Global Products",
+    "missionStatement": "We are transforming commerce in Cameroon by empowering local businesses and small entrepreneurs to reach customers nationwide without the complexity of building their own websites. Our platform also connects Cameroonians with quality international products through our streamlined importation service, taking the hassle out of shipping and making global commerce accessible to all.",
+    "features": {
+      "onlineStores": {
+        "title": "Ready-Made Online Stores",
+        "description": "Skip the technical complexity. Set up your professional online store in minutes and start selling across Cameroon without building a website."
+      },
+      "importSimple": {
+        "title": "Importation Made Simple",
+        "description": "Want international products? We handle the importation, shipping, and logistics so you can access global goods stress-free."
+      },
+      "nationwideDelivery": {
+        "title": "Nationwide Delivery",
+        "description": "From Douala to Garoua, we connect sellers with buyers across all ten regions of Cameroon through reliable delivery networks."
+      },
+      "supportingLocal": {
+        "title": "Supporting Local Businesses",
+        "description": "Empowering artisans, farmers, and small business owners to grow beyond their local markets and build sustainable online businesses."
+      },
+      "dualMarketplace": {
+        "title": "Dual Marketplace",
+        "description": "Discover authentic Cameroonian products alongside carefully sourced international goods, all on one convenient platform."
+      },
+      "trustedSecure": {
+        "title": "Trusted and Secure",
+        "description": "Shop with confidence knowing that all transactions are secure and all vendors are verified to maintain quality standards."
+      }
+    },
+    "valuePropositions": {
+      "forSellers": {
+        "title": "For Sellers",
+        "points": [
+          "No website creation required",
+          "Reach customers nationwide",
+          "Simple store management tools",
+          "Integrated payment processing",
+          "Marketing support and visibility"
+        ]
+      },
+      "forBuyers": {
+        "title": "For Buyers",
+        "points": [
+          "Access to local and international products",
+          "Hassle-free international shopping",
+          "Support local Cameroonian businesses",
+          "Secure payment and delivery",
+          "Quality assurance on all products"
+        ]
+      }
+    },
+    "callToAction": {
+      "title": "Ready to Transform Your Business?",
+      "description": "Whether you're a local entrepreneur ready to scale your business across Cameroon or a customer looking for the best of local and international products, Transac is your trusted partner in commerce."
+    }
+  },
+  "cart": {
+    "title": "Your Cart",
+    "clearCart": "Clear Cart",
+    "emptyMessage": "Your cart is empty",
+    "continueShopping": "Continue Shopping",
+    "orderSummary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "total": "Total",
+    "proceedToCheckout": "Proceed to Checkout",
+    "promoCodePlaceholder": "Enter promo code",
+    "apply": "Apply",
+    "remove": "Remove",
+    "toast": {
+      "cartUpdated": {
+        "title": "Cart Updated",
+        "description": "The item quantity has been updated."
+      },
+      "itemRemoved": {
+        "title": "Item Removed",
+        "description": "The item has been removed from your cart."
+      },
+      "cartCleared": {
+        "title": "Cart Cleared",
+        "description": "All items have been removed from your cart."
+      }
+    }
+  },
+  "errorPage": {
+    "defaultTitle": "Initialization Failed",
+    "defaultMessage": "An error occurred during initialization",
+    "retry": "Retry"
+  },
+  "loadingPage": {
+    "defaultMessage": "Please wait while we secure your device..."
+  },
+  "notFound": {
+    "title": "404",
+    "subtitle": "Page Not Found",
+    "message": "Sorry, we couldn't find the page you're looking for. It might have been moved or doesn't exist.",
+    "returnToHome": "Return to Home"
+  },
+  "orders": {
+    "title": "My Orders",
+    "tabs": {
+      "all": "All Orders",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "delivered": "Delivered"
+    },
+    "status": {
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled",
+      "unknown": "Unknown"
+    },
+    "orderId": "Order #{{id}}",
+    "placedOn": "Placed on {{date}}",
+    "quantity": "Qty: {{count}}",
+    "viewDetails": "View Details",
+    "buyAgain": "Buy Again",
+    "noOrders": "You have no orders yet",
+    "startShopping": "Start Shopping",
+    "noProcessingOrders": "No orders in processing",
+    "noShippedOrders": "No orders have been shipped",
+    "noDeliveredOrders": "No orders have been delivered"
+  },
+  "productDetails": {
+    "addToCart": "Add to Cart",
+    "productNotFound": "Product Not Found",
+    "productNotFoundMessage": "We could not find the product you are looking for.",
+    "backToProducts": "Back to Products",
+    "toast": {
+      "addedToCart": {
+        "title": "Added to Cart",
+        "description": "{{quantity}} x {{productName}} has been added to your cart."
+      }
+    }
+  },
+  "productList": {
+    "title": "Discover Products",
+    "subtitle": "Find the best of Cameroonian craftsmanship.",
+    "filters": "Filters",
+    "filterAndSort": "Filter and sort products",
+    "noProductsFound": "No products found",
+    "noProductsFoundMessage": "Try adjusting your filters to find what you're looking for."
+  },
+  "search": {
+    "title": "Search for Products",
+    "placeholder": "Search for products, categories, or vendors...",
+    "button": "Search",
+    "tags": ["Crafts", "Food", "Textiles", "Jewelry", "Art", "Decor"],
+    "tabs": {
+      "products": "Products",
+      "vendors": "Vendors",
+      "categories": "Categories"
+    },
+    "region": "Region {{region}}",
+    "productCount": "{{count}} Products"
+  },
+  "footer": {
+    "description": "Connecting Cameroonian artisans and producers with customers worldwide.",
+    "shop": "Shop",
+    "allProducts": "All Products",
+    "handcrafts": "Handcrafts",
+    "foodAndDrinks": "Food & Drinks",
+    "clothingAndFashion": "Clothing & Fashion",
+    "about": "About",
+    "ourMission": "Our Mission",
+    "howItWorks": "How It Works",
+    "becomeAVendor": "Become a Vendor",
+    "contactUs": "Contact Us",
+    "connect": "Connect",
+    "facebook": "Facebook",
+    "instagram": "Instagram",
+    "twitter": "Twitter",
+    "copyright": "© {{year}} Transac. All rights reserved."
+  },
+  "loadingSpinner": {
+    "securingDevice": "Securing your device",
+    "encryption": "Encryption",
+    "authentication": "Authentication",
+    "verification": "Verification"
+  },
+  "productStatus": {
+    "pending": {
+      "title": "Pending Verification",
+      "description": "Your product is being reviewed."
+    },
+    "approved": {
+      "title": "Verified & Approved",
+      "description": "Your product has been Transac verified."
+    },
+    "rejected": {
+      "title": "Verification Failed",
+      "description": "Your product does not meet our Transac criteria."
+    },
+    "submitted": "Submitted",
+    "reviewed": "Reviewed",
+    "feedback": "Feedback:"
+  },
+  "serviceWorker": {
+    "update": {
+      "title": "New Version Available",
+      "description": "A new version is available. Click to update.",
+      "button": "Update"
+    }
+  },
+  "themeToggle": {
+    "toggle": "Toggle theme"
+  },
+  "product": {
+    "basicDetails": {
+      "name": "Product Name",
+      "namePlaceholder": "Enter product name",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe your product",
+      "price": "Price",
+      "category": "Category",
+      "selectCategory": "Select a category",
+      "categories": {
+        "electronics": "Electronics",
+        "clothing": "Clothing",
+        "home": "Home",
+        "books": "Books"
+      }
+    },
+    "filterSidebar": {
+      "title": "Filters",
+      "clearAll": "Clear All",
+      "sortBy": "Sort by",
+      "selectSorting": "Select sorting",
+      "newest": "Newest",
+      "priceAsc": "Price: Low to High",
+      "priceDesc": "Price: High to Low",
+      "rating": "Top Rated",
+      "categories": "Categories",
+      "priceRange": "Price Range",
+      "region": "Region",
+      "selectRegion": "Select a region",
+      "allRegions": "All Regions",
+      "west": "West",
+      "center": "Center",
+      "littoral": "Littoral",
+      "north": "North-West",
+      "south": "South-West",
+      "verifiedSeller": "Verified Seller"
+    },
+    "productCard": {
+      "reviews": "({{count}} reviews)",
+      "addToCart": "Add to Cart",
+      "inStock": "In Stock",
+      "limitedStock": "Limited Stock ({{count}} left)",
+      "outOfStock": "Out of Stock"
+    },
+    "productDescription": {
+      "productDetails": "Product Details",
+      "description": "Description",
+      "specifications": "Specifications",
+      "weight": "Weight",
+      "dimensions": "Dimensions",
+      "material": "Material",
+      "whatsInTheBox": "What's in the box",
+      "handcraftedBowl": "1 x Handcrafted Wooden Bowl",
+      "careInstructions": "1 x Care Instructions"
+    },
+    "productImages": {
+      "productImages": "Product Images"
+    },
+    "productInfo": {
+      "reviews": "({{count}} reviews)",
+      "inStock": "In Stock",
+      "outOfStock": "Out of Stock",
+      "addToCart": "Add to Cart",
+      "verifiedSeller": "Verified Seller",
+      "verifiedSellerDescription": "This product is from a trusted and verified seller.",
+      "fastDelivery": "Fast Delivery",
+      "fastDeliveryDescription": "Get this product delivered to your doorstep quickly."
+    },
+    "productTags": {
+      "tags": "Tags",
+      "new": "New",
+      "featured": "Featured",
+      "sale": "Sale",
+      "bestseller": "Bestseller"
+    },
+    "relatedProducts": {
+      "title": "Related Products"
+    }
+  }
+}

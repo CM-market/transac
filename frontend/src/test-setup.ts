@@ -59,3 +59,28 @@ Object.defineProperty(window, "ResizeObserver", {
     disconnect: vi.fn(),
   })),
 });
+
+// Mock lucide-react
+vi.mock("lucide-react", () => ({
+  Store: () => "Store Icon",
+  Truck: () => "Truck Icon",
+  Globe2: () => "Globe2 Icon",
+  Shield: () => "Shield Icon",
+  Users: () => "Users Icon",
+  Package: () => "Package Icon",
+  ShoppingCart: () => "ShoppingCart Icon",
+  CheckCircle: () => "CheckCircle Icon",
+  Heart: () => "Heart Icon",
+  Star: () => "Star Icon",
+  ArrowLeft: () => "ArrowLeft Icon",
+  ChevronRight: () => "ChevronRight Icon",
+  Building2: () => "Building2 Icon",
+  ChevronLeft: () => "ChevronLeft Icon",
+  TrendingUp: () => "TrendingUp Icon",
+  Check: () => "Check Icon",
+  Minus: () => "Minus Icon",
+  Plus: () => "Plus Icon",
+  Share2: () => "Share2 Icon",
+  ShieldCheck: () => "ShieldCheck Icon",
+  ChevronDown: () => "ChevronDown Icon",
+}));

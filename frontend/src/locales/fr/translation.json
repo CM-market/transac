@@ -1,0 +1,388 @@
+{
+  "common": {
+    "language": "Langue",
+    "english": "Anglais",
+    "french": "Français",
+    "cart": "Panier",
+    "profile": "Profil",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "register": "S'inscrire"
+  },
+  "admin": {
+    "title": "Transac",
+    "panel": "Admin",
+    "dashboard": "Tableau de bord",
+    "products": "Produits",
+    "orders": "Commandes",
+    "producers": "Producteurs",
+    "approvals": "Approbations",
+    "settings": "Paramètres",
+    "account": "Compte"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "products": "Produits",
+    "about": "À propos",
+    "categories": "Catégories",
+    "contact": "Contact"
+  },
+  "mainNavbar": {
+    "searchPlaceholder": "Rechercher des produits...",
+    "signedInAs": "Connecté en tant que",
+    "accountInfo": "Infos du compte",
+    "settings": "Paramètres",
+    "account": "Compte",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "signUp": "S'inscrire",
+    "confirmLogoutTitle": "Confirmer la déconnexion",
+    "confirmLogoutMessage": "Êtes-vous sûr de vouloir vous déconnecter ?",
+    "cancel": "Annuler",
+    "yesLogout": "Oui, déconnectez-vous"
+  },
+  "marketplaceWelcome": {
+    "title": "Bienvenue sur Transac",
+    "subtitle": "Place de marché B2B pour le Cameroun",
+    "buyProducts": "Acheter des produits",
+    "forBusinesses": "Pour les entreprises au Cameroun",
+    "connect": "Connectez-vous avec des partenaires B2B de confiance",
+    "secureTransactions": "Transactions et vérification sécurisées",
+    "localMarket": "Marché local axé sur les entreprises camerounaises",
+    "back": "Retour",
+    "footer": "Transac - Propulser le commerce B2B au Cameroun"
+  },
+  "productCard": {
+    "imageNotAvailable": "Image non disponible",
+    "inStock": "{{count}} en stock"
+  },
+  "productForm": {
+    "tabs": {
+      "details": "Détails du produit",
+      "attributes": "Attributs et images",
+      "preview": "Aperçu"
+    },
+    "basicInfo": {
+      "title": "Informations de base",
+      "description": "Entrez les détails de base de votre produit."
+    },
+    "buttons": {
+      "saving": "Enregistrement...",
+      "saveDraft": "Enregistrer le brouillon",
+      "nextAttributes": "Suivant : Attributs et images",
+      "backToDetails": "Retour aux détails",
+      "previewProduct": "Aperçu du produit",
+      "backToEdit": "Retour à l'édition",
+      "submitting": "Soumission...",
+      "submitProduct": "Soumettre le produit"
+    },
+    "attributes": {
+      "title": "Attributs et images du produit",
+      "description": "Ajoutez des détails spécifiques et des images de votre produit.",
+      "materials": "Matériaux",
+      "materialsPlaceholder": "De quoi est fait votre produit ?",
+      "size": "Taille",
+      "sizePlaceholder": "Taille ou dimensions (facultatif)",
+      "refundPolicy": "Politique de remboursement",
+      "refundPolicyPlaceholder": "Politique de remboursement (facultatif)",
+      "shippingInfo": "Informations sur la livraison",
+      "shippingInfoPlaceholder": "Détails de la livraison (facultatif)"
+    },
+    "preview": {
+      "title": "Aperçu du produit",
+      "description": "Vérifiez comment votre produit apparaîtra aux clients avant de le soumettre."
+    }
+  },
+  "about": {
+    "title": "Transac",
+    "subtitle": "Votre passerelle vers le commerce camerounais et les produits mondiaux",
+    "missionStatement": "Nous transformons le commerce au Cameroun en permettant aux entreprises locales et aux petits entrepreneurs d'atteindre des clients dans tout le pays sans la complexité de créer leurs propres sites web. Notre plateforme connecte également les Camerounais avec des produits internationaux de qualité grâce à notre service d'importation simplifié, éliminant les tracas liés à l'expédition et rendant le commerce mondial accessible à tous.",
+    "features": {
+      "onlineStores": {
+        "title": "Boutiques en ligne prêtes à l'emploi",
+        "description": "Évitez la complexité technique. Créez votre boutique en ligne professionnelle en quelques minutes et commencez à vendre à travers le Cameroun sans créer de site web."
+      },
+      "importSimple": {
+        "title": "Importation simplifiée",
+        "description": "Vous voulez des produits internationaux ? Nous nous occupons de l'importation, de l'expédition et de la logistique pour que vous puissiez accéder aux produits mondiaux sans stress."
+      },
+      "nationwideDelivery": {
+        "title": "Livraison nationale",
+        "description": "De Douala à Garoua, nous connectons les vendeurs avec les acheteurs dans les dix régions du Cameroun grâce à des réseaux de livraison fiables."
+      },
+      "supportingLocal": {
+        "title": "Soutien aux entreprises locales",
+        "description": "Donner aux artisans, agriculteurs et propriétaires de petites entreprises les moyens de se développer au-delà de leurs marchés locaux et de créer des entreprises en ligne durables."
+      },
+      "dualMarketplace": {
+        "title": "Double place de marché",
+        "description": "Découvrez des produits camerounais authentiques aux côtés de produits internationaux soigneusement sélectionnés, le tout sur une seule plateforme pratique."
+      },
+      "trustedSecure": {
+        "title": "Fiable et sécurisé",
+        "description": "Achetez en toute confiance en sachant que toutes les transactions sont sécurisées et que tous les vendeurs sont vérifiés pour maintenir les normes de qualité."
+      }
+    },
+    "valuePropositions": {
+      "forSellers": {
+        "title": "Pour les vendeurs",
+        "points": [
+          "Aucune création de site web requise",
+          "Atteindre des clients dans tout le pays",
+          "Outils de gestion de boutique simples",
+          "Traitement des paiements intégré",
+          "Soutien marketing et visibilité"
+        ]
+      },
+      "forBuyers": {
+        "title": "Pour les acheteurs",
+        "points": [
+          "Accès aux produits locaux et internationaux",
+          "Achats internationaux sans tracas",
+          "Soutenir les entreprises locales camerounaises",
+          "Paiement et livraison sécurisés",
+          "Assurance qualité sur tous les produits"
+        ]
+      }
+    },
+    "callToAction": {
+      "title": "Prêt à transformer votre entreprise ?",
+      "description": "Que vous soyez un entrepreneur local prêt à développer votre entreprise à travers le Cameroun ou un client à la recherche du meilleur des produits locaux et internationaux, Transac est votre partenaire de confiance dans le commerce."
+    }
+  },
+  "cart": {
+    "title": "Votre panier",
+    "clearCart": "Vider le panier",
+    "emptyMessage": "Votre panier est vide",
+    "continueShopping": "Continuer vos achats",
+    "orderSummary": "Résumé de la commande",
+    "subtotal": "Sous-total",
+    "shipping": "Livraison",
+    "total": "Total",
+    "proceedToCheckout": "Passer à la caisse",
+    "promoCodePlaceholder": "Entrez le code promo",
+    "apply": "Appliquer",
+    "remove": "Retirer",
+    "toast": {
+      "cartUpdated": {
+        "title": "Panier mis à jour",
+        "description": "La quantité de l'article a été mise à jour."
+      },
+      "itemRemoved": {
+        "title": "Article retiré",
+        "description": "L'article a été retiré de votre panier."
+      },
+      "cartCleared": {
+        "title": "Panier vidé",
+        "description": "Tous les articles ont été retirés de votre panier."
+      }
+    }
+  },
+  "errorPage": {
+    "defaultTitle": "Échec de l'initialisation",
+    "defaultMessage": "Une erreur est survenue lors de l'initialisation",
+    "retry": "Réessayer"
+  },
+  "loadingPage": {
+    "defaultMessage": "Veuillez patienter pendant que nous sécurisons votre appareil..."
+  },
+  "notFound": {
+    "title": "404",
+    "subtitle": "Page non trouvée",
+    "message": "Désolé, nous n'avons pas pu trouver la page que vous recherchez. Elle a peut-être été déplacée ou n'existe pas.",
+    "returnToHome": "Retour à l'accueil"
+  },
+  "orders": {
+    "title": "Mes commandes",
+    "tabs": {
+      "all": "Toutes les commandes",
+      "processing": "En traitement",
+      "shipped": "Expédiées",
+      "delivered": "Livré"
+    },
+    "status": {
+      "processing": "En traitement",
+      "shipped": "Expédiée",
+      "delivered": "Livré",
+      "cancelled": "Annulé",
+      "unknown": "Inconnu"
+    },
+    "orderId": "Commande #{{id}}",
+    "placedOn": "Passée le {{date}}",
+    "quantity": "Qté : {{count}}",
+    "viewDetails": "Voir les détails",
+    "buyAgain": "Acheter à nouveau",
+    "noOrders": "Vous n'avez pas encore de commandes",
+    "startShopping": "Commencer les achats",
+    "noProcessingOrders": "Aucune commande en traitement",
+    "noShippedOrders": "Aucune commande expédiée",
+    "noDeliveredOrders": "Aucune commande livrée"
+  },
+  "productDetails": {
+    "addToCart": "Ajouter au panier",
+    "productNotFound": "Produit non trouvé",
+    "productNotFoundMessage": "Nous n'avons pas pu trouver le produit que vous recherchez.",
+    "backToProducts": "Retour aux produits",
+    "toast": {
+      "addedToCart": {
+        "title": "Ajouté au panier",
+        "description": "{{quantity}} x {{productName}} a été ajouté à votre panier."
+      }
+    }
+  },
+  "productList": {
+    "title": "Découvrez les produits",
+    "subtitle": "Trouvez le meilleur de l'artisanat camerounais.",
+    "filters": "Filtres",
+    "filterAndSort": "Filtrer et trier les produits",
+    "noProductsFound": "Aucun produit trouvé",
+    "noProductsFoundMessage": "Essayez d'ajuster vos filtres pour trouver ce que vous cherchez."
+  },
+  "search": {
+    "title": "Rechercher des produits",
+    "placeholder": "Rechercher des produits, des catégories ou des vendeurs...",
+    "button": "Rechercher",
+    "tags": [
+      "Artisanat",
+      "Nourriture",
+      "Textiles",
+      "Bijoux",
+      "Art",
+      "Décoration"
+    ],
+    "tabs": {
+      "products": "Produits",
+      "vendors": "Vendeurs",
+      "categories": "Catégories"
+    },
+    "region": "Région {{region}}",
+    "productCount": "{{count}} Produits"
+  },
+  "footer": {
+    "description": "Connecter les artisans et producteurs camerounais avec des clients du monde entier.",
+    "shop": "Boutique",
+    "allProducts": "Tous les produits",
+    "handcrafts": "Artisanat",
+    "foodAndDrinks": "Nourriture et boissons",
+    "clothingAndFashion": "Vêtements et mode",
+    "about": "À propos",
+    "ourMission": "Notre mission",
+    "howItWorks": "Comment ça marche",
+    "becomeAVendor": "Devenir vendeur",
+    "contactUs": "Nous contacter",
+    "connect": "Connecter",
+    "facebook": "Facebook",
+    "instagram": "Instagram",
+    "twitter": "Twitter",
+    "copyright": "© {{year}} Transac. Tous droits réservés."
+  },
+  "loadingSpinner": {
+    "securingDevice": "Sécurisation de votre appareil",
+    "encryption": "Chiffrement",
+    "authentication": "Authentification",
+    "verification": "Vérification"
+  },
+  "productStatus": {
+    "pending": {
+      "title": "Vérification en attente",
+      "description": "Votre produit est en cours d'examen."
+    },
+    "approved": {
+      "title": "Vérifié et approuvé",
+      "description": "Votre produit a été vérifié comme Transac."
+    },
+    "rejected": {
+      "title": "Échec de la vérification",
+      "description": "Votre produit ne répond pas à nos critères Transac."
+    },
+    "submitted": "Soumis",
+    "reviewed": "Examiné",
+    "feedback": "Commentaires :"
+  },
+  "serviceWorker": {
+    "update": {
+      "title": "Nouvelle version disponible",
+      "description": "Une nouvelle version est disponible. Cliquez pour mettre à jour.",
+      "button": "Mettre à jour"
+    }
+  },
+  "themeToggle": {
+    "toggle": "Changer de thème"
+  },
+  "product": {
+    "basicDetails": {
+      "name": "Nom du produit",
+      "namePlaceholder": "Entrez le nom du produit",
+      "description": "Description",
+      "descriptionPlaceholder": "Décrivez votre produit",
+      "price": "Prix",
+      "category": "Catégorie",
+      "selectCategory": "Sélectionnez une catégorie",
+      "categories": {
+        "electronics": "Électronique",
+        "clothing": "Vêtements",
+        "home": "Maison",
+        "books": "Livres"
+      }
+    },
+    "filterSidebar": {
+      "title": "Filtres",
+      "clearAll": "Tout effacer",
+      "sortBy": "Trier par",
+      "selectSorting": "Sélectionner le tri",
+      "newest": "Le plus récent",
+      "priceAsc": "Prix : Croissant",
+      "priceDesc": "Prix : Décroissant",
+      "rating": "Meilleure note",
+      "categories": "Catégories",
+      "priceRange": "Fourchette de prix",
+      "region": "Région",
+      "selectRegion": "Sélectionner une région",
+      "allRegions": "Toutes les régions",
+      "west": "Ouest",
+      "center": "Centre",
+      "littoral": "Littoral",
+      "north": "Nord-Ouest",
+      "south": "Sud-Ouest",
+      "verifiedSeller": "Vendeur vérifié"
+    },
+    "productCard": {
+      "reviews": "({{count}} avis)",
+      "addToCart": "Ajouter au panier",
+      "inStock": "En stock",
+      "limitedStock": "Stock limité ({{count}} restants)",
+      "outOfStock": "En rupture de stock"
+    },
+    "productDescription": {
+      "productDetails": "Détails du produit",
+      "description": "Description",
+      "specifications": "Spécifications",
+      "weight": "Poids",
+      "dimensions": "Dimensions",
+      "material": "Matériau",
+      "whatsInTheBox": "Contenu de la boîte",
+      "handcraftedBowl": "1 x Bol en bois artisanal",
+      "careInstructions": "1 x Instructions d'entretien"
+    },
+    "productImages": {
+      "productImages": "Images du produit"
+    },
+    "productInfo": {
+      "reviews": "({{count}} avis)",
+      "inStock": "En stock",
+      "outOfStock": "En rupture de stock",
+      "addToCart": "Ajouter au panier",
+      "verifiedSeller": "Vendeur vérifié",
+      "verifiedSellerDescription": "Ce produit provient d'un vendeur de confiance et vérifié.",
+      "fastDelivery": "Livraison rapide",
+      "fastDeliveryDescription": "Faites-vous livrer ce produit rapidement à votre porte."
+    },
+    "productTags": {
+      "tags": "Étiquettes",
+      "new": "Nouveau",
+      "featured": "En vedette",
+      "sale": "En solde",
+      "bestseller": "Meilleure vente"
+    }
+  }
+}
