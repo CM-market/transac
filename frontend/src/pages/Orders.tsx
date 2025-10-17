@@ -73,10 +73,12 @@ const Orders: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">{t("orders.title")}</h1>
+      <h1 className="text-3xl font-bold text-cm-forest mb-6">
+        {t("orders.title")}
+      </h1>
 
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid grid-cols-4 max-w-md">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full sm:w-auto sm:max-w-md">
           <TabsTrigger value="all">{t("orders.tabs.all")}</TabsTrigger>
           <TabsTrigger value="processing">
             {t("orders.tabs.processing")}
@@ -88,23 +90,23 @@ const Orders: React.FC = () => {
         </TabsList>
 
         <TabsContent value="all" className="mt-6">
-          <div className="space-y-4">
+          <div className="space-y-6">
             {sampleOrders.length > 0 ? (
               sampleOrders.map((order) => (
-                <Card key={order.id} className="overflow-hidden">
-                  <CardHeader className="bg-muted p-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
-                        <CardTitle className="text-lg">
+                <Card key={order.id} className="overflow-hidden shadow-sm">
+                  <CardHeader className="bg-gray-50 p-4 border-b">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg font-semibold text-gray-800">
                           {t("orders.orderId", { id: order.id })}
                         </CardTitle>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-gray-500 mt-1">
                           {t("orders.placedOn", { date: order.date })}
                         </p>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-4 self-start sm:self-center">
                         {getStatusBadge(order.status)}
-                        <span className="font-semibold">
+                        <span className="font-bold text-lg text-cm-forest">
                           {order.total.toLocaleString()} FCFA
                         </span>
                       </div>
@@ -112,18 +114,21 @@ const Orders: React.FC = () => {
                   </CardHeader>
 
                   <CardContent className="p-4">
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {order.items.map((item, idx) => (
-                        <div key={idx} className="flex justify-between">
-                          <span>{item.name}</span>
-                          <span className="text-muted-foreground">
+                        <div
+                          key={idx}
+                          className="flex justify-between items-center text-sm"
+                        >
+                          <span className="text-gray-700">{item.name}</span>
+                          <span className="text-gray-500">
                             {t("orders.quantity", { count: item.quantity })}
                           </span>
                         </div>
                       ))}
                     </div>
 
-                    <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-end">
+                    <div className="mt-4 pt-4 border-t flex flex-col sm:flex-row gap-2 justify-end">
                       <Button
                         variant="outline"
                         size="sm"
@@ -145,11 +150,14 @@ const Orders: React.FC = () => {
               ))
             ) : (
               <Card>
-                <CardContent className="p-8 text-center">
-                  <p className="text-muted-foreground mb-4">
+                <CardContent className="p-12 text-center">
+                  <p className="text-lg text-gray-600 mb-4">
                     {t("orders.noOrders")}
                   </p>
-                  <Button onClick={() => navigate("/products")}>
+                  <Button
+                    onClick={() => navigate("/products")}
+                    className="bg-cm-green hover:bg-cm-forest"
+                  >
                     {t("orders.startShopping")}
                   </Button>
                 </CardContent>
@@ -158,47 +166,48 @@ const Orders: React.FC = () => {
           </div>
         </TabsContent>
 
+        {/* Other Tabs Content */}
         <TabsContent value="processing">
-          <div className="space-y-4">
+          <div className="space-y-6">
             {sampleOrders.filter((order) => order.status === "processing")
               .length > 0 ? (
               sampleOrders
                 .filter((order) => order.status === "processing")
                 .map((order) => (
-                  <Card key={order.id} className="overflow-hidden">
-                    {/* Similar order card structure as above */}
-                    <CardHeader className="bg-muted p-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div>
-                          <CardTitle className="text-lg">
+                  <Card key={order.id} className="overflow-hidden shadow-sm">
+                    <CardHeader className="bg-gray-50 p-4 border-b">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg font-semibold text-gray-800">
                             {t("orders.orderId", { id: order.id })}
                           </CardTitle>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-gray-500 mt-1">
                             {t("orders.placedOn", { date: order.date })}
                           </p>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4 self-start sm:self-center">
                           {getStatusBadge(order.status)}
-                          <span className="font-semibold">
+                          <span className="font-bold text-lg text-cm-forest">
                             {order.total.toLocaleString()} FCFA
                           </span>
                         </div>
                       </div>
                     </CardHeader>
-
                     <CardContent className="p-4">
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {order.items.map((item, idx) => (
-                          <div key={idx} className="flex justify-between">
-                            <span>{item.name}</span>
-                            <span className="text-muted-foreground">
+                          <div
+                            key={idx}
+                            className="flex justify-between items-center text-sm"
+                          >
+                            <span className="text-gray-700">{item.name}</span>
+                            <span className="text-gray-500">
                               {t("orders.quantity", { count: item.quantity })}
                             </span>
                           </div>
                         ))}
                       </div>
-
-                      <div className="mt-4 flex justify-end">
+                      <div className="mt-4 pt-4 border-t flex justify-end">
                         <Button
                           variant="outline"
                           size="sm"
@@ -212,8 +221,8 @@ const Orders: React.FC = () => {
                 ))
             ) : (
               <Card>
-                <CardContent className="p-8 text-center">
-                  <p className="text-muted-foreground">
+                <CardContent className="p-12 text-center">
+                  <p className="text-lg text-gray-600">
                     {t("orders.noProcessingOrders")}
                   </p>
                 </CardContent>
@@ -224,8 +233,8 @@ const Orders: React.FC = () => {
 
         <TabsContent value="shipped">
           <Card>
-            <CardContent className="p-8 text-center">
-              <p className="text-muted-foreground">
+            <CardContent className="p-12 text-center">
+              <p className="text-lg text-gray-600">
                 {t("orders.noShippedOrders")}
               </p>
             </CardContent>
@@ -233,46 +242,46 @@ const Orders: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="delivered">
-          <div className="space-y-4">
+          <div className="space-y-6">
             {sampleOrders.filter((order) => order.status === "delivered")
               .length > 0 ? (
               sampleOrders
                 .filter((order) => order.status === "delivered")
                 .map((order) => (
-                  <Card key={order.id} className="overflow-hidden">
-                    {/* Similar order card structure as above */}
-                    <CardHeader className="bg-muted p-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div>
-                          <CardTitle className="text-lg">
+                  <Card key={order.id} className="overflow-hidden shadow-sm">
+                    <CardHeader className="bg-gray-50 p-4 border-b">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg font-semibold text-gray-800">
                             {t("orders.orderId", { id: order.id })}
                           </CardTitle>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-gray-500 mt-1">
                             {t("orders.placedOn", { date: order.date })}
                           </p>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4 self-start sm:self-center">
                           {getStatusBadge(order.status)}
-                          <span className="font-semibold">
+                          <span className="font-bold text-lg text-cm-forest">
                             {order.total.toLocaleString()} FCFA
                           </span>
                         </div>
                       </div>
                     </CardHeader>
-
                     <CardContent className="p-4">
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {order.items.map((item, idx) => (
-                          <div key={idx} className="flex justify-between">
-                            <span>{item.name}</span>
-                            <span className="text-muted-foreground">
+                          <div
+                            key={idx}
+                            className="flex justify-between items-center text-sm"
+                          >
+                            <span className="text-gray-700">{item.name}</span>
+                            <span className="text-gray-500">
                               {t("orders.quantity", { count: item.quantity })}
                             </span>
                           </div>
                         ))}
                       </div>
-
-                      <div className="mt-4 flex justify-end gap-2">
+                      <div className="mt-4 pt-4 border-t flex justify-end gap-2">
                         <Button
                           variant="outline"
                           size="sm"
@@ -292,8 +301,8 @@ const Orders: React.FC = () => {
                 ))
             ) : (
               <Card>
-                <CardContent className="p-8 text-center">
-                  <p className="text-muted-foreground">
+                <CardContent className="p-12 text-center">
+                  <p className="text-lg text-gray-600">
                     {t("orders.noDeliveredOrders")}
                   </p>
                 </CardContent>

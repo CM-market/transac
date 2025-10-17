@@ -15,9 +15,11 @@ const Favorites: React.FC = () => {
   return (
     <div className="flex-grow">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">{t("favorites.title")}</h1>
+        <h1 className="text-3xl font-bold text-cm-forest mb-8">
+          {t("favorites.title")}
+        </h1>
         {favorites.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
             {favorites.map((product) => (
               <ProductCard
                 key={product.id}
@@ -27,11 +29,14 @@ const Favorites: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center">
-            <p className="text-muted-foreground mb-4">
+          <div className="text-center py-16 px-6 bg-white rounded-lg shadow-sm">
+            <p className="text-xl text-gray-600 mb-4">
               {t("favorites.emptyMessage")}
             </p>
-            <Button onClick={() => navigate("/products")}>
+            <Button
+              onClick={() => navigate("/products")}
+              className="bg-cm-green hover:bg-cm-forest"
+            >
               {t("favorites.browseProducts")}
             </Button>
           </div>

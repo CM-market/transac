@@ -1,6 +1,5 @@
 export { default as LoadingPage } from "./LoadingPage";
 export { default as ErrorPage } from "./ErrorPage";
-export { default as About } from "./About";
 export { default as Cart } from "./Cart";
 export { default as NotFound } from "./NotFound";
 export { default as Orders } from "./Orders";

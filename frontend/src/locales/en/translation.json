@@ -339,6 +339,20 @@
       "south": "South-West",
       "verifiedSeller": "Verified Seller"
     },
+    "filterBar": {
+      "filters": "Filters",
+      "categories": "Categories",
+      "price": "Price",
+      "verifiedSeller": "Verified Seller",
+      "sortBy": "Sort by",
+      "selectSorting": "Select sorting",
+      "newest": "Newest",
+      "priceAsc": "Price: Low to High",
+      "priceDesc": "Price: High to Low",
+      "rating": "Top Rated",
+      "clearAll": "Clear All",
+      "productCount": "{{count}} products found"
+    },
     "productCard": {
       "reviews": "({{count}} reviews)",
       "addToCart": "Add to Cart",

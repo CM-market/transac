@@ -62,112 +62,105 @@ const Cart: React.FC = () => {
   return (
     <div className="flex-grow">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">{t("cart.title")}</h1>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <h1 className="text-3xl font-bold text-cm-forest">
+            {t("cart.title")}
+          </h1>
           {cartItems.length > 0 && (
             <Button
               variant="outline"
-              className="text-red-500"
+              className="text-sm font-semibold text-cm-red border-cm-red/50 hover:bg-cm-red/5 hover:text-cm-red"
               onClick={handleClearCart}
             >
+              <Trash2 className="h-4 w-4 mr-2" />
               {t("cart.clearCart")}
             </Button>
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="lg:col-span-2 space-y-4">
             {cartItems.length > 0 ? (
-              <div className="space-y-4">
-                {cartItems.map((item) => (
-                  <Card key={item.id}>
-                    <CardContent className="p-4">
-                      <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="w-full sm:w-24 h-24 bg-gray-100 rounded-md overflow-hidden">
-                          <img
-                            src={item.images[0]}
-                            alt={item.name}
-                            className="w-full h-full object-cover cursor-pointer"
+              cartItems.map((item) => (
+                <Card key={item.id} className="overflow-hidden">
+                  <CardContent className="p-4 flex flex-col sm:flex-row gap-4">
+                    <div className="w-full sm:w-28 sm:h-28 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                      <img
+                        src={item.images[0]}
+                        alt={item.name}
+                        className="w-full h-full object-cover cursor-pointer"
+                        onClick={() => navigate(`/product/${item.id}`)}
+                      />
+                    </div>
+
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-start gap-4">
+                          <h3
+                            className="font-semibold text-lg text-gray-800 cursor-pointer hover:text-cm-green"
                             onClick={() => navigate(`/product/${item.id}`)}
-                          />
+                          >
+                            {item.name}
+                          </h3>
+                          <p className="font-bold text-lg text-cm-forest whitespace-nowrap">
+                            {item.price.toLocaleString()} FCFA
+                          </p>
                         </div>
-
-                        <div className="flex-1">
-                          <div className="flex justify-between">
-                            <h3
-                              className="font-semibold cursor-pointer hover:text-cm-green"
-                              onClick={() => navigate(`/product/${item.id}`)}
-                            >
-                              {item.name}
-                            </h3>
-                            <p className="font-bold text-cm-green">
-                              {item.price} FCFA
-                            </p>
-                          </div>
-
-                          <div className="mt-4 flex justify-between items-center">
-                            <div className="flex items-center border rounded-md">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 p-0"
-                                onClick={() =>
-                                  handleUpdateQuantity(
-                                    item.id,
-                                    item.quantity - 1,
-                                  )
-                                }
-                              >
-                                <Minus className="h-3 w-3" />
-                              </Button>
-                              <Input
-                                className="w-12 h-8 text-center border-0 p-0"
-                                value={item.quantity}
-                                onChange={(e) => {
-                                  const value = parseInt(e.target.value);
-                                  if (!isNaN(value) && value > 0) {
-                                    handleUpdateQuantity(item.id, value);
-                                  }
-                                }}
-                              />
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 p-0"
-                                onClick={() =>
-                                  handleUpdateQuantity(
-                                    item.id,
-                                    item.quantity + 1,
-                                  )
-                                }
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                            </div>
-
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-500"
-                              onClick={() => handleRemoveItem(item.id)}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              {t("cart.remove")}
-                            </Button>
-                          </div>
-                        </div>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {item.supplier.name}
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+
+                      <div className="mt-4 flex justify-between items-center">
+                        <div className="flex items-center border rounded-full">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 rounded-full"
+                            onClick={() =>
+                              handleUpdateQuantity(item.id, item.quantity - 1)
+                            }
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="px-3 font-semibold">
+                            {item.quantity}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 rounded-full"
+                            onClick={() =>
+                              handleUpdateQuantity(item.id, item.quantity + 1)
+                            }
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-gray-500 hover:text-cm-red"
+                          onClick={() => handleRemoveItem(item.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
             ) : (
               <Card>
-                <CardContent className="p-8 text-center">
-                  <p className="text-muted-foreground mb-4">
+                <CardContent className="p-12 text-center">
+                  <p className="text-lg text-gray-600 mb-4">
                     {t("cart.emptyMessage")}
                   </p>
-                  <Button onClick={() => navigate("/products")}>
+                  <Button
+                    onClick={() => navigate("/products")}
+                    className="bg-cm-green hover:bg-cm-forest"
+                  >
                     {t("cart.continueShopping")}
                   </Button>
                 </CardContent>
@@ -175,54 +168,53 @@ const Cart: React.FC = () => {
             )}
           </div>
 
-          <div>
+          <div className="sticky top-24">
             <Card>
               <CardHeader>
-                <CardTitle>{t("cart.orderSummary")}</CardTitle>
+                <CardTitle className="text-xl">
+                  {t("cart.orderSummary")}
+                </CardTitle>
               </CardHeader>
-
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <span>{t("cart.subtotal")}</span>
-                    <span>{subtotal.toLocaleString()} FCFA</span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span>{t("cart.shipping")}</span>
-                    <span>{shipping.toLocaleString()} FCFA</span>
-                  </div>
-
-                  <Separator />
-
-                  <div className="flex justify-between font-bold">
-                    <span>{t("cart.total")}</span>
-                    <span>{total.toLocaleString()} FCFA</span>
-                  </div>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between text-md">
+                  <span className="text-gray-600">{t("cart.subtotal")}</span>
+                  <span className="font-medium">
+                    {subtotal.toLocaleString()} FCFA
+                  </span>
+                </div>
+                <div className="flex justify-between text-md">
+                  <span className="text-gray-600">{t("cart.shipping")}</span>
+                  <span className="font-medium">
+                    {shipping.toLocaleString()} FCFA
+                  </span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold text-lg">
+                  <span>{t("cart.total")}</span>
+                  <span className="text-cm-green">
+                    {total.toLocaleString()} FCFA
+                  </span>
                 </div>
               </CardContent>
-
-              <CardFooter>
+              <CardFooter className="flex-col gap-4">
                 <Button
-                  className="w-full bg-cm-green hover:bg-cm-forest"
+                  size="lg"
+                  className="w-full bg-cm-green hover:bg-cm-forest text-base font-bold rounded-full"
                   onClick={() => navigate("/checkout")}
                   disabled={cartItems.length === 0}
                 >
                   {t("cart.proceedToCheckout")}
                 </Button>
-              </CardFooter>
-            </Card>
-
-            <Card className="mt-4">
-              <CardContent className="p-4">
-                <div className="flex items-center">
+                <div className="flex items-center w-full">
                   <Input
                     placeholder={t("cart.promoCodePlaceholder")}
-                    className="rounded-r-none"
+                    className="rounded-l-full h-11"
                   />
-                  <Button className="rounded-l-none">{t("cart.apply")}</Button>
+                  <Button className="rounded-r-full h-11 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    {t("cart.apply")}
+                  </Button>
                 </div>
-              </CardContent>
+              </CardFooter>
             </Card>
           </div>
         </div>

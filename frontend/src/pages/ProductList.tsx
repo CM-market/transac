@@ -3,9 +3,11 @@ import { useLocation } from "react-router-dom";
 import { Grid, List, ShoppingCart, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { dummyProducts, Product } from "@/constants/dummyProducts";
+import { dummyProducts } from "@/constants/dummyProducts";
+import { Product } from "@/types/product";
 import ProductCard from "@/components/product/ProductCard";
 import FilterSidebar from "@/components/product/FilterSidebar";
+import FilterBar from "@/components/product/FilterBar";
 import {
   Sheet,
   SheetContent,
@@ -163,12 +165,75 @@ const ProductList: React.FC = () => {
   );
 
   return (
-    <div className="flex-grow bg-gray-50">
+    <div className="flex-grow bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex flex-col lg:flex-row gap-12">
-          {/* Filters sidebar for Desktop */}
-          <aside className="hidden lg:block w-full lg:w-80 shrink-0">
-            <FilterSidebar
+        <div className="flex flex-col gap-8">
+          {/* Page Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-4xl font-extrabold text-cm-forest tracking-tight">
+                {t("productList.title")}
+              </h1>
+              <p className="mt-2 text-lg text-muted-foreground">
+                {t("productList.subtitle")}
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              {/* Mobile Filter Button */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="lg:hidden flex items-center gap-2"
+                  >
+                    <Menu className="h-5 w-5" />
+                    <span>{t("productList.filters")}</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent
+                  side="left"
+                  className="w-full sm:w-[400px] overflow-y-auto"
+                >
+                  <SheetHeader>
+                    <SheetTitle>{t("productList.filters")}</SheetTitle>
+                  </SheetHeader>
+                  <FilterSidebar
+                    priceRange={priceRange}
+                    setPriceRange={setPriceRange}
+                    selectedCategories={selectedCategories}
+                    handleCategoryChange={handleCategoryChange}
+                    verifiedOnly={verifiedOnly}
+                    setVerifiedOnly={setVerifiedOnly}
+                    sortBy={sortBy}
+                    setSortBy={setSortBy}
+                    resetFilters={resetFilters}
+                  />
+                </SheetContent>
+              </Sheet>
+              <div className="flex items-center space-x-2 bg-card p-1 rounded-lg border">
+                <Button
+                  variant={viewMode === "grid" ? "secondary" : "ghost"}
+                  size="icon"
+                  onClick={() => setViewMode("grid")}
+                  className="rounded-md"
+                >
+                  <Grid className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "secondary" : "ghost"}
+                  size="icon"
+                  onClick={() => setViewMode("list")}
+                  className="rounded-md"
+                >
+                  <List className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Filters bar for Desktop */}
+          <div className="hidden lg:block">
+            <FilterBar
               priceRange={priceRange}
               setPriceRange={setPriceRange}
               selectedCategories={selectedCategories}
@@ -178,87 +243,21 @@ const ProductList: React.FC = () => {
               sortBy={sortBy}
               setSortBy={setSortBy}
               resetFilters={resetFilters}
+              productCount={filteredAndSortedProducts.length}
             />
-          </aside>
+          </div>
 
           {/* Products grid/list */}
           <main className="flex-grow">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-              <div>
-                <h1 className="text-4xl font-extrabold text-cm-forest tracking-tight">
-                  {t("productList.title")}
-                </h1>
-                <p className="mt-2 text-lg text-gray-600">
-                  {t("productList.subtitle")}
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                {/* Mobile Filter Button */}
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="lg:hidden flex items-center gap-2"
-                    >
-                      <Menu className="h-5 w-5" />
-                      <span>{t("productList.filters")}</span>
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent
-                    side="left"
-                    className="w-full sm:w-[400px] overflow-y-auto"
-                  >
-                    <SheetHeader>
-                      <SheetTitle className="sr-only">
-                        {t("productList.filters")}
-                      </SheetTitle>
-                      <SheetDescription className="sr-only">
-                        {t("productList.filterAndSort")}
-                      </SheetDescription>
-                    </SheetHeader>
-                    <FilterSidebar
-                      priceRange={priceRange}
-                      setPriceRange={setPriceRange}
-                      selectedCategories={selectedCategories}
-                      handleCategoryChange={handleCategoryChange}
-                      verifiedOnly={verifiedOnly}
-                      setVerifiedOnly={setVerifiedOnly}
-                      sortBy={sortBy}
-                      setSortBy={setSortBy}
-                      resetFilters={resetFilters}
-                    />
-                  </SheetContent>
-                </Sheet>
-                <div className="flex items-center space-x-2 bg-white p-1 rounded-lg border">
-                  <Button
-                    variant={viewMode === "grid" ? "secondary" : "ghost"}
-                    size="icon"
-                    onClick={() => setViewMode("grid")}
-                    className="rounded-md"
-                  >
-                    <Grid className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "list" ? "secondary" : "ghost"}
-                    size="icon"
-                    onClick={() => setViewMode("list")}
-                    className="rounded-md"
-                  >
-                    <List className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
             {isLoading ? (
               renderSkeletons()
             ) : filteredAndSortedProducts.length === 0 ? (
-              <div className="text-center py-24 bg-white rounded-lg shadow-sm">
-                <ShoppingCart className="mx-auto h-16 w-16 text-gray-300" />
-                <h3 className="mt-4 text-xl font-semibold text-gray-800">
+              <div className="text-center py-24 bg-card rounded-lg shadow-sm">
+                <ShoppingCart className="mx-auto h-16 w-16 text-muted-foreground" />
+                <h3 className="mt-4 text-xl font-semibold text-foreground">
                   {t("productList.noProductsFound")}
                 </h3>
-                <p className="mt-2 text-md text-gray-500">
+                <p className="mt-2 text-md text-muted-foreground">
                   {t("productList.noProductsFoundMessage")}
                 </p>
               </div>

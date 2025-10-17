@@ -52,7 +52,7 @@ const Reviews: React.FC<{ productId: string }> = ({ productId }) => {
     <div>
       <h2 className="text-2xl font-bold mb-4">Customer Reviews</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="flex flex-col items-center justify-center p-6 bg-gray-100 rounded-lg">
+        <div className="flex flex-col items-center justify-center p-6 bg-muted rounded-lg">
           <h3 className="text-5xl font-extrabold text-cm-forest">
             {averageRating.toFixed(1)}
           </h3>
@@ -62,14 +62,14 @@ const Reviews: React.FC<{ productId: string }> = ({ productId }) => {
                 key={i}
                 className={`h-6 w-6 ${
                   i < Math.round(averageRating)
-                    ? "text-cm-yellow"
-                    : "text-gray-300"
+                    ? "text-primary"
+                    : "text-muted-foreground"
                 }`}
                 fill="currentColor"
               />
             ))}
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Based on {totalReviews} reviews
           </p>
         </div>
@@ -80,7 +80,7 @@ const Reviews: React.FC<{ productId: string }> = ({ productId }) => {
       <div className="mt-8">
         <Button variant="outline">Write a review</Button>
       </div>
-      <div className="mt-8 p-6 border rounded-lg">
+      <div className="mt-8 p-6 border border-border rounded-lg">
         <h3 className="text-xl font-semibold mb-4">Leave a Review</h3>
         <div className="flex items-center mb-4">
           <p className="mr-2">Your rating:</p>
@@ -91,7 +91,7 @@ const Reviews: React.FC<{ productId: string }> = ({ productId }) => {
               onClick={() => handleRatingChange(i + 1)}
             >
               <Star
-                className={`h-6 w-6 cursor-pointer ${i < rating ? "text-cm-yellow" : "text-gray-300"}`}
+                className={`h-6 w-6 cursor-pointer ${i < rating ? "text-primary" : "text-muted-foreground"}`}
                 fill="currentColor"
               />
             </button>
@@ -100,14 +100,14 @@ const Reviews: React.FC<{ productId: string }> = ({ productId }) => {
         <div className="mb-4">
           <label
             htmlFor="review-text"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             Your review:
           </label>
           <Textarea
             id="review-text"
             rows={4}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-cm-forest focus:ring-cm-forest sm:text-sm p-2"
+            className="block w-full rounded-md border-border shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2"
             placeholder="Share your thoughts about the product..."
             value={reviewText}
             onChange={(e) => setReviewText(e.target.value)}
@@ -132,12 +132,12 @@ const Reviews: React.FC<{ productId: string }> = ({ productId }) => {
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-4 w-4 ${i < review.rating ? "text-cm-yellow" : "text-gray-300"}`}
+                    className={`h-4 w-4 ${i < review.rating ? "text-primary" : "text-muted-foreground"}`}
                     fill="currentColor"
                   />
                 ))}
               </div>
-              <p className="mt-2 text-gray-700">{review.comment}</p>
+              <p className="mt-2 text-muted-foreground">{review.comment}</p>
             </div>
           </div>
         ))}

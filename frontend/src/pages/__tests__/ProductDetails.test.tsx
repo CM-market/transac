@@ -54,7 +54,7 @@ describe("ProductDetails", () => {
             <Route path="/product/:id" element={<ProductDetails />} />
           </Routes>
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(container.querySelector(".animate-pulse")).toBeInTheDocument();
@@ -68,7 +68,7 @@ describe("ProductDetails", () => {
             <Route path="/product/:id" element={<ProductDetails />} />
           </Routes>
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     act(() => {
@@ -77,7 +77,7 @@ describe("ProductDetails", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole("heading", { name: dummyProducts[0].name })
+        screen.getByRole("heading", { name: dummyProducts[0].name }),
       ).toBeInTheDocument();
     });
   });
@@ -90,7 +90,7 @@ describe("ProductDetails", () => {
             <Route path="/product/:id" element={<ProductDetails />} />
           </Routes>
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     act(() => {
@@ -99,7 +99,7 @@ describe("ProductDetails", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("productDetails.productNotFound")
+        screen.getByText("productDetails.productNotFound"),
       ).toBeInTheDocument();
     });
   });
@@ -112,7 +112,7 @@ describe("ProductDetails", () => {
             <Route path="/product/:id" element={<ProductDetails />} />
           </Routes>
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     act(() => {
@@ -135,7 +135,7 @@ describe("ProductDetails", () => {
             <Route path="/product/:id" element={<ProductDetails />} />
           </Routes>
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     act(() => {
@@ -167,7 +167,7 @@ describe("ProductDetails", () => {
             <Route path="/product/:id" element={<ProductDetails />} />
           </Routes>
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     act(() => {

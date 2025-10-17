@@ -22,6 +22,14 @@
   --input: 214.3 31.8% 91.4%;
   --ring: 222.2 84% 4.9%;
   --radius: 0.5rem;
+  /* Cameroon-inspired colors */
+  --cm-green: 165 100% 24%;
+  --cm-red: 353 85% 44%;
+  --cm-yellow: 48 98% 54%;
+  --cm-earth: 27 28% 43%;
+  --cm-sand: 35 43% 71%;
+  --cm-clay: 18 55% 47%;
+  --cm-forest: 145 50% 23%;
 }
 
 .dark {
@@ -44,4 +52,12 @@
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
   --ring: 212.7 26.8% 83.9%;
+  /* Cameroon-inspired colors */
+  --cm-green: 165 80% 34%;
+  --cm-red: 353 75% 54%;
+  --cm-yellow: 48 88% 64%;
+  --cm-earth: 27 20% 53%;
+  --cm-sand: 35 33% 61%;
+  --cm-clay: 18 45% 57%;
+  --cm-forest: 145 40% 33%;
 }

@@ -30,7 +30,7 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ seller }) => {
                 <ShieldCheck className="h-5 w-5 text-cm-green" />
               )}
             </div>
-            <div className="flex items-center gap-1 text-sm text-gray-600">
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Star className="h-4 w-4 text-cm-yellow" fill="currentColor" />
               <span>4.9 (2,000+ sales)</span>
             </div>

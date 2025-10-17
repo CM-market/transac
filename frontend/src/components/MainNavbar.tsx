@@ -21,6 +21,7 @@ import {
   UserCircle,
   LogOut,
   Heart,
+  X,
 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useFavorites } from "@/contexts/FavoritesContext";
@@ -54,6 +55,7 @@ const MainNavbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const handleInstallPWA = () => {
     // This will only work if the app is installable
@@ -130,7 +132,7 @@ const MainNavbar: React.FC = () => {
   };
 
   return (
-    <header className="border-b bg-white/80 backdrop-blur-lg sticky top-0 z-50 w-full shadow-sm">
+    <header className="border-b bg-cm-yellow backdrop-blur-lg sticky top-0 z-50 w-full shadow-sm">
       <div className="container mx-auto flex items-center h-20 px-4">
         {/* Logo */}
         <Link
@@ -148,6 +150,28 @@ const MainNavbar: React.FC = () => {
         {/* Mobile Action Buttons - Always visible on mobile */}
         <div className="flex-1 flex items-center justify-end md:hidden">
           <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 relative text-gray-700"
+              onClick={() => setMobileSearchOpen(true)}
+            >
+              <Search className="h-5 w-5" />
+            </Button>
+            <Link to="/favorites">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 relative text-gray-700"
+              >
+                <Heart className="h-5 w-5" />
+                {favoritesCount > 0 && (
+                  <span className="absolute top-0 right-0 bg-cm-red text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+                    {favoritesCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
             <Link to="/cart">
               <Button
                 variant="ghost"
@@ -162,6 +186,7 @@ const MainNavbar: React.FC = () => {
                 )}
               </Button>
             </Link>
+            <LanguageSwitcher />
           </div>
         </div>
 
@@ -192,12 +217,12 @@ const MainNavbar: React.FC = () => {
         <div className="hidden md:flex flex-1 justify-center">
           <NavigationMenu>
             <NavigationMenuList className="gap-4">
-              {["Home", "Products", "About"].map((item) => (
+              {["Home", "Products"].map((item) => (
                 <NavigationMenuItem key={item}>
                   <NavigationMenuLink
                     href={item === "Home" ? "/" : `/${item.toLowerCase()}`}
                     className={cn(
-                      "text-md font-medium text-gray-600 hover:text-cm-green transition-colors duration-300 pb-2",
+                      "text-md font-medium text-cm-forest hover:text-cm-green transition-colors duration-300 pb-2",
                       isActive(
                         item === "Home" ? "/" : `/${item.toLowerCase()}`,
                       ) && "text-cm-green border-b-2 border-cm-green",
@@ -344,12 +369,37 @@ const MainNavbar: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile Search Bar */}
+      {mobileSearchOpen && (
+        <div className="md:hidden absolute top-0 left-0 w-full h-20 bg-white z-50 flex items-center px-4 border-b">
+          <form onSubmit={handleSearchSubmit} className="relative w-full">
+            <input
+              type="search"
+              placeholder={t("mainNavbar.searchPlaceholder")}
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="h-11 pl-10 pr-4 w-full rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-cm-green"
+              autoFocus
+            />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          </form>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="ml-2"
+            onClick={() => setMobileSearchOpen(false)}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+      )}
+
       {/* Mobile Navigation Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t bg-white w-full absolute shadow-lg animate-fade-in">
           <nav className="container mx-auto px-4 py-4">
             <ul className="space-y-2">
-              {["Home", "Products", "About"].map((item) => (
+              {["Home", "Products"].map((item) => (
                 <li key={item}>
                   <Link
                     to={item === "Home" ? "/" : `/${item.toLowerCase()}`}

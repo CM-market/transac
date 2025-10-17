@@ -73,7 +73,7 @@ const SearchPage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto mb-8">
-        <h1 className="text-3xl font-bold mb-6 text-center">
+        <h1 className="text-3xl font-bold text-cm-forest mb-6 text-center">
           {t("search.title")}
         </h1>
 
@@ -82,22 +82,26 @@ const SearchPage: React.FC = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("search.placeholder")}
-            className="flex-1"
+            className="flex-1 h-12 rounded-full"
           />
-          <Button type="submit">
-            <Search className="h-4 w-4 mr-2" />
+          <Button
+            type="submit"
+            size="lg"
+            className="rounded-full bg-cm-green hover:bg-cm-forest"
+          >
+            <Search className="h-5 w-5 mr-2" />
             {t("search.button")}
           </Button>
         </form>
       </div>
 
-      <div className="mb-4">
-        <div className="flex flex-wrap gap-2">
+      <div className="mb-6">
+        <div className="flex flex-wrap justify-center gap-2">
           {t("search.tags", { returnObjects: true }).map((tag: string) => (
             <Badge
               key={tag}
               variant="outline"
-              className="cursor-pointer hover:bg-muted"
+              className="cursor-pointer hover:bg-gray-100 text-sm px-3 py-1"
               onClick={() => setQuery(tag)}
             >
               {tag}
@@ -107,7 +111,7 @@ const SearchPage: React.FC = () => {
       </div>
 
       <Tabs defaultValue="products" className="w-full">
-        <TabsList className="grid grid-cols-3 max-w-md mx-auto mb-6">
+        <TabsList className="grid grid-cols-3 w-full sm:w-auto sm:max-w-md mx-auto mb-6">
           <TabsTrigger value="products">
             {t("search.tabs.products")}
           </TabsTrigger>
@@ -118,29 +122,28 @@ const SearchPage: React.FC = () => {
         </TabsList>
 
         <TabsContent value="products">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {sampleResults.products.map((product) => (
               <Card
                 key={product.id}
-                className="overflow-hidden cursor-pointer hover:shadow-md"
+                className="overflow-hidden cursor-pointer group hover:shadow-lg transition-shadow"
                 onClick={() => navigate(`/product/${product.id}`)}
               >
-                <div className="bg-gray-100 aspect-square">
+                <div className="bg-gray-100 aspect-square overflow-hidden">
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                   />
                 </div>
                 <CardContent className="p-4">
-                  <Badge
-                    variant="outline"
-                    className="mb-2 bg-cm-sand bg-opacity-30"
-                  >
+                  <Badge variant="outline" className="mb-2 text-xs">
                     {product.category}
                   </Badge>
-                  <h3 className="font-semibold mb-1">{product.name}</h3>
-                  <p className="text-cm-green font-bold">
+                  <h3 className="font-semibold text-md text-gray-800">
+                    {product.name}
+                  </h3>
+                  <p className="text-cm-green font-bold mt-1">
                     {product.price.toLocaleString()} FCFA
                   </p>
                 </CardContent>
@@ -150,26 +153,26 @@ const SearchPage: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="vendors">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {sampleResults.vendors.map((vendor) => (
               <Card
                 key={vendor.id}
-                className="overflow-hidden cursor-pointer hover:shadow-md"
+                className="overflow-hidden cursor-pointer group hover:shadow-lg transition-shadow"
                 onClick={() => navigate(`/vendor-profile/${vendor.id}`)}
               >
-                <div className="bg-gray-100 aspect-video">
+                <div className="bg-gray-100 aspect-video overflow-hidden">
                   <img
                     src={vendor.image}
                     alt={vendor.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                   />
                 </div>
                 <CardContent className="p-4">
-                  <h3 className="font-semibold mb-1">{vendor.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">
+                  <h3 className="font-semibold text-lg">{vendor.name}</h3>
+                  <p className="text-sm text-gray-500 mb-2">
                     {t("search.region", { region: vendor.region })}
                   </p>
-                  <Badge variant="outline">
+                  <Badge variant="secondary">
                     {t("search.productCount", { count: vendor.products })}
                   </Badge>
                 </CardContent>
@@ -179,16 +182,16 @@ const SearchPage: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="categories">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {sampleResults.categories.map((category) => (
               <Card
                 key={category.id}
-                className="cursor-pointer hover:shadow-md"
+                className="cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => navigate(`/products?category=${category.name}`)}
               >
                 <CardContent className="p-6 flex justify-between items-center">
-                  <h3 className="font-semibold">{category.name}</h3>
-                  <Badge variant="outline">
+                  <h3 className="font-semibold text-md">{category.name}</h3>
+                  <Badge variant="secondary">
                     {t("search.productCount", { count: category.count })}
                   </Badge>
                 </CardContent>

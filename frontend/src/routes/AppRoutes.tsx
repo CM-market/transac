@@ -4,7 +4,6 @@ import { MainLayout } from "../layouts";
 import {
   ErrorPage,
   LoadingPage,
-  About,
   Cart,
   NotFound,
   Orders,
@@ -59,7 +58,6 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
         element={<MarketplaceWelcome onBuy={onBuy} onSell={onSell} />}
       />
       <Route element={<MainLayout />}>
-        <Route path="about" element={<About />} />
         <Route path="cart" element={<Cart />} />
         <Route path="orders" element={<Orders />} />
         <Route path="products" element={<ProductList />} />

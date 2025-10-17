@@ -56,10 +56,17 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     { name: "Textiles", emoji: "🧵" },
     { name: "Art", emoji: "🎨" },
     { name: "Jewelry", emoji: "💍" },
+    { name: "Home Goods", emoji: "🏠" },
+    { name: "Fashion", emoji: "👗" },
+    { name: "Beauty", emoji: "💅" },
+    { name: "Books", emoji: "📚" },
+    { name: "Electronics", emoji: "🔌" },
+    { name: "Toys", emoji: "🧸" },
+    { name: "Health", emoji: "💊" },
   ];
 
   return (
-    <Card className="sticky top-24 shadow-lg border-gray-200 rounded-xl">
+    <Card className="sticky top-24 shadow-lg border-border rounded-xl">
       <CardContent className="p-6">
         <div className="flex justify-between items-center mb-6 pb-4 border-b">
           <div className="flex items-center gap-3">
@@ -79,11 +86,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
         <div className="space-y-4">
           <div>
-            <label className="text-md font-semibold text-gray-700 mb-2 block">
+            <label className="text-md font-semibold text-foreground mb-2 block">
               {t("product.filterSidebar.sortBy")}
             </label>
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full h-12 text-md rounded-lg border-gray-300 focus:ring-cm-green focus:border-cm-green">
+              <SelectTrigger className="w-full h-12 text-md rounded-lg border-border focus:ring-ring focus:border-primary">
                 <SelectValue
                   placeholder={t("product.filterSidebar.selectSorting")}
                 />
@@ -111,7 +118,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
             className="w-full"
           >
             <AccordionItem value="categories">
-              <AccordionTrigger className="text-md font-semibold text-gray-700">
+              <AccordionTrigger className="text-md font-semibold text-foreground">
                 <div className="flex items-center gap-2">
                   <Tag className="h-5 w-5" />{" "}
                   {t("product.filterSidebar.categories")}
@@ -125,8 +132,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                       onClick={() => handleCategoryChange(category.name)}
                       className={`w-full text-left p-3 rounded-lg border transition-all duration-200 flex items-center gap-3 text-lg font-medium ${
                         selectedCategories.includes(category.name)
-                          ? "bg-cm-green/10 border-cm-green text-cm-green"
-                          : "bg-white hover:bg-gray-50"
+                          ? "bg-primary/10 border-primary text-primary"
+                          : "bg-card hover:bg-muted"
                       }`}
                     >
                       <span className="text-2xl">{category.emoji}</span>
@@ -138,7 +145,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
             </AccordionItem>
 
             <AccordionItem value="price">
-              <AccordionTrigger className="text-md font-semibold text-gray-700">
+              <AccordionTrigger className="text-md font-semibold text-foreground">
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5" />{" "}
                   {t("product.filterSidebar.priceRange")}
@@ -153,7 +160,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                   onValueChange={setPriceRange}
                   className="my-4 [&>span:first-child]:h-2 [&>span:first-child>span]:bg-cm-green"
                 />
-                <div className="flex justify-between text-sm font-medium text-gray-600">
+                <div className="flex justify-between text-sm font-medium text-muted-foreground">
                   <span>{priceRange[0].toLocaleString()} FCFA</span>
                   <span>{priceRange[1].toLocaleString()} FCFA</span>
                 </div>
@@ -161,7 +168,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
             </AccordionItem>
 
             <AccordionItem value="region">
-              <AccordionTrigger className="text-md font-semibold text-gray-700">
+              <AccordionTrigger className="text-md font-semibold text-foreground">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-5 w-5" />{" "}
                   {t("product.filterSidebar.region")}
@@ -169,7 +176,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
               </AccordionTrigger>
               <AccordionContent className="pt-4">
                 <Select defaultValue="all">
-                  <SelectTrigger className="w-full h-12 text-md rounded-lg border-gray-300 focus:ring-cm-green focus:border-cm-green">
+                  <SelectTrigger className="w-full h-12 text-md rounded-lg border-border focus:ring-ring focus:border-primary">
                     <SelectValue
                       placeholder={t("product.filterSidebar.selectRegion")}
                     />
@@ -202,7 +209,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
           <div className="flex items-center justify-between pt-4 border-t">
             <Label
               htmlFor="verified-seller"
-              className="flex items-center gap-2 text-md font-semibold text-gray-700"
+              className="flex items-center gap-2 text-md font-semibold text-foreground"
             >
               <ShieldCheck className="h-5 w-5" />{" "}
               {t("product.filterSidebar.verifiedSeller")}

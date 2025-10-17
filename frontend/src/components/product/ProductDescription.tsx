@@ -32,7 +32,7 @@ const ProductDescription: React.FC<ProductDescriptionProps> = ({
           <AccordionTrigger className="text-lg font-semibold hover:text-cm-green">
             {t("product.productDescription.description")}
           </AccordionTrigger>
-          <AccordionContent className="text-base text-gray-700">
+          <AccordionContent className="text-base text-muted-foreground">
             {description}
           </AccordionContent>
         </AccordionItem>
@@ -41,7 +41,7 @@ const ProductDescription: React.FC<ProductDescriptionProps> = ({
             {t("product.productDescription.specifications")}
           </AccordionTrigger>
           <AccordionContent>
-            <ul className="list-disc list-inside space-y-2 text-base text-gray-700">
+            <ul className="list-disc list-inside space-y-2 text-base text-muted-foreground">
               <li>
                 <span className="font-semibold">
                   {t("product.productDescription.weight")}:
@@ -68,7 +68,7 @@ const ProductDescription: React.FC<ProductDescriptionProps> = ({
             {t("product.productDescription.whatsInTheBox")}
           </AccordionTrigger>
           <AccordionContent>
-            <ul className="list-disc list-inside space-y-2 text-base text-gray-700">
+            <ul className="list-disc list-inside space-y-2 text-base text-muted-foreground">
               <li>{t("product.productDescription.handcraftedBowl")}</li>
               <li>{t("product.productDescription.careInstructions")}</li>
             </ul>

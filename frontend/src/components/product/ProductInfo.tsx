@@ -39,7 +39,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
   return (
     <div className="flex flex-col space-y-6">
       <div>
-        <Badge className="bg-cm-yellow text-black font-semibold mb-3 w-fit">
+        <Badge className="bg-primary text-primary-foreground font-semibold mb-3 w-fit">
           {product.category}
         </Badge>
         <h1 className="text-4xl font-extrabold text-cm-forest mb-3">
@@ -50,18 +50,18 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                className={`h-5 w-5 ${i < Math.round(product.rating) ? "text-cm-yellow" : "text-gray-300"}`}
+                className={`h-5 w-5 ${i < Math.round(product.rating) ? "text-primary" : "text-muted-foreground"}`}
                 fill="currentColor"
               />
             ))}
           </div>
-          <span className="text-md text-gray-600">
+          <span className="text-md text-muted-foreground">
             {t("product.productInfo.reviews", { count: product.reviews })}
           </span>
         </div>
       </div>
 
-      <p className="text-gray-700 text-lg leading-relaxed">
+      <p className="text-muted-foreground text-lg leading-relaxed">
         {product.description}
       </p>
 
@@ -70,7 +70,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
           {(product.price * (1 - product.discount / 100)).toLocaleString()} FCFA
         </span>
         {product.discount > 0 && (
-          <span className="ml-3 text-2xl text-gray-400 line-through">
+          <span className="ml-3 text-2xl text-muted-foreground line-through">
             {product.price.toLocaleString()} FCFA
           </span>
         )}
@@ -92,7 +92,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="flex items-center border rounded-lg">
+        <div className="flex items-center border border-border rounded-lg">
           <Button
             variant="ghost"
             size="icon"
@@ -123,7 +123,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
         </Button>
         <Button size="icon" variant="outline" onClick={onWishlistClick}>
           <Heart
-            className={`h-5 w-5 ${isWishlisted ? "text-red-500 fill-current" : "text-gray-600"}`}
+            className={`h-5 w-5 ${isWishlisted ? "text-destructive fill-current" : "text-muted-foreground"}`}
           />
         </Button>
         <Button size="icon" variant="outline">
@@ -131,7 +131,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
         </Button>
       </div>
 
-      <Card className="bg-white border-gray-200 rounded-lg">
+      <Card className="bg-card border-border rounded-lg">
         <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex items-center gap-4">
             <ShieldCheck className="h-8 w-8 text-cm-green" />
@@ -139,7 +139,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
               <h4 className="font-semibold">
                 {t("product.productInfo.verifiedSeller")}
               </h4>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {t("product.productInfo.verifiedSellerDescription")}
               </p>
             </div>
@@ -150,7 +150,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
               <h4 className="font-semibold">
                 {t("product.productInfo.fastDelivery")}
               </h4>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {t("product.productInfo.fastDeliveryDescription")}
               </p>
             </div>

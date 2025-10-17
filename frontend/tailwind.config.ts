@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -63,13 +64,13 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         // Cameroon-inspired colors
-        "cm-green": "#007A5E",
-        "cm-red": "#CE1126",
-        "cm-yellow": "#FCD116",
-        "cm-earth": "#8C6B4F",
-        "cm-sand": "#D4B996",
-        "cm-clay": "#B85C38",
-        "cm-forest": "#1E5631",
+        "cm-green": "hsl(var(--cm-green))",
+        "cm-red": "hsl(var(--cm-red))",
+        "cm-yellow": "hsl(var(--cm-yellow))",
+        "cm-earth": "hsl(var(--cm-earth))",
+        "cm-sand": "hsl(var(--cm-sand))",
+        "cm-clay": "hsl(var(--cm-clay))",
+        "cm-forest": "hsl(var(--cm-forest))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -111,6 +112,5 @@ export default {
       },
     },
   },
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 } satisfies Config;

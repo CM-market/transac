@@ -77,12 +77,12 @@ const ProductDetails: React.FC = () => {
 
   if (!product) {
     return (
-      <div className="flex-grow flex items-center justify-center bg-gray-50">
+      <div className="flex-grow flex items-center justify-center bg-background">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          <h2 className="text-2xl font-bold text-foreground mb-4">
             {t("productDetails.productNotFound")}
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             {t("productDetails.productNotFoundMessage")}
           </p>
           <Button
@@ -102,7 +102,7 @@ const ProductDetails: React.FC = () => {
     .slice(0, 4);
 
   return (
-    <div className="flex-grow bg-gray-50 py-12">
+    <div className="flex-grow bg-background py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <Breadcrumb className="mb-8">
           <BreadcrumbList>
@@ -124,14 +124,17 @@ const ProductDetails: React.FC = () => {
           </BreadcrumbList>
         </Breadcrumb>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
+          {/* Product Images */}
+          <div className="md:col-span-1 lg:col-span-2">
             <ProductImageGallery
               images={product.images}
               productName={product.name}
             />
           </div>
-          <div className="lg:col-span-3">
+
+          {/* Product Info */}
+          <div className="md:col-span-1 lg:col-span-3">
             <ProductInfo
               product={product}
               quantity={quantity}
@@ -143,12 +146,13 @@ const ProductDetails: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 mt-12">
+        {/* Description, Reviews, and Seller Info */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 mt-8 lg:mt-12">
           <div className="lg:col-span-3">
             <Card>
               <CardContent className="p-6">
                 <ProductDescription description={product.description} />
-                <Separator className="my-8" />
+                <Separator className="my-6" />
                 <Reviews productId={product.id} />
               </CardContent>
             </Card>
@@ -162,15 +166,24 @@ const ProductDetails: React.FC = () => {
       </div>
 
       {/* Sticky Add to Cart Bar for Mobile */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-lg">
-        <Button
-          size="lg"
-          onClick={handleAddToCart}
-          className="w-full bg-cm-green text-white hover:bg-cm-forest font-bold text-lg rounded-lg"
-        >
-          <ShoppingCart className="mr-2" size={20} />
-          {t("productDetails.addToCart")}
-        </Button>
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-sm p-3 border-t z-50">
+        <div className="container mx-auto px-4 flex items-center justify-between gap-3">
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">Price</p>
+            <p className="font-bold text-lg text-cm-forest">
+              {(product.price * (1 - product.discount / 100)).toLocaleString()}{" "}
+              FCFA
+            </p>
+          </div>
+          <Button
+            size="lg"
+            onClick={handleAddToCart}
+            className="flex-grow bg-cm-green text-white hover:bg-cm-forest font-bold text-base rounded-full"
+          >
+            <ShoppingCart className="mr-2" size={18} />
+            {t("productDetails.addToCart")}
+          </Button>
+        </div>
       </div>
     </div>
   );
