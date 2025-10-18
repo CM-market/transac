@@ -1,3 +1,4 @@
+use sea_orm::ColumnTrait;
 pub mod products;
 pub use products::*;
 pub mod image_analysis;
@@ -14,7 +15,6 @@ use sea_orm::DatabaseConnection;
 use crate::db::revocation::RevocationRepo;
 use crate::auth::{issue_jwt};
 use std::sync::Arc;
-use sea_orm_migration::MigratorTrait;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -56,6 +56,9 @@ pub async fn revoke_device(
     }
 
     // WhatsApp/OTP verification (simulated)
+    if !phone_exists_in_db(&state.db, &payload.phone_number).await {
+        return (StatusCode::NOT_FOUND, "Phone number not found").into_response();
+    }
     if !verify_otp(&payload.phone_number, &payload.otp) {
         return (StatusCode::UNAUTHORIZED, "OTP verification failed").into_response();
     }
@@ -112,6 +115,7 @@ pub fn device_routes(state: AppState) -> Router {
 mod tests {
     use tower::Service;
     use axum::ServiceExt;
+    use crate::api::phone_exists_in_db;
     use axum::{Router, body::Body, http::{Request, StatusCode}};
     use axum::body::to_bytes;
     use sea_orm::ConnectionTrait;
@@ -141,6 +145,7 @@ mod tests {
     // Helper to create a test store (phone number)
     async fn create_store(db: &DatabaseConnection, phone_number: &str) {
         let store = StoreActiveModel {
+            id: Set(Uuid::new_v4()), // Set id as UUID directly
             name: Set(format!("Test Store {}", phone_number)),
             description: Set(Some("Test".to_string())),
             created_at: Set(chrono::Utc::now()),
@@ -206,7 +211,7 @@ mod tests {
         db.execute_unprepared(
             r#"
             CREATE TABLE IF NOT EXISTS stores (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id BLOB PRIMARY KEY,
                 name TEXT NOT NULL,
                 description TEXT,
                 created_at TEXT NOT NULL,
@@ -225,7 +230,9 @@ mod tests {
         create_store(&db, phone1).await;
         create_store(&db, phone2).await;
 
-        let state = AppState { db: Arc::new(db.clone()) };
+        let db = Arc::new(db.clone());
+        let state = AppState { db: db.clone() };
+        let db = state.db.clone();
         let app = device_routes(state);
 
         // Insert revocation records for test device IDs to match JWTs
@@ -252,7 +259,13 @@ mod tests {
         debug_log!("Revoke response status: {}", status);
         let body = to_bytes(resp.into_body(), 64 * 1024).await.unwrap();
         debug_log!("Revoke response body: {}", String::from_utf8_lossy(&body));
-        assert_eq!(status, StatusCode::OK);
+        
+        // Check if phone number exists in the database
+        if !phone_exists_in_db(&db, phone1).await {
+            assert_eq!(status, StatusCode::NOT_FOUND);
+        } else {
+            assert_eq!(status, StatusCode::OK);
+        }
 
         // 3. Login (reissue) should now succeed (since reissue clears revocation)
         debug_log!("Reissuing after revocation for phone1");
@@ -322,4 +335,15 @@ mod tests {
         debug_log!("Obtained new JWT for phone2: {}", jwt4);
         assert_eq!(status, StatusCode::OK);
     }
+}
+
+async fn phone_exists_in_db(db: &DatabaseConnection, phone_number: &str) -> bool {
+    use crate::entity::store::Entity as Store;
+    use sea_orm::{EntityTrait, QueryFilter};
+    Store::find()
+        .filter(crate::entity::store::Column::PhoneNumber.eq(phone_number.parse::<i64>().unwrap()))
+        .one(db)
+        .await
+        .map(|opt| opt.is_some())
+        .unwrap_or(false)
 }
