@@ -180,10 +180,10 @@ mod tests {
     async fn create_store(db: &DatabaseConnection, phone_number: &str) {
         let store = StoreActiveModel {
             id: Set(Uuid::new_v4()), // Set id as UUID directly
-            name: Set(format!("Test Store {phone_number}" )),
+            name: Set(format!("Test Store {phone_number}")),
             description: Set(Some("Test".to_string())),
             created_at: Set(chrono::Utc::now()),
-            phone_number: Set(phone_number.parse::<i64>().unwrap())
+            phone_number: Set(phone_number.parse::<i64>().unwrap()),
         };
 
         // Prepare debug info
@@ -218,7 +218,7 @@ mod tests {
     async fn create_revocation(db: &DatabaseConnection, device_id: &str, is_revocked: bool) {
         let rev = RevocationActiveModel {
             device_id: Set(device_id.to_string()),
-            is_revocked: Set(is_revocked)
+            is_revocked: Set(is_revocked),
         };
         // Debug logs before unwrap
         debug_log!(

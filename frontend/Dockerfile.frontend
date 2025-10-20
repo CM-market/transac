@@ -6,6 +6,7 @@ WORKDIR /app
 # Copy manifest files and OpenAPI spec needed by postinstall codegen
 COPY package*.json ./
 COPY openapi.json ./
+RUN npm install -g npm@latest
 RUN --mount=type=cache,target=/root/.npm sh -c "if [ -f package-lock.json ]; then npm ci; else npm install; fi"
 
 COPY . .
