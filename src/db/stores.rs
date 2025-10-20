@@ -1,9 +1,9 @@
 use crate::entity::store::{
     self, ActiveModel as StoreActiveModel, Entity as StoreEntity, Model as StoreModel,
 };
+use sea_orm::prelude::Uuid;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, QueryOrder, Set};
 use tracing::{debug, error};
-use uuid::Uuid;
 
 #[allow(dead_code)]
 pub struct Store;

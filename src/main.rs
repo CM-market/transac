@@ -1,4 +1,5 @@
 pub mod entity;
+mod migrator;
 use axum::{response::IntoResponse, routing::get, Json, Router};
 use serde::Serialize;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -115,7 +116,7 @@ async fn verify_pow_solution(
     let token = ctx
         .jwt_service
         .generate_token(request.relay_id.clone(), request.public_key.clone())
-        .map_err(|e| AppError::Internal(anyhow::anyhow!(e)))?;
+        .map_err(|e: String| AppError::Internal(anyhow::anyhow!(e)))?;
 
     tracing::info!(
         relay_id = %request.relay_id,

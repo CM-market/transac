@@ -1,16 +1,11 @@
-use chrono::{DateTime, Utc};
 use sea_orm::entity::prelude::*;
-use uuid::Uuid;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "stores")]
+#[sea_orm(table_name = "revocation")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: Uuid,
-    pub phone_number: i64,
-    pub name: String,
-    pub description: Option<String>,
-    pub created_at: DateTime<Utc>,
+    pub device_id: String,
+    pub is_revocked: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

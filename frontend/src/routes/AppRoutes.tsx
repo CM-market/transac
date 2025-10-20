@@ -4,6 +4,7 @@ import { MainLayout } from "../layouts";
 import { ErrorPage, LoadingPage } from "../pages";
 import PowScreen from "../components/PowScreen";
 import MarketplaceWelcome from "../components/MarketplaceWelcome";
+import ProfilePage from "../pages/ProfilePage";
 import type { AuthenticationStatus } from "../hooks/useAuthenticationFlow";
 
 interface AppRoutesProps {
@@ -48,6 +49,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           index
           element={<MarketplaceWelcome onBuy={onBuy} onSell={onSell} />}
         />
+        <Route path="profile" element={<ProfilePage />} />
         {/* Default redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

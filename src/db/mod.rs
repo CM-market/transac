@@ -1,4 +1,5 @@
 pub mod products;
+pub mod revocation;
 mod stores;
 
 use crate::config::Config;

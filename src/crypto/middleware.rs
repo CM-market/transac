@@ -1,9 +1,13 @@
+use crate::auth::validate_jwt;
+use crate::db::revocation::RevocationRepo;
 use axum::{
     extract::Request,
     http::{HeaderMap, StatusCode},
     middleware::Next,
     response::Response,
 };
+use sea_orm::DatabaseConnection;
+use std::sync::Arc;
 use tracing::{info, warn};
 
 /// Determine if cryptographic validation should be skipped for a given path
@@ -58,13 +62,39 @@ pub async fn crypto_validation_middleware(
     if let Some(token) = extract_token(&headers) {
         info!(path = %path, "Detected token, validating authentication");
 
-        // TODO: Implement full token validation logic, e.g., JWT verification
-        if token.starts_with("valid_token") {
-            info!(path = %path, "Token validation successful");
-            return Ok(next.run(request).await);
+        // Validate JWT and extract claims
+        let claims = match validate_jwt(&token) {
+            Ok(data) => data.claims,
+            Err(_) => {
+                warn!(path = %path, "JWT validation failed");
+                return Err(StatusCode::UNAUTHORIZED);
+            }
+        };
+
+        // Get DB connection from request extensions (assumes Arc<DatabaseConnection> is set as "db")
+        let db = if let Some(db) = request.extensions().get::<Arc<DatabaseConnection>>() {
+            db.clone()
         } else {
-            warn!(path = %path, "Token validation failed");
-            return Err(StatusCode::UNAUTHORIZED);
+            warn!(path = %path, "Database connection not found in request extensions");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        };
+
+        // Phone number existence in STORES cannot be checked (no phone_number column)
+
+        // Check revocation status
+        match RevocationRepo::is_revoked(&db, &claims.device_id).await {
+            Ok(true) => {
+                warn!(path = %path, "Device certificate is revoked");
+                return Err(StatusCode::UNAUTHORIZED);
+            }
+            Ok(false) => {
+                info!(path = %path, "Token and device are valid");
+                return Ok(next.run(request).await);
+            }
+            Err(_) => {
+                warn!(path = %path, "Error checking revocation status");
+                return Err(StatusCode::INTERNAL_SERVER_ERROR);
+            }
         }
     }
 
