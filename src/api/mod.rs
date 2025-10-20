@@ -4,6 +4,7 @@ pub mod media_storage;
 pub mod products;
 use crate::auth::issue_jwt;
 use crate::db::revocation::RevocationRepo;
+use crate::entity::store::Entity as Store;
 use axum::{
     extract::{Json, State},
     http::StatusCode,
@@ -14,7 +15,6 @@ use axum::{
 use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter};
 use serde::Deserialize;
 use std::sync::Arc;
-use crate::entity::store::Entity as Store;
 
 #[derive(Clone)]
 #[allow(dead_code)]
@@ -149,7 +149,7 @@ pub fn device_routes(state: AppState) -> Router {
 }
 #[cfg(test)]
 mod tests {
-    use super::{device_routes, AppState, phone_exists_in_db};
+    use super::{device_routes, phone_exists_in_db, AppState};
     use crate::entity::revocation::ActiveModel as RevocationActiveModel;
     use crate::entity::store::ActiveModel as StoreActiveModel;
     use axum::body::to_bytes;
@@ -176,7 +176,6 @@ mod tests {
         crate::migrator::Migrator::up(db, None).await.unwrap();
     }
 
-    
     // Helper to create a test store (phone number)
     async fn create_store(db: &DatabaseConnection, phone_number: &str) {
         let store = StoreActiveModel {
@@ -255,8 +254,8 @@ mod tests {
             );
             "#,
         )
-            .await
-            .unwrap();
+        .await
+        .unwrap();
         // Run migrations to create tables
         run_migrations(&db).await;
 

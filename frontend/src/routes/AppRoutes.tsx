@@ -49,10 +49,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           index
           element={<MarketplaceWelcome onBuy={onBuy} onSell={onSell} />}
         />
-        <Route
-          path="profile"
-          element={<ProfilePage />}
-        />
+        <Route path="profile" element={<ProfilePage />} />
         {/* Default redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

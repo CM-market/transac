@@ -13,7 +13,10 @@ export async function requestOtp(phone: string): Promise<void> {
   }
 }
 
-export async function revokeDeviceCertificate(phone: string, otp: string): Promise<void> {
+export async function revokeDeviceCertificate(
+  phone: string,
+  otp: string,
+): Promise<void> {
   const res = await fetch("/api/device/revoke", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -25,7 +28,10 @@ export async function revokeDeviceCertificate(phone: string, otp: string): Promi
   }
 }
 
-export async function reissueDeviceCertificate(phone: string, otp: string): Promise<{ jwt: string }> {
+export async function reissueDeviceCertificate(
+  phone: string,
+  otp: string,
+): Promise<{ jwt: string }> {
   const res = await fetch("/api/device/reissue", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

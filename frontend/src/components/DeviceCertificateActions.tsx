@@ -9,7 +9,9 @@ import { apiAuthService } from "../services/keyManagement/apiAuthService";
 type ActionType = "revoke" | "reissue" | null;
 
 const DeviceCertificateActions: React.FC = () => {
-  const [step, setStep] = useState<"idle" | "phone" | "otp" | "processing" | "done" | "error">("idle");
+  const [step, setStep] = useState<
+    "idle" | "phone" | "otp" | "processing" | "done" | "error"
+  >("idle");
   const [action, setAction] = useState<ActionType>(null);
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
@@ -47,11 +49,15 @@ const DeviceCertificateActions: React.FC = () => {
         const result = await reissueDeviceCertificate(phone, otp);
         apiAuthService.setBearerToken(result.jwt);
         setStep("done");
-        setFeedback("Device certificate reissued and JWT updated successfully.");
+        setFeedback(
+          "Device certificate reissued and JWT updated successfully.",
+        );
       }
     } catch (err: any) {
       setStep("error");
-      setFeedback(err.message || "Failed to process request. Please try again.");
+      setFeedback(
+        err.message || "Failed to process request. Please try again.",
+      );
     }
   };
 
@@ -89,7 +95,7 @@ const DeviceCertificateActions: React.FC = () => {
             <input
               type="tel"
               value={phone}
-              onChange={e => setPhone(e.target.value)}
+              onChange={(e) => setPhone(e.target.value)}
               className="mt-2 w-full border rounded px-3 py-2"
               required
               pattern="^\\+?[0-9]{7,15}$"
@@ -119,7 +125,7 @@ const DeviceCertificateActions: React.FC = () => {
             <input
               type="text"
               value={otp}
-              onChange={e => setOtp(e.target.value)}
+              onChange={(e) => setOtp(e.target.value)}
               className="mt-2 w-full border rounded px-3 py-2"
               required
               pattern="^[0-9]{4,8}$"
