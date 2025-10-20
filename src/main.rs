@@ -1,5 +1,5 @@
-mod migrator;
 pub mod entity;
+mod migrator;
 use axum::{response::IntoResponse, routing::get, Json, Router};
 use serde::Serialize;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};

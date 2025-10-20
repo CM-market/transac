@@ -1,16 +1,16 @@
-use sea_orm::prelude::Uuid;
-use sea_orm::{
-    ActiveModelTrait, DatabaseConnection, EntityTrait, Set, QueryOrder,
+use crate::entity::store::{
+    self, ActiveModel as StoreActiveModel, Entity as StoreEntity, Model as StoreModel,
 };
-use tracing::{error, debug};
-use crate::entity::store::{self, Entity as StoreEntity, Model as StoreModel, ActiveModel as StoreActiveModel};
+use sea_orm::prelude::Uuid;
+use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, QueryOrder, Set};
+use tracing::{debug, error};
 
 #[allow(dead_code)]
 pub struct Store;
 
 #[allow(dead_code)]
 impl Store {
-        pub async fn create(
+    pub async fn create(
         db: &DatabaseConnection,
         name: &str,
         description: Option<&str>,
@@ -89,7 +89,7 @@ impl Store {
             })?
             .ok_or_else(|| "Store not found.".to_string())?;
 
-        let mut active: StoreActiveModel = store.into();
+        let active: StoreActiveModel = store.into();
         active.delete(db).await.map_err(|e| {
             error!("Failed to delete store {}: {:?}", id, e);
             "Failed to delete store. Please try again later.".to_string()

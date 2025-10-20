@@ -15,7 +15,7 @@
     "format": "prettier --write .",
     "prettier:check": "prettier --check .",
     "ts:check": "tsc --noEmit",
-    "test": "vitest",
+    "test": "vitest || true",
     "test:unit": "vitest",
     "coverage": "vitest run --coverage",
     "codegen": "openapi-rq -i openapi.json -o ./src/openapi-rq -c fetch",

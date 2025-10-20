@@ -1,9 +1,12 @@
 mod jwt_service;
 pub use jwt_service::JwtService;
 
+use chrono::{Duration, Utc};
+use jsonwebtoken::{
+    decode, encode, errors::Error as JwtError, DecodingKey, EncodingKey, Header, TokenData,
+    Validation,
+};
 use serde::{Deserialize, Serialize};
-use jsonwebtoken::{encode, decode, Header, Validation, EncodingKey, DecodingKey, TokenData, errors::Error as JwtError};
-use chrono::{Utc, Duration};
 
 const JWT_SECRET: &[u8] = b"super_secret_key_change_me"; // Replace with env/config in production
 

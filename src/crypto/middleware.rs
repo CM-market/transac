@@ -1,14 +1,14 @@
+use crate::auth::validate_jwt;
+use crate::db::revocation::RevocationRepo;
 use axum::{
     extract::Request,
     http::{HeaderMap, StatusCode},
     middleware::Next,
     response::Response,
 };
-use tracing::{info, warn};
-use std::sync::Arc;
 use sea_orm::DatabaseConnection;
-use crate::db::revocation::RevocationRepo;
-use crate::auth::validate_jwt;
+use std::sync::Arc;
+use tracing::{info, warn};
 
 /// Determine if cryptographic validation should be skipped for a given path
 pub fn should_skip_validation(path: &str) -> bool {

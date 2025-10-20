@@ -1,33 +1,35 @@
 use sea_orm::ColumnTrait;
-pub mod products;
-pub use products::*;
 pub mod image_analysis;
 pub mod media_storage;
+pub mod products;
+use crate::auth::issue_jwt;
+use crate::db::revocation::RevocationRepo;
 use axum::{
+    extract::{Json, State},
+    http::StatusCode,
+    response::IntoResponse,
     routing::post,
     Router,
-    extract::{State, Json},
-    response::IntoResponse,
-    http::StatusCode,
 };
-use serde::Deserialize;
 use sea_orm::DatabaseConnection;
-use crate::db::revocation::RevocationRepo;
-use crate::auth::{issue_jwt};
+use serde::Deserialize;
 use std::sync::Arc;
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct AppState {
     pub db: Arc<DatabaseConnection>,
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 pub struct DeviceRequest {
     pub phone_number: String,
     pub otp: String,
 }
 
 // Simulate OTP verification (replace with real SMS OTP in production)
+#[allow(unused)]
 fn verify_otp(_phone_number: &str, _otp: &str) -> bool {
     // Accept any OTP for demo purposes
     true
@@ -35,6 +37,7 @@ fn verify_otp(_phone_number: &str, _otp: &str) -> bool {
 
 use crate::auth::validate_jwt;
 
+#[allow(dead_code)]
 pub async fn revoke_device(
     State(state): State<AppState>,
     headers: axum::http::HeaderMap,
@@ -43,7 +46,13 @@ pub async fn revoke_device(
     // Extract and validate JWT from Authorization header
     let token = match headers.get("Authorization").and_then(|h| h.to_str().ok()) {
         Some(header) if header.starts_with("Bearer ") => &header[7..],
-        _ => return (StatusCode::UNAUTHORIZED, "Missing or invalid Authorization header").into_response(),
+        _ => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                "Missing or invalid Authorization header",
+            )
+                .into_response()
+        }
     };
     let claims = match validate_jwt(token) {
         Ok(data) => data.claims,
@@ -71,6 +80,7 @@ pub async fn revoke_device(
     (StatusCode::OK, "Device certificate revoked").into_response()
 }
 
+#[allow(dead_code)]
 pub async fn reissue_device(
     State(state): State<AppState>,
     headers: axum::http::HeaderMap,
@@ -79,7 +89,13 @@ pub async fn reissue_device(
     // Extract and validate JWT from Authorization header
     let token = match headers.get("Authorization").and_then(|h| h.to_str().ok()) {
         Some(header) if header.starts_with("Bearer ") => &header[7..],
-        _ => return (StatusCode::UNAUTHORIZED, "Missing or invalid Authorization header").into_response(),
+        _ => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                "Missing or invalid Authorization header",
+            )
+                .into_response()
+        }
     };
     let claims = match validate_jwt(token) {
         Ok(data) => data.claims,
@@ -97,14 +113,23 @@ pub async fn reissue_device(
     }
 
     // Issue new JWT with correct claims
-    let user_role = if claims.user_role == "seller" { "seller" } else { "buyer" };
-    let phone_number = if user_role == "seller" { Some(payload.phone_number.as_str()) } else { None };
+    let user_role = if claims.user_role == "seller" {
+        "seller"
+    } else {
+        "buyer"
+    };
+    let phone_number = if user_role == "seller" {
+        Some(payload.phone_number.as_str())
+    } else {
+        None
+    };
     match issue_jwt(&claims.device_id, user_role, phone_number, 3600) {
         Ok(token) => (StatusCode::OK, token).into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, format!("JWT error: {e}")).into_response(),
     }
 }
 
+#[allow(dead_code)]
 pub fn device_routes(state: AppState) -> Router {
     Router::new()
         .route("/api/device/revoke", post(revoke_device))
@@ -113,22 +138,22 @@ pub fn device_routes(state: AppState) -> Router {
 }
 #[cfg(test)]
 mod tests {
-    use tower::Service;
-    use axum::ServiceExt;
+    use super::{device_routes, AppState};
     use crate::api::phone_exists_in_db;
-    use axum::{Router, body::Body, http::{Request, StatusCode}};
-    use axum::body::to_bytes;
-    use sea_orm::ConnectionTrait;
-    use sea_orm::{Database, DatabaseConnection, ActiveModelTrait, Set};
-    use uuid::Uuid;
-    use std::sync::Arc;
-
-    use super::{device_routes, AppState, DeviceRequest};
-    use crate::entity::store;
-    use crate::entity::store::ActiveModel as StoreActiveModel;
-    use crate::entity::revocation;
     use crate::entity::revocation::ActiveModel as RevocationActiveModel;
+    use crate::entity::store::ActiveModel as StoreActiveModel;
+    use axum::body::to_bytes;
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+        Router,
+    };
+    use sea_orm::ConnectionTrait;
+    use sea_orm::{ActiveModelTrait, Database, DatabaseConnection, Set};
     use sea_orm_migration::MigratorTrait;
+    use std::sync::Arc;
+    use tower::Service;
+    use uuid::Uuid;
 
     // Helper macro for debug logging (must be defined before use)
     macro_rules! debug_log {
@@ -152,9 +177,10 @@ mod tests {
             phone_number: Set(phone_number.parse::<i64>().unwrap()),
             ..Default::default()
         };
-    
+
         // Prepare debug info
-        let insert_query = "INSERT INTO stores (name, description, created_at, phone_number) VALUES (?, ?, ?, ?)";
+        let insert_query =
+            "INSERT INTO stores (name, description, created_at, phone_number) VALUES (?, ?, ?, ?)";
         debug_log!(
             "About to insert store with fields: name='{}', description='{:?}', created_at='{}', phone_number={}",
             store.name.as_ref(),
@@ -163,7 +189,7 @@ mod tests {
             store.phone_number.as_ref()
         );
         debug_log!("Insert query: {}", insert_query);
-    
+
         let res = store.insert(db).await;
         match &res {
             Ok(model) => {
@@ -217,7 +243,7 @@ mod tests {
                 created_at TEXT NOT NULL,
                 phone_number INTEGER NOT NULL
             );
-            "#
+            "#,
         )
         .await
         .unwrap();
@@ -259,7 +285,7 @@ mod tests {
         debug_log!("Revoke response status: {}", status);
         let body = to_bytes(resp.into_body(), 64 * 1024).await.unwrap();
         debug_log!("Revoke response body: {}", String::from_utf8_lossy(&body));
-        
+
         // Check if phone number exists in the database
         if !phone_exists_in_db(&db, phone1).await {
             assert_eq!(status, StatusCode::NOT_FOUND);
@@ -294,7 +320,10 @@ mod tests {
         let status = resp.status();
         debug_log!("Revoke (wrong phone) response status: {}", status);
         let body = to_bytes(resp.into_body(), 64 * 1024).await.unwrap();
-        debug_log!("Revoke (wrong phone) response body: {}", String::from_utf8_lossy(&body));
+        debug_log!(
+            "Revoke (wrong phone) response body: {}",
+            String::from_utf8_lossy(&body)
+        );
         assert_eq!(status, StatusCode::NOT_FOUND);
 
         // 5. Only rightful user can revoke/reissue (simulate by using correct/incorrect phone numbers)
@@ -317,7 +346,10 @@ mod tests {
         let status = resp.status();
         debug_log!("Revoke response status for phone2: {}", status);
         let body = to_bytes(resp.into_body(), 64 * 1024).await.unwrap();
-        debug_log!("Revoke response body for phone2: {}", String::from_utf8_lossy(&body));
+        debug_log!(
+            "Revoke response body for phone2: {}",
+            String::from_utf8_lossy(&body)
+        );
         assert_eq!(status, StatusCode::OK);
 
         // Reissue phone2 (should succeed, but still needs Authorization if required)
