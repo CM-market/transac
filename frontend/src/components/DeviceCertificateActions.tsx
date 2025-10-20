@@ -30,9 +30,13 @@ const DeviceCertificateActions: React.FC = () => {
     try {
       await requestOtp(phone);
       setStep("otp");
-    } catch (err: any) {
+    } catch (err) {
       setStep("error");
-      setFeedback(err.message || "Failed to send OTP. Please try again.");
+      setFeedback(
+        err instanceof Error
+          ? err.message
+          : "Failed to send OTP. Please try again.",
+      );
     }
   };
 
@@ -53,10 +57,12 @@ const DeviceCertificateActions: React.FC = () => {
           "Device certificate reissued and JWT updated successfully.",
         );
       }
-    } catch (err: any) {
+    } catch (err) {
       setStep("error");
       setFeedback(
-        err.message || "Failed to process request. Please try again.",
+        err instanceof Error
+          ? err.message
+          : "Failed to process request. Please try again.",
       );
     }
   };

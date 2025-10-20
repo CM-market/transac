@@ -180,11 +180,10 @@ mod tests {
     async fn create_store(db: &DatabaseConnection, phone_number: &str) {
         let store = StoreActiveModel {
             id: Set(Uuid::new_v4()), // Set id as UUID directly
-            name: Set(format!("Test Store {}", phone_number)),
+            name: Set(format!("Test Store {phone_number}" )),
             description: Set(Some("Test".to_string())),
             created_at: Set(chrono::Utc::now()),
-            phone_number: Set(phone_number.parse::<i64>().unwrap()),
-            ..Default::default()
+            phone_number: Set(phone_number.parse::<i64>().unwrap())
         };
 
         // Prepare debug info
@@ -219,8 +218,7 @@ mod tests {
     async fn create_revocation(db: &DatabaseConnection, device_id: &str, is_revocked: bool) {
         let rev = RevocationActiveModel {
             device_id: Set(device_id.to_string()),
-            is_revocked: Set(is_revocked),
-            ..Default::default()
+            is_revocked: Set(is_revocked)
         };
         // Debug logs before unwrap
         debug_log!(
@@ -282,11 +280,11 @@ mod tests {
         debug_log!("Hardcoded JWT for phone1: {}", jwt);
 
         // 2. Revoke phone1 with Authorization header
-        let revoke_payload = format!(r#"{{"phone_number":"{}","otp":"123456"}}"#, phone1);
+        let revoke_payload = format!(r#"{{"phone_number":"{phone1}","otp":"123456"}}"#);
         debug_log!("Revoke payload: {}", revoke_payload);
         let req = Request::post("/api/device/revoke")
             .header("content-type", "application/json")
-            .header("Authorization", format!("Bearer {}", jwt))
+            .header("Authorization", format!("Bearer {jwt}"))
             .body(Body::from(revoke_payload.clone()))
             .unwrap();
         let resp = app.clone().call(req).await.unwrap();
@@ -306,7 +304,7 @@ mod tests {
         debug_log!("Reissuing after revocation for phone1");
         let req = Request::post("/api/device/reissue")
             .header("content-type", "application/json")
-            .header("Authorization", format!("Bearer {}", jwt))
+            .header("Authorization", format!("Bearer {jwt}"))
             .body(Body::from(revoke_payload.clone()))
             .unwrap();
         let resp = app.clone().call(req).await.unwrap();
@@ -344,7 +342,7 @@ mod tests {
         debug_log!("Hardcoded JWT for phone2: {}", jwt2);
 
         // Revoke phone2
-        let revoke2_payload = format!(r#"{{"phone_number":"{}","otp":"123456"}}"#, phone2);
+        let revoke2_payload = format!(r#"{{"phone_number":"{phone2}","otp":"123456"}}"#);
         debug_log!("Revoke payload for phone2: {}", revoke2_payload);
         let req = Request::post("/api/device/revoke")
             .header("content-type", "application/json")
