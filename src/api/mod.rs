@@ -11,9 +11,10 @@ use axum::{
     routing::post,
     Router,
 };
-use sea_orm::DatabaseConnection;
+use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter};
 use serde::Deserialize;
 use std::sync::Arc;
+use crate::entity::store::Entity as Store;
 
 #[derive(Clone)]
 #[allow(dead_code)]
@@ -33,6 +34,16 @@ pub struct DeviceRequest {
 fn verify_otp(_phone_number: &str, _otp: &str) -> bool {
     // Accept any OTP for demo purposes
     true
+}
+
+// Helper function to check if phone number exists in database
+async fn phone_exists_in_db(db: &DatabaseConnection, phone_number: &str) -> bool {
+    Store::find()
+        .filter(crate::entity::store::Column::PhoneNumber.eq(phone_number.parse::<i64>().unwrap()))
+        .one(db)
+        .await
+        .map(|opt| opt.is_some())
+        .unwrap_or(false)
 }
 
 use crate::auth::validate_jwt;
@@ -138,15 +149,13 @@ pub fn device_routes(state: AppState) -> Router {
 }
 #[cfg(test)]
 mod tests {
-    use super::{device_routes, AppState};
-    use crate::api::phone_exists_in_db;
+    use super::{device_routes, AppState, phone_exists_in_db};
     use crate::entity::revocation::ActiveModel as RevocationActiveModel;
     use crate::entity::store::ActiveModel as StoreActiveModel;
     use axum::body::to_bytes;
     use axum::{
         body::Body,
         http::{Request, StatusCode},
-        Router,
     };
     use sea_orm::ConnectionTrait;
     use sea_orm::{ActiveModelTrait, Database, DatabaseConnection, Set};
@@ -167,6 +176,7 @@ mod tests {
         crate::migrator::Migrator::up(db, None).await.unwrap();
     }
 
+    
     // Helper to create a test store (phone number)
     async fn create_store(db: &DatabaseConnection, phone_number: &str) {
         let store = StoreActiveModel {
@@ -245,8 +255,8 @@ mod tests {
             );
             "#,
         )
-        .await
-        .unwrap();
+            .await
+            .unwrap();
         // Run migrations to create tables
         run_migrations(&db).await;
 
@@ -367,15 +377,4 @@ mod tests {
         debug_log!("Obtained new JWT for phone2: {}", jwt4);
         assert_eq!(status, StatusCode::OK);
     }
-}
-
-async fn phone_exists_in_db(db: &DatabaseConnection, phone_number: &str) -> bool {
-    use crate::entity::store::Entity as Store;
-    use sea_orm::{EntityTrait, QueryFilter};
-    Store::find()
-        .filter(crate::entity::store::Column::PhoneNumber.eq(phone_number.parse::<i64>().unwrap()))
-        .one(db)
-        .await
-        .map(|opt| opt.is_some())
-        .unwrap_or(false)
 }
