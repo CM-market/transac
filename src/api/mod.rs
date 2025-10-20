@@ -320,7 +320,7 @@ mod tests {
         debug_log!("Revoke with wrong phone payload: {}", wrong_payload);
         let req = Request::post("/api/device/revoke")
             .header("content-type", "application/json")
-            .header("Authorization", format!("Bearer {}", jwt2))
+            .header("Authorization", format!("Bearer {jwt2}"))
             .body(Body::from(wrong_payload))
             .unwrap();
         let resp = app.clone().call(req).await.unwrap();
@@ -346,7 +346,7 @@ mod tests {
         debug_log!("Revoke payload for phone2: {}", revoke2_payload);
         let req = Request::post("/api/device/revoke")
             .header("content-type", "application/json")
-            .header("Authorization", format!("Bearer {}", jwt2))
+            .header("Authorization", format!("Bearer {jwt2}"))
             .body(Body::from(revoke2_payload.clone()))
             .unwrap();
         let resp = app.clone().call(req).await.unwrap();
@@ -363,7 +363,7 @@ mod tests {
         debug_log!("Reissuing after revocation for phone2");
         let req = Request::post("/api/device/reissue")
             .header("content-type", "application/json")
-            .header("Authorization", format!("Bearer {}", jwt2))
+            .header("Authorization", format!("Bearer {jwt2}"))
             .body(Body::from(revoke2_payload.clone()))
             .unwrap();
         let resp = app.clone().call(req).await.unwrap();
