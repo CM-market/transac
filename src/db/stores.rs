@@ -1,6 +1,7 @@
 use crate::entity::store::{
     self, ActiveModel as StoreActiveModel, Entity as StoreEntity, Model as StoreModel,
 };
+use chrono::Utc;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, QueryOrder, Set};
 use tracing::{debug, error};
 use uuid::Uuid;
@@ -14,11 +15,29 @@ impl Store {
         db: &DatabaseConnection,
         name: &str,
         description: Option<&str>,
+        logo_url: Option<&str>,
+        location: Option<&str>,
+        contact_phone: Option<&str>,
+        contact_email: Option<&str>,
+        contact_whatsapp: Option<&str>,
+        owner_device_id: Option<&str>,
     ) -> Result<StoreModel, String> {
+        let now = Utc::now();
         let store = StoreActiveModel {
+            id: Set(Uuid::new_v4()),
             name: Set(name.to_owned()),
             description: Set(description.map(|d| d.to_owned())),
-            ..Default::default()
+            logo_url: Set(logo_url.map(|l| l.to_owned())),
+            location: Set(location.map(|l| l.to_owned())),
+            contact_phone: Set(contact_phone.map(|p| p.to_owned())),
+            contact_email: Set(contact_email.map(|e| e.to_owned())),
+            contact_whatsapp: Set(contact_whatsapp.map(|w| w.to_owned())),
+            owner_device_id: Set(owner_device_id.map(|o| o.to_owned())),
+            is_verified: Set(false),
+            rating: Set(None),
+            total_products: Set(0),
+            created_at: Set(now),
+            updated_at: Set(now),
         };
         let res = store.insert(db).await.map_err(|e| {
             error!("Failed to create store: {:?}", e);
@@ -57,6 +76,11 @@ impl Store {
         id: Uuid,
         name: &str,
         description: Option<&str>,
+        logo_url: Option<&str>,
+        location: Option<&str>,
+        contact_phone: Option<&str>,
+        contact_email: Option<&str>,
+        contact_whatsapp: Option<&str>,
     ) -> Result<StoreModel, String> {
         let store = StoreEntity::find_by_id(id)
             .one(db)
@@ -70,6 +94,12 @@ impl Store {
         let mut active: StoreActiveModel = store.into();
         active.name = Set(name.to_owned());
         active.description = Set(description.map(|d| d.to_owned()));
+        active.logo_url = Set(logo_url.map(|l| l.to_owned()));
+        active.location = Set(location.map(|l| l.to_owned()));
+        active.contact_phone = Set(contact_phone.map(|p| p.to_owned()));
+        active.contact_email = Set(contact_email.map(|e| e.to_owned()));
+        active.contact_whatsapp = Set(contact_whatsapp.map(|w| w.to_owned()));
+        active.updated_at = Set(Utc::now());
 
         let res = active.update(db).await.map_err(|e| {
             error!("Failed to update store {}: {:?}", id, e);

@@ -3,10 +3,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter as Router } from "react-router-dom";
 
-import useAuthenticationFlow from "./hooks/useAuthenticationFlow";
+import useSimplifiedAuthFlow from "./hooks/useSimplifiedAuthFlow";
 import PowScreen from "./components/PowScreen";
 import MarketplaceWelcome from "./components/MarketplaceWelcome";
 import AppRoutes from "./routes/AppRoutes";
+import { ToastProvider } from "./components/ToastContainer";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -18,8 +19,8 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  // Use the comprehensive authentication flow
-  const authStatus = useAuthenticationFlow();
+  // Use the simplified authentication flow (without registration)
+  const authStatus = useSimplifiedAuthFlow();
 
   // App state management - simplified for marketplace flow
   const [showPowScreen, setShowPowScreen] = useState(true);
@@ -89,10 +90,12 @@ function App() {
 function AppWithRouter() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <App />
-      </Router>
-      <ReactQueryDevtools initialIsOpen={false} />
+      <ToastProvider>
+        <Router>
+          <App />
+        </Router>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

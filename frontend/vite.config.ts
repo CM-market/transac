@@ -6,13 +6,30 @@ export default defineConfig({
   base: "./",
   server: {
     port: 5174,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/healthz': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api-docs': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/swagger-ui': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   optimizeDeps: {
-    include: [
-      "@adorsys-gis/web-auth-prf",
-      "@adorsys-gis/web-auth-storage",
-      "@adorsys-gis/storage",
-    ],
     esbuildOptions: {
       define: {
         global: "globalThis",
@@ -23,11 +40,7 @@ export default defineConfig({
     rollupOptions: {
       external: [],
       output: {
-        globals: {
-          "@adorsys-gis/web-auth-prf": "AdorsysWebAuthPrf",
-          "@adorsys-gis/web-auth-storage": "AdorsysWebAuthStorage",
-          "@adorsys-gis/storage": "AdorsysStorage",
-        },
+        globals: {},
       },
     },
     commonjsOptions: {

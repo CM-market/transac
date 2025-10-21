@@ -17,20 +17,25 @@ impl Product {
         sku: Option<&str>,
         name: &str,
         description: Option<&str>,
-        image_id: Uuid,
         price: f64,
         quantity_available: i32,
+        image_id: Option<Uuid>,
     ) -> Result<ProductModel, String> {
+        debug!("Creating product with: store_id={}, name={}", store_id, name);
+        
         let product = ProductActiveModel {
+            id: Set(Uuid::new_v4()),
             store_id: Set(store_id),
             sku: Set(sku.map(|s| s.to_owned())),
             name: Set(name.to_owned()),
             description: Set(description.map(|d| d.to_owned())),
-            image_id: Set(image_id),
             price: Set(price),
             quantity_available: Set(quantity_available),
+            image_id: Set(image_id),
             ..Default::default()
         };
+        
+        debug!("Product ActiveModel created: {:?}", product);
         let res = product.insert(db).await.map_err(|e| {
             error!("Failed to create product: {:?}", e);
             "Failed to create product. Please try again later.".to_string()
@@ -72,9 +77,9 @@ impl Product {
         sku: Option<&str>,
         name: &str,
         description: Option<&str>,
-        image_id: Uuid,
         price: f64,
         quantity_available: i32,
+        image_id: Option<Uuid>,
     ) -> Result<ProductModel, String> {
         let product = ProductEntity::find_by_id(id)
             .one(db)
@@ -89,9 +94,9 @@ impl Product {
         active.sku = Set(sku.map(|s| s.to_owned()));
         active.name = Set(name.to_owned());
         active.description = Set(description.map(|d| d.to_owned()));
-        active.image_id = Set(image_id);
         active.price = Set(price);
         active.quantity_available = Set(quantity_available);
+        active.image_id = Set(image_id);
 
         let res = active.update(db).await.map_err(|e| {
             error!("Failed to update product {}: {:?}", id, e);
@@ -119,11 +124,12 @@ impl Product {
         debug!("Product deleted: {}", id);
         Ok(())
     }
-    pub async fn update_image_id(
+    
+    pub async fn update_image(
         db: &DatabaseConnection,
         id: Uuid,
-        image_id: Uuid,
-    ) -> Result<(), String> {
+        image_id: Option<Uuid>,
+    ) -> Result<ProductModel, String> {
         let product = ProductEntity::find_by_id(id)
             .one(db)
             .await
@@ -136,10 +142,11 @@ impl Product {
         let mut active: ProductActiveModel = product.into();
         active.image_id = Set(image_id);
 
-        active.update(db).await.map_err(|e| {
+        let res = active.update(db).await.map_err(|e| {
             error!("Failed to update product image {}: {:?}", id, e);
             "Failed to update product image. Please try again later.".to_string()
         })?;
-        Ok(())
+        debug!("Product image updated: {:?}", res);
+        Ok(res)
     }
 }
