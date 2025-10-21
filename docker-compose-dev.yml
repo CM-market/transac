@@ -53,7 +53,9 @@ services:
       - transac_net
 
   backend:
-    image: ghcr.io/cm-market/transac/backend:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
     container_name: transac_backend
     depends_on:
       db:
@@ -62,10 +64,14 @@ services:
       DATABASE_URL: postgres://user:password@db:5432/transac_db
       POW_DIFFICULTY: 4
       POW_TIMEOUT_MINUTES: 10
+      RUST_LOG: info
       S3_BUCKET_NAME: transac-media
-      JWT_SECRET: your-secret-key-change-in-production
-    ports:
-      - "3001:3001"
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_ENDPOINT_URL: http://minio:9000
+    expose:
+      - "3001"
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:3001/healthz"]
       interval: 5s
@@ -76,41 +82,17 @@ services:
       - transac_net
 
   frontend:
-    image: ghcr.io/cm-market/transac/frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
     container_name: transac_frontend
     depends_on:
       backend:
         condition: service_healthy
     ports:
       - "80:80"
-      - "443:443"
-    environment:
-      - VITE_TRANSAC_WEBAUTH_RP_ID=dev-id
-      - VITE_TRANSAC_WEBAUTH_RP_NAME=dev-name
-      - SERVER_NAME=transac.site
-    volumes:
-      # Mount your HTTPS-enabled nginx config
-      - ./nginx_conf:/etc/nginx/conf.d:ro
-
-      # Mount the SSL certificate and challenge volumes
-      - letsencrypt:/etc/letsencrypt
-      - certbot_challenges:/var/www/certbot
-
-      # Mount your frontend app build if needed
-      - ./frontend/dist:/usr/share/nginx/html:ro
     networks:
       - transac_net
-
-  certbot:
-    image: certbot/certbot:latest
-    container_name: transac_certbot
-    depends_on:
-      frontend:
-        condition: service_started
-    volumes:
-      - letsencrypt:/etc/letsencrypt
-      - certbot_challenges:/var/www/certbot
-    # Use `docker compose run --rm certbot ...` for cert generation
 
 networks:
   transac_net: {}
@@ -119,8 +101,4 @@ volumes:
   transac_db_data:
     driver: local
   minio_data:
-    driver: local
-  letsencrypt:
-    driver: local
-  certbot_challenges:
     driver: local

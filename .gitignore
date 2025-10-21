@@ -20,9 +20,6 @@ target/
 .DS_Store
 Thumbs.db
 
-# Cargo
-Cargo.lock
-
 # Migrations (SQLite journal files)
 migrations/*.sql-journal
 
