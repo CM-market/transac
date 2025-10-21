@@ -4,10 +4,8 @@ use crate::entity::user::{
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, QueryFilter, Set, ColumnTrait};
 use tracing::{debug, error};
 
-#[allow(dead_code)]
 pub struct User;
 
-#[allow(dead_code)]
 impl User {
     pub async fn create(db: &DatabaseConnection, relay_id: &str) -> Result<UserModel, String> {
         let user = UserActiveModel {

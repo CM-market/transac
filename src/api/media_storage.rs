@@ -10,13 +10,11 @@ use uuid::Uuid;
 
 #[async_trait]
 pub trait MediaStorage {
-    #[allow(dead_code)]
     async fn upload_media(
         &self,
         product_id: Uuid,
         multipart: &mut Multipart,
     ) -> Result<String, String>;
-    #[allow(dead_code)]
     async fn delete_media(&self, media_key: &str) -> Result<(), String>;
 }
 
@@ -26,7 +24,6 @@ pub struct S3MediaStorage {
     bucket_name: String,
 }
 
-#[allow(dead_code)]
 impl S3MediaStorage {
     pub async fn new() -> Result<Self, String> {
         let region = RegionProviderChain::default_provider()

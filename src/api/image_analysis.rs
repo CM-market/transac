@@ -13,7 +13,6 @@ pub struct ImageAnalysisResult {
 }
 
 /// Image analysis service
-#[allow(dead_code)]
 pub struct ImageAnalysisService {
     max_file_size: u64,
     allowed_types: Vec<String>,
@@ -34,7 +33,6 @@ impl ImageAnalysisService {
         }
     }
 
-    #[allow(dead_code)]
     pub async fn analyze_image(
         &self,
         multipart: &mut Multipart,
@@ -179,11 +177,9 @@ impl Default for ImageAnalysisService {
 }
 
 /// Stub implementation for development/testing
-#[allow(dead_code)]
 pub struct StubImageAnalysisService;
 
 impl StubImageAnalysisService {
-    #[allow(dead_code)]
     pub async fn analyze_image(
         &self,
         _multipart: &mut Multipart,

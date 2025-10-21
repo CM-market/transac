@@ -4,7 +4,6 @@ use crate::auth::claims::Claims;
 use std::env;
 
 /// JWT service for token generation and validation
-#[allow(dead_code)]
 pub struct JwtService {
     encoding_key: EncodingKey,
     decoding_key: DecodingKey,
@@ -41,7 +40,6 @@ impl JwtService {
             .map_err(|e| format!("Failed to generate token: {e}"))
     }
 
-    #[allow(dead_code)]
     pub fn validate_token(&self, token: &str) -> Result<Claims, String> {
         let token_data = decode::<Claims>(token, &self.decoding_key, &self.validation)
             .map_err(|e| format!("Invalid token: {e}"))?;
@@ -49,13 +47,11 @@ impl JwtService {
         Ok(token_data.claims)
     }
 
-    #[allow(dead_code)]
     pub fn get_relay_id(&self, token: &str) -> Result<String, String> {
         let claims = self.validate_token(token)?;
         Ok(claims.sub)
     }
 
-    #[allow(dead_code)]
     pub fn is_token_valid(&self, token: &str) -> bool {
         self.validate_token(token).is_ok()
     }

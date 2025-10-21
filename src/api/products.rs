@@ -14,7 +14,6 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 #[derive(Deserialize, ToSchema)]
-#[allow(dead_code)]
 pub struct CreateProductRequest {
     pub sku: Option<String>,
     pub name: String,
@@ -28,7 +27,6 @@ pub struct CreateProductRequest {
 }
 
 #[derive(Deserialize, ToSchema)]
-#[allow(dead_code)]
 pub struct CreateReviewRequest {
     pub user_id: Uuid,
     pub rating: i32,
@@ -36,13 +34,11 @@ pub struct CreateReviewRequest {
 }
 
 #[derive(Deserialize, ToSchema)]
-#[allow(dead_code)]
 pub struct ListReviewsQuery {
     pub product_id: Uuid,
 }
 
 #[derive(Deserialize, ToSchema)]
-#[allow(dead_code)]
 pub struct UpdateProductRequest {
     pub sku: Option<String>,
     pub name: String,
@@ -55,14 +51,12 @@ pub struct UpdateProductRequest {
     pub return_policy: String,
 }
 
-#[allow(dead_code)]
 #[derive(Deserialize, ToSchema)]
 pub struct ListProductsQuery {
     pub store_id: Option<i32>,
 }
 use crate::ApiContext;
 
-#[allow(dead_code)]
 pub fn router() -> Router<ApiContext> {
     Router::new()
         .route("/", post(create_product).get(list_products))
