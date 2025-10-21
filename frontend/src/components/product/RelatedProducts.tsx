@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Product } from "@/types/product";
 import ProductCard from "@/components/product/ProductCard";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/hooks/useCart";
 
 interface RelatedProductsProps {
   products: Product[];

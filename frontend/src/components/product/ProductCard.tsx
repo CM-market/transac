@@ -6,7 +6,7 @@ import Badge from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, ShoppingCart, CheckCircle, Heart } from "lucide-react";
 import { Product } from "@/types/product";
-import { useFavorites } from "@/contexts/FavoritesContext";
+import { useFavorites } from "@/hooks/useFavorites";
 
 interface ProductCardProps {
   product: Product;

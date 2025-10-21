@@ -125,7 +125,35 @@ const ChartTooltipContent = React.forwardRef<
     color,
     nameKey,
     labelKey,
-  } = props as any;
+  } = props as {
+    active?: boolean;
+    payload?: {
+      name: string;
+      value: number;
+      color: string;
+      dataKey: string;
+      payload: {
+        fill: string;
+      };
+    }[];
+    className?: string;
+    indicator?: "line" | "dot" | "dashed";
+    hideLabel?: boolean;
+    hideIndicator?: boolean;
+    label?: string;
+    labelFormatter?: (label: string, payload: unknown) => React.ReactNode;
+    labelClassName?: string;
+    formatter?: (
+      value: number,
+      name: string,
+      item: unknown,
+      index: number,
+      payload: unknown,
+    ) => React.ReactNode;
+    color?: string;
+    nameKey?: string;
+    labelKey?: string;
+  };
   const { config } = useChart();
 
   const tooltipLabel = React.useMemo(() => {
@@ -144,7 +172,7 @@ const ChartTooltipContent = React.forwardRef<
     if (labelFormatter) {
       return (
         <div className={cn("font-medium", labelClassName)}>
-          {labelFormatter(value, payload)}
+          {labelFormatter(value as string, payload)}
         </div>
       );
     }
@@ -180,7 +208,7 @@ const ChartTooltipContent = React.forwardRef<
     >
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
-        {payload.map((item: any, index: number) => {
+        {payload.map((item, index) => {
           const key = `${nameKey || item.name || item.dataKey || "value"}`;
           const itemConfig = getPayloadConfigFromPayload(config, item, key);
           const indicatorColor = color || item.payload.fill || item.color;
@@ -256,7 +284,11 @@ const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> &
     Pick<RechartsPrimitive.LegendProps, "verticalAlign"> & {
-      payload?: any[];
+      payload?: {
+        value: string;
+        color: string;
+        dataKey: string;
+      }[];
       hideIcon?: boolean;
       nameKey?: string;
     }
@@ -267,7 +299,7 @@ const ChartLegendContent = React.forwardRef<
     payload,
     verticalAlign = "bottom",
     nameKey,
-  } = props as any;
+  } = props;
   const { config } = useChart();
 
   if (!payload?.length) {
@@ -283,7 +315,7 @@ const ChartLegendContent = React.forwardRef<
         className,
       )}
     >
-      {payload.map((item: any) => {
+      {payload.map((item) => {
         const key = `${nameKey || item.dataKey || "value"}`;
         const itemConfig = getPayloadConfigFromPayload(config, item, key);
 
