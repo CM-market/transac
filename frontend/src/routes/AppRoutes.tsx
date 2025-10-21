@@ -20,7 +20,6 @@ interface AppRoutesProps {
   authStatus: AuthenticationStatus;
   onPowComplete: () => void;
   onBuy: () => void;
-  onSell: () => void;
   onRetry: () => void;
 }
 
@@ -28,7 +27,6 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
   authStatus,
   onPowComplete,
   onBuy,
-  onSell,
   onRetry,
 }) => {
   const isLoading = authStatus.isLoading;
@@ -53,10 +51,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
   // Main application routes after successful authentication
   return (
     <Routes>
-      <Route
-        path="/"
-        element={<MarketplaceWelcome onBuy={onBuy} onSell={onSell} />}
-      />
+      <Route path="/" element={<MarketplaceWelcome onBuy={onBuy} />} />
       <Route element={<MainLayout />}>
         <Route path="cart" element={<Cart />} />
         <Route path="orders" element={<Orders />} />

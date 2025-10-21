@@ -346,6 +346,7 @@
   },
   "components": {
     "schemas": {
+      "UuidSchema": { "type": "string", "format": "uuid" },
       "CreateProductRequest": {
         "type": "object",
         "required": [
@@ -359,12 +360,24 @@
         "properties": {
           "category": { "type": "string" },
           "description": { "type": "string", "nullable": true },
-          "image_id": { "type": "string", "format": "uuid" },
+          "image_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" }
+          },
           "name": { "type": "string" },
           "price": { "type": "number", "format": "double" },
           "quantity_available": { "type": "integer", "format": "int32" },
-          "sku": { "type": "string", "nullable": true },
-          "store_id": { "type": "string", "format": "uuid" }
+          "return_policy": { "type": "string" },
+          "sku": { "type": "string", "nullable": true }
+        }
+      },
+      "CreateReviewRequest": {
+        "type": "object",
+        "required": ["user_id", "rating", "comment"],
+        "properties": {
+          "comment": { "type": "string" },
+          "rating": { "type": "integer", "format": "int32" },
+          "user_id": { "$ref": "#/components/schemas/UuidSchema" }
         }
       },
       "HealthResponse": {
@@ -374,8 +387,9 @@
       },
       "ListProductsQuery": {
         "type": "object",
-        "required": ["store_id"],
-        "properties": { "store_id": { "type": "string", "format": "uuid" } }
+        "properties": {
+          "store_id": { "type": "integer", "format": "int32", "nullable": true }
+        }
       },
       "MediaUploadResponse": {
         "type": "object",
@@ -398,14 +412,10 @@
         "properties": {
           "comment": { "type": "string" },
           "created_at": { "type": "string", "format": "date-time" },
-          "description": { "type": "string", "nullable": true },
           "id": { "type": "string", "format": "uuid" },
-          "image_id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "price": { "type": "number", "format": "double" },
-          "quantity_available": { "type": "integer", "format": "int32" },
-          "sku": { "type": "string", "nullable": true },
-          "store_id": { "type": "string", "format": "uuid" }
+          "product_id": { "type": "string", "format": "uuid" },
+          "rating": { "type": "integer", "format": "int32" },
+          "user_id": { "type": "string", "format": "uuid" }
         }
       },
       "PowCertificateRequest": {
@@ -481,7 +491,10 @@
         "properties": {
           "category": { "type": "string" },
           "description": { "type": "string", "nullable": true },
-          "image_id": { "type": "string", "format": "uuid" },
+          "image_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" }
+          },
           "name": { "type": "string" },
           "price": { "type": "number", "format": "double" },
           "quantity_available": { "type": "integer", "format": "int32" },

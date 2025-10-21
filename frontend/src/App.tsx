@@ -27,11 +27,6 @@ function App() {
     window.location.href = "/products";
   }, []);
 
-  const handleSell = useCallback(() => {
-    // Navigate to product preview page for selling
-    window.location.href = "/product-preview";
-  }, []);
-
   const handleRetry = useCallback(() => {
     window.location.reload();
   }, []);
@@ -42,7 +37,6 @@ function App() {
       authStatus={authStatus}
       onPowComplete={() => {}}
       onBuy={handleBuy}
-      onSell={handleSell}
       onRetry={handleRetry}
     />
   );

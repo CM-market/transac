@@ -26,5 +26,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "src/**/*.test.ts", "src/**/*.test.tsx"]
+  "include": ["src", "src/**/*.test.ts", "src/**/*.test.tsx"],
+  "exclude": ["src/openapi-rq"]
 }

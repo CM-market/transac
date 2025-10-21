@@ -4,13 +4,11 @@ import { ShoppingCart, TrendingUp, Store, Building2 } from "lucide-react";
 
 interface MarketplaceWelcomeProps {
   onBuy: () => void;
-  onSell: () => void;
   onBack?: () => void;
 }
 
 const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
   onBuy,
-  onSell,
   onBack,
 }) => {
   const { t } = useTranslation();
