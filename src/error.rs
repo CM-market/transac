@@ -7,10 +7,20 @@ pub enum AppError {
     #[error("Validation error: {0}")]
     Validation(String),
 
+    #[error("Not found: {0}")]
+    NotFound(String),
+
     #[error("Internal error: {0}")]
     Internal(#[from] anyhow::Error),
-    // #[error("Database error: {0}")]
-    // Database(String),
+
+    #[error("Database error: {0}")]
+    Database(#[from] sea_orm::DbErr),
+}
+
+impl From<String> for AppError {
+    fn from(s: String) -> Self {
+        AppError::Internal(anyhow::anyhow!(s))
+    }
 }
 
 impl IntoResponse for AppError {
@@ -20,10 +30,18 @@ impl IntoResponse for AppError {
                 error!(error = %msg, "Validation error occurred");
                 (StatusCode::BAD_REQUEST, msg.clone())
             }
+            AppError::NotFound(msg) => {
+                error!(error = %msg, "Not found error occurred");
+                (StatusCode::NOT_FOUND, msg.clone())
+            }
             AppError::Internal(err) => {
                 error!(error = %err, "Internal server error occurred");
                 (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
-            } // AppError::Database(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
+            }
+            AppError::Database(err) => {
+                error!(error = %err, "Database error occurred");
+                (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+            }
         };
 
         (status, Json(serde_json::json!({ "error": error_message }))).into_response()

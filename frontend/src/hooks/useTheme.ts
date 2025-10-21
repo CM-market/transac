@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { lightTheme, darkTheme } from "@/theme";
 
 type Theme = "light" | "dark" | "system";
 

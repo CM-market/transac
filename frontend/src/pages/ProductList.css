@@ -1,0 +1,124 @@
+/* General layout */
+.product-list-container {
+  display: flex;
+  gap: 2.5rem;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2.5rem;
+}
+
+.product-list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Custom styles for the filter sidebar */
+.filter-sidebar {
+  position: sticky;
+  top: 6.5rem; /* Adjust based on your header height */
+  height: fit-content;
+}
+
+/* Custom checkbox styles */
+.custom-checkbox {
+  appearance: none;
+  background-color: #fff;
+  border: 2px solid #d1d5db; /* gray-300 */
+  border-radius: 6px;
+  width: 1.4rem;
+  height: 1.4rem;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.custom-checkbox:hover {
+  border-color: #007a5e; /* cm-green */
+}
+
+.custom-checkbox:checked {
+  background-color: #007a5e; /* cm-green */
+  border-color: #007a5e;
+}
+
+.custom-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 3px;
+  width: 6px;
+  height: 12px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+
+/* Custom switch styles */
+.custom-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.custom-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e5e7eb; /* gray-200 */
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+input:checked + .slider {
+  background-color: #007a5e; /* cm-green */
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* Accordion styles */
+.accordion-trigger {
+  padding: 1rem 0.5rem;
+  font-weight: 600;
+  color: #374151; /* gray-700 */
+  border-bottom: 1px solid #e5e7eb; /* gray-200 */
+  transition: background-color 0.2s;
+}
+
+.accordion-trigger:hover {
+  background-color: #f9fafb; /* gray-50 */
+}
+
+.accordion-content {
+  padding: 1rem 0.5rem;
+  border-bottom: 1px solid #e5e7eb; /* gray-200 */
+}

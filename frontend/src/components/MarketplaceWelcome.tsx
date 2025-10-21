@@ -1,17 +1,14 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { ShoppingCart, TrendingUp, Store, Building2 } from "lucide-react";
-import ConnectionStatus from "./ConnectionStatus";
 
 interface MarketplaceWelcomeProps {
   onBuy: () => void;
-  onSell: () => void;
   onBack?: () => void;
 }
 
 const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
   onBuy,
-  onSell,
   onBack,
 }) => {
   const { t } = useTranslation();
@@ -19,11 +16,6 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Connection Status */}
-        <div className="absolute top-4 right-4">
-          <ConnectionStatus />
-        </div>
-
         {/* Header */}
         <div className="text-center mb-10">
           <div className="flex justify-center mb-6">
@@ -32,10 +24,10 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
             </div>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            {t("marketplaceWelcomeTitle", "Welcome to Transac")}
+            {t("marketplaceWelcome.title")}
           </h1>
           <p className="text-lg text-gray-600">
-            {t("marketplaceWelcomeSubtitle", "B2B Marketplace for Cameroon")}
+            {t("marketplaceWelcome.subtitle")}
           </p>
         </div>
 
@@ -46,22 +38,16 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
             className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-5 px-6 rounded-xl transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             <ShoppingCart className="w-6 h-6" />
-            <span className="text-lg">{t("buyButton", "Buy Products")}</span>
-          </button>
-
-          <button
-            onClick={onSell}
-            className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-5 px-6 rounded-xl transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-105"
-          >
-            <TrendingUp className="w-6 h-6" />
-            <span className="text-lg">{t("sellButton", "Sell Products")}</span>
+            <span className="text-lg">
+              {t("marketplaceWelcome.buyProducts")}
+            </span>
           </button>
         </div>
 
         {/* Business Features */}
         <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-            {t("marketplaceFeaturesTitle", "For Businesses in Cameroon")}
+            {t("marketplaceWelcome.forBusinesses")}
           </h3>
           <div className="space-y-3">
             <div className="flex items-center space-x-3">
@@ -69,7 +55,7 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
                 <Building2 className="w-4 h-4 text-blue-600" />
               </div>
               <span className="text-sm text-gray-600">
-                {t("featureB2B", "Connect with trusted B2B partners")}
+                {t("marketplaceWelcome.connect")}
               </span>
             </div>
             <div className="flex items-center space-x-3">
@@ -77,7 +63,7 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
                 <TrendingUp className="w-4 h-4 text-emerald-600" />
               </div>
               <span className="text-sm text-gray-600">
-                {t("featureSecure", "Secure transactions and verification")}
+                {t("marketplaceWelcome.secureTransactions")}
               </span>
             </div>
             <div className="flex items-center space-x-3">
@@ -85,10 +71,7 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
                 <Store className="w-4 h-4 text-indigo-600" />
               </div>
               <span className="text-sm text-gray-600">
-                {t(
-                  "featureLocal",
-                  "Local market focused on Cameroon businesses",
-                )}
+                {t("marketplaceWelcome.localMarket")}
               </span>
             </div>
           </div>
@@ -100,16 +83,13 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
             onClick={onBack}
             className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-xl transition-colors duration-200"
           >
-            {t("backButton", "Back")}
+            {t("marketplaceWelcome.back")}
           </button>
         )}
 
         {/* Footer */}
         <p className="text-center text-sm text-gray-500 mt-8">
-          {t(
-            "marketplaceFooter",
-            "Transac - Powering B2B commerce in Cameroon",
-          )}
+          {t("marketplaceWelcome.footer")}
         </p>
       </div>
     </div>

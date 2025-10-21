@@ -6,9 +6,7 @@
     "license": { "name": "" },
     "version": "0.1.0"
   },
-  "servers": [
-    { "url": "http://localhost:3001", "description": "Local server" }
-  ],
+  "servers": [{ "url": "http://localhost:3001" }],
   "paths": {
     "/api/v1/pow/challenge": {
       "post": {
@@ -290,27 +288,96 @@
           "500": { "description": "Internal server error - deletion failed" }
         }
       }
+    },
+    "/products/{id}/reviews": {
+      "get": {
+        "tags": ["Reviews"],
+        "summary": "List reviews for a product",
+        "operationId": "list_reviews",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product ID",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/UuidSchema" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviews found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Model" }
+                }
+              }
+            }
+          },
+          "404": { "description": "Product not found" }
+        }
+      },
+      "post": {
+        "tags": ["Reviews"],
+        "summary": "Create a new review for a product",
+        "operationId": "create_review",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateReviewRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Review created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Model" }
+              }
+            }
+          },
+          "400": { "description": "Bad request - invalid data" }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "UuidSchema": { "type": "string", "format": "uuid" },
       "CreateProductRequest": {
         "type": "object",
         "required": [
-          "store_id",
           "name",
-          "image_id",
+          "image_ids",
           "price",
-          "quantity_available"
+          "quantity_available",
+          "category",
+          "return_policy"
         ],
         "properties": {
+          "category": { "type": "string" },
           "description": { "type": "string", "nullable": true },
-          "image_id": { "type": "string", "format": "uuid" },
+          "image_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" }
+          },
           "name": { "type": "string" },
           "price": { "type": "number", "format": "double" },
           "quantity_available": { "type": "integer", "format": "int32" },
-          "sku": { "type": "string", "nullable": true },
-          "store_id": { "type": "string", "format": "uuid" }
+          "return_policy": { "type": "string" },
+          "sku": { "type": "string", "nullable": true }
+        }
+      },
+      "CreateReviewRequest": {
+        "type": "object",
+        "required": ["user_id", "rating", "comment"],
+        "properties": {
+          "comment": { "type": "string" },
+          "rating": { "type": "integer", "format": "int32" },
+          "user_id": { "$ref": "#/components/schemas/UuidSchema" }
         }
       },
       "HealthResponse": {
@@ -320,8 +387,9 @@
       },
       "ListProductsQuery": {
         "type": "object",
-        "required": ["store_id"],
-        "properties": { "store_id": { "type": "string", "format": "uuid" } }
+        "properties": {
+          "store_id": { "type": "integer", "format": "int32", "nullable": true }
+        }
       },
       "MediaUploadResponse": {
         "type": "object",
@@ -335,23 +403,19 @@
         "type": "object",
         "required": [
           "id",
-          "store_id",
-          "name",
-          "image_id",
-          "price",
-          "quantity_available",
+          "product_id",
+          "user_id",
+          "rating",
+          "comment",
           "created_at"
         ],
         "properties": {
+          "comment": { "type": "string" },
           "created_at": { "type": "string", "format": "date-time" },
-          "description": { "type": "string", "nullable": true },
           "id": { "type": "string", "format": "uuid" },
-          "image_id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "price": { "type": "number", "format": "double" },
-          "quantity_available": { "type": "integer", "format": "int32" },
-          "sku": { "type": "string", "nullable": true },
-          "store_id": { "type": "string", "format": "uuid" }
+          "product_id": { "type": "string", "format": "uuid" },
+          "rating": { "type": "integer", "format": "int32" },
+          "user_id": { "type": "string", "format": "uuid" }
         }
       },
       "PowCertificateRequest": {
@@ -416,17 +480,28 @@
       },
       "UpdateProductRequest": {
         "type": "object",
-        "required": ["name", "image_id", "price", "quantity_available"],
+        "required": [
+          "name",
+          "image_ids",
+          "price",
+          "quantity_available",
+          "category",
+          "return_policy"
+        ],
         "properties": {
+          "category": { "type": "string" },
           "description": { "type": "string", "nullable": true },
-          "image_id": { "type": "string", "format": "uuid" },
+          "image_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" }
+          },
           "name": { "type": "string" },
           "price": { "type": "number", "format": "double" },
           "quantity_available": { "type": "integer", "format": "int32" },
+          "return_policy": { "type": "string" },
           "sku": { "type": "string", "nullable": true }
         }
       },
-      "UuidSchema": { "default": null, "nullable": true },
       "VerificationRequest": {
         "type": "object",
         "description": "Request for PoW verification",

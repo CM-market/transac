@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline - Cameroon Made Market</title>
+    <style>
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        text-align: center;
+        background-color: #f9fafb;
+        color: #1f2937;
+      }
+      .container {
+        max-width: 600px;
+        padding: 40px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      }
+      h1 {
+        font-size: 24px;
+        margin-bottom: 16px;
+        color: #111827;
+      }
+      p {
+        font-size: 16px;
+        line-height: 1.5;
+        color: #4b5563;
+        margin-bottom: 24px;
+      }
+      .icon {
+        font-size: 48px;
+        margin-bottom: 24px;
+      }
+      .button {
+        background-color: #000000;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background-color 0.2s;
+      }
+      .button:hover {
+        background-color: #333333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="icon">📡</div>
+      <h1>You're Offline</h1>
+      <p>
+        It seems you've lost your internet connection. Don't worry - you can
+        still access previously viewed content while offline.
+      </p>
+      <a href="/" class="button">Try Again</a>
+    </div>
+    <script>
+      // Check for connection and redirect if online
+      window.addEventListener("online", () => {
+        window.location.href = "/";
+      });
+    </script>
+  </body>
+</html>

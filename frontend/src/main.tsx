@@ -7,6 +7,8 @@ import { queryClient } from "./lib/queryClient";
 import "./index.css";
 import App from "./App.tsx";
 import { OpenAPI } from "./openapi-rq/requests/core/OpenAPI";
+import i18n from "./i18n";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 async function initializeAndRenderApp() {
   try {
@@ -16,7 +18,11 @@ async function initializeAndRenderApp() {
     createRoot(document.getElementById("root")!).render(
       <StrictMode>
         <QueryClientProvider client={queryClient}>
-          <App />
+          <I18nextProvider i18n={i18n}>
+            <ThemeProvider>
+              <App />
+            </ThemeProvider>
+          </I18nextProvider>
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
       </StrictMode>,

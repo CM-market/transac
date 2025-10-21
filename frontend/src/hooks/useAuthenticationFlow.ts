@@ -140,9 +140,6 @@ const useAuthenticationFlow = () => {
         isWebAuthnRegistering: true,
       }));
 
-      // Initialize DOM elements for WebAuthn
-      await PasswordManager.initializeDOMElements();
-
       // Get password (this triggers WebAuthn registration)
       const password = await PasswordManager.getPassword();
 

@@ -11,6 +11,7 @@ pub fn should_skip_validation(path: &str) -> bool {
     // Public endpoints that don't require authentication
     let public_paths = [
         "/healthz",
+        "/products",
         // PoW challenge endpoint for obtaining challenges
         "/api/v1/pow/challenge",
         // PoW verification endpoint for obtaining certificates
@@ -37,8 +38,12 @@ fn extract_token(headers: &HeaderMap) -> Option<String> {
 
 /// Cryptographic validation middleware
 /// This middleware ensures all incoming requests are properly authenticated
+use crate::ApiContext;
+use axum::extract::State;
+
 pub async fn crypto_validation_middleware(
-    request: Request,
+    State(ctx): State<ApiContext>,
+    mut request: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
     let path = request.uri().path();
@@ -58,13 +63,16 @@ pub async fn crypto_validation_middleware(
     if let Some(token) = extract_token(&headers) {
         info!(path = %path, "Detected token, validating authentication");
 
-        // TODO: Implement full token validation logic, e.g., JWT verification
-        if token.starts_with("valid_token") {
-            info!(path = %path, "Token validation successful");
-            return Ok(next.run(request).await);
-        } else {
-            warn!(path = %path, "Token validation failed");
-            return Err(StatusCode::UNAUTHORIZED);
+        match ctx.jwt_service.validate_token(&token) {
+            Ok(claims) => {
+                info!(path = %path, "Token validation successful");
+                request.extensions_mut().insert(claims);
+                return Ok(next.run(request).await);
+            }
+            Err(_) => {
+                warn!(path = %path, "Token validation failed");
+                return Err(StatusCode::UNAUTHORIZED);
+            }
         }
     }
 

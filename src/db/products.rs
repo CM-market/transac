@@ -2,7 +2,7 @@ use crate::entity::product::{
     self, ActiveModel as ProductActiveModel, Entity as ProductEntity, Model as ProductModel,
 };
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder, Set,
+    ActiveModelTrait, DatabaseConnection, EntityTrait, QueryOrder, Set,
 };
 use tracing::{debug, error};
 use uuid::Uuid;
@@ -13,22 +13,26 @@ pub struct Product;
 impl Product {
     pub async fn create(
         db: &DatabaseConnection,
-        store_id: Uuid,
         sku: Option<&str>,
         name: &str,
         description: Option<&str>,
-        image_id: Uuid,
+        image_ids: Vec<Uuid>,
         price: f64,
         quantity_available: i32,
+        category: &str,
+        return_policy: &str,
     ) -> Result<ProductModel, String> {
         let product = ProductActiveModel {
-            store_id: Set(store_id),
             sku: Set(sku.map(|s| s.to_owned())),
             name: Set(name.to_owned()),
             description: Set(description.map(|d| d.to_owned())),
-            image_id: Set(image_id),
+            image_ids: Set(image_ids),
             price: Set(price),
             quantity_available: Set(quantity_available),
+            category: Set(category.to_owned()),
+            return_policy: Set(return_policy.to_owned()),
+            average_rating: Set(Some(0.0)), // Initialize with 0.0
+            review_count: Set(0),          // Initialize with 0
             ..Default::default()
         };
         let res = product.insert(db).await.map_err(|e| {
@@ -51,30 +55,30 @@ impl Product {
         Ok(product)
     }
 
-    pub async fn list_by_store(
-        db: &DatabaseConnection,
-        store_id: Uuid,
-    ) -> Result<Vec<ProductModel>, String> {
+
+    pub async fn list_all(db: &DatabaseConnection) -> Result<Vec<ProductModel>, String> {
         let products = ProductEntity::find()
-            .filter(product::Column::StoreId.eq(store_id))
             .order_by_desc(product::Column::CreatedAt)
             .all(db)
             .await
             .map_err(|e| {
-                error!("Failed to list products for store {}: {:?}", store_id, e);
+                error!("Failed to list all products: {:?}", e);
                 "Failed to list products. Please try again later.".to_string()
             })?;
         Ok(products)
     }
+    
     pub async fn update(
         db: &DatabaseConnection,
         id: Uuid,
         sku: Option<&str>,
         name: &str,
         description: Option<&str>,
-        image_id: Uuid,
+        image_ids: Vec<Uuid>,
         price: f64,
         quantity_available: i32,
+        category: &str,
+        return_policy: &str,
     ) -> Result<ProductModel, String> {
         let product = ProductEntity::find_by_id(id)
             .one(db)
@@ -89,9 +93,12 @@ impl Product {
         active.sku = Set(sku.map(|s| s.to_owned()));
         active.name = Set(name.to_owned());
         active.description = Set(description.map(|d| d.to_owned()));
-        active.image_id = Set(image_id);
+        active.image_ids = Set(image_ids);
         active.price = Set(price);
         active.quantity_available = Set(quantity_available);
+        active.category = Set(category.to_owned());
+        active.return_policy = Set(return_policy.to_owned());
+        // average_rating and review_count are updated by review creation, not directly here
 
         let res = active.update(db).await.map_err(|e| {
             error!("Failed to update product {}: {:?}", id, e);
@@ -119,10 +126,10 @@ impl Product {
         debug!("Product deleted: {}", id);
         Ok(())
     }
-    pub async fn update_image_id(
+    pub async fn update_image_ids(
         db: &DatabaseConnection,
         id: Uuid,
-        image_id: Uuid,
+        image_ids: Vec<Uuid>,
     ) -> Result<(), String> {
         let product = ProductEntity::find_by_id(id)
             .one(db)
@@ -134,11 +141,52 @@ impl Product {
             .ok_or_else(|| "Product not found.".to_string())?;
 
         let mut active: ProductActiveModel = product.into();
-        active.image_id = Set(image_id);
+        active.image_ids = Set(image_ids);
 
         active.update(db).await.map_err(|e| {
             error!("Failed to update product image {}: {:?}", id, e);
             "Failed to update product image. Please try again later.".to_string()
+        })?;
+        Ok(())
+    }
+}
+
+impl Product {
+    pub async fn update_rating_and_review_count(
+        db: &DatabaseConnection,
+        product_id: Uuid,
+    ) -> Result<(), String> {
+        let reviews = crate::db::reviews::Review::get_by_product_id(db, product_id).await?;
+
+        let total_rating: i32 = reviews.iter().map(|r| r.rating).sum();
+        let review_count = reviews.len() as i32;
+        let average_rating = if review_count > 0 {
+            Some(total_rating as f64 / review_count as f64)
+        } else {
+            None
+        };
+
+        let product = ProductEntity::find_by_id(product_id)
+            .one(db)
+            .await
+            .map_err(|e| {
+                error!("Failed to fetch product {}: {:?}", product_id, e);
+                "Failed to update product rating and review count. Please try again later."
+                    .to_string()
+            })?
+            .ok_or_else(|| "Product not found.".to_string())?;
+
+        let mut active: ProductActiveModel = product.into();
+        active.average_rating = Set(average_rating);
+        active.review_count = Set(review_count);
+
+        active.update(db).await.map_err(|e| {
+            error!(
+                "Failed to update product rating and review count {}: {:?}",
+                product_id, e
+            );
+            "Failed to update product rating and review count. Please try again later."
+                .to_string()
         })?;
         Ok(())
     }

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 interface ErrorPageProps {
   title?: string;
@@ -6,11 +7,12 @@ interface ErrorPageProps {
   onRetry?: () => void;
 }
 
-const ErrorPage: React.FC<ErrorPageProps> = ({
-  title = "Initialization Failed",
-  message = "An error occurred during initialization",
-  onRetry,
-}) => {
+const ErrorPage: React.FC<ErrorPageProps> = ({ title, message, onRetry }) => {
+  const { t } = useTranslation();
+
+  const displayTitle = title || t("errorPage.defaultTitle");
+  const displayMessage = message || t("errorPage.defaultMessage");
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-primary-50 flex items-center justify-center">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
@@ -29,14 +31,16 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
             />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">{title}</h2>
-        <p className="text-gray-600 mb-6">{message}</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          {displayTitle}
+        </h2>
+        <p className="text-gray-600 mb-6">{displayMessage}</p>
         {onRetry && (
           <button
             onClick={onRetry}
             className="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-blue-700 transition-colors duration-200"
           >
-            Retry
+            {t("errorPage.retry")}
           </button>
         )}
       </div>

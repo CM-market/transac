@@ -11,6 +11,7 @@ mod crypto;
 mod db;
 mod error;
 mod events;
+use crate::db::users::User;
 mod request_middleware;
 
 use crate::auth::JwtService;
@@ -27,11 +28,16 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use config::Config;
 
+use crate::api::image_analysis::ImageAnalysisService;
+use crate::events::{EventDispatcher, LoggingEventHandler, WebSocketEventHandler};
+
 #[derive(Clone)]
 pub struct ApiContext {
-    // pool: sqlx::PgPool,
+    pool: sea_orm::DatabaseConnection,
     pow_service: Arc<PowService>,
     jwt_service: Arc<JwtService>,
+    event_dispatcher: Arc<EventDispatcher>,
+    image_analysis: Arc<ImageAnalysisService>,
 }
 use db::create_connection;
 
@@ -40,10 +46,6 @@ struct HealthResponse {
     message: &'static str,
 }
 
-// Uuid schema for OpenAPI - represents a UUID string
-#[derive(Serialize, ToSchema)]
-#[schema(value_type = String, format = "uuid")]
-struct UuidSchema;
 
 /// Health check endpoint
 #[utoipa::path(
@@ -112,6 +114,12 @@ async fn verify_pow_solution(
     tracing::debug!("POW solution verified successfully");
 
     // Generate a real JWT token
+    // Check if user exists, if not create one
+    let user = User::get_by_relay_id(&ctx.pool, &request.relay_id).await?;
+    if user.is_none() {
+        User::create(&ctx.pool, &request.relay_id).await?;
+    }
+
     let token = ctx
         .jwt_service
         .generate_token(request.relay_id.clone(), request.public_key.clone())
@@ -148,28 +156,43 @@ async fn main() -> anyhow::Result<()> {
     let config = Config::from_env()?;
 
     // Initialize database pool
-    // let pool = create_pool(&config).await?;
+    let pool = create_connection(&config).await?;
+
+    // Initialize event dispatcher
+    let mut event_dispatcher = EventDispatcher::new();
+    event_dispatcher.add_handler(Box::new(LoggingEventHandler));
+    event_dispatcher.add_handler(Box::new(WebSocketEventHandler));
+
+    // Initialize image analysis service
+    let image_analysis = Arc::new(ImageAnalysisService::new());
 
     let api_context = ApiContext {
-        // pool: pool.clone(),
+        pool: pool.clone(),
         pow_service: Arc::new(PowService::new(
             config.pow_difficulty,
             config.pow_timeout_minutes,
         )),
         jwt_service: Arc::new(JwtService::new().unwrap_or_default()),
+        event_dispatcher: Arc::new(event_dispatcher),
+        image_analysis,
     };
 
-    let api_routes = Router::new()
-        .nest("/api/v1/pow", pow_routes())
-        .layer(middleware::from_fn(crypto_validation_middleware));
+    let api_routes = Router::new().nest("/api/v1/pow", pow_routes());
 
-    let _pool = create_connection(&config).await?;
+
+    let mut openapi = ApiDoc::openapi();
+    openapi.servers = Some(vec![utoipa::openapi::Server::new(config.server_url)]);
 
     let app = Router::new()
         .route("/healthz", get(healthz))
-        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi))
         .merge(api_routes)
-        // .merge(api::api_router(pool))  // Temporarily disabled due to state mismatch
+        .merge(
+            api::api_router().layer(middleware::from_fn_with_state(
+                api_context.clone(),
+                crypto_validation_middleware,
+            )),
+        )
         .layer(middleware::from_fn(
             request_middleware::request_logging_middleware,
         ))
@@ -235,11 +258,12 @@ async fn main() -> anyhow::Result<()> {
         api::products::upload_product_media,
         api::products::edit_product_media,
         api::products::delete_product_media,
+        api::products::create_review,
+        api::products::list_reviews,
     ),
     components(
         schemas(
             HealthResponse,
-            UuidSchema,
             crypto::types::PowChallenge,
             crypto::types::PowSolution,
             crypto::types::PowCertificateRequest,
@@ -251,15 +275,16 @@ async fn main() -> anyhow::Result<()> {
             api::products::ListProductsQuery,
             api::products::MediaUploadResponse,
             entity::product::Model,
+            api::products::CreateReviewRequest,
+            entity::review::Model,
         )
     ),
     tags(
         (name = "System", description = "System health and status endpoints"),
         (name = "POW", description = "Proof of Work authentication endpoints"),
-        (name = "Products", description = "Product management endpoints")
+        (name = "Products", description = "Product management endpoints"),
     ),
     servers(
-        (url = "http://localhost:3001", description = "Local server")
     )
 )]
 struct ApiDoc;

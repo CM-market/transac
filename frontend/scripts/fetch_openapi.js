@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 // Change this to the correct eventserver OpenAPI endpoint if needed
 const OPENAPI_URL =
   process.env.EVENTSERVER_OPENAPI_URL ||
-  "http://localhost:3001/api-docs/openapi.json";
+  "http://127.0.0.1:3001/api-docs/openapi.json";
 const OUTPUT_PATH = process.env.OPENAPI_OUTPUT_PATH || "./openapi.json";
 const LOCAL_PATH = path.resolve(__dirname, "..", "openapi.json");
 
