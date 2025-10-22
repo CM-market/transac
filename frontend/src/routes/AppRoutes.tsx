@@ -1,7 +1,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { MainLayout } from "../layouts";
-import { ErrorPage, LoadingPage } from "../pages";
+import { ErrorPage, LoadingPage, ProductDetailPage } from "../pages";
 import PowScreen from "../components/PowScreen";
 import MarketplaceWelcome from "../components/MarketplaceWelcome";
 import type { AuthenticationStatus } from "../hooks/useAuthenticationFlow";
@@ -48,6 +48,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           index
           element={<MarketplaceWelcome onBuy={onBuy} onSell={onSell} />}
         />
+        <Route path="/product/:id" element={<ProductDetailPage />} />
         {/* Default redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
