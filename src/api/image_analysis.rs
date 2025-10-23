@@ -56,7 +56,7 @@ impl ImageAnalysisService {
                     .content_type()
                     .unwrap_or("application/octet-stream")
                     .to_string();
-                
+
                 file_name = field.file_name().map(|s| s.to_string());
 
                 while let Some(chunk) = field

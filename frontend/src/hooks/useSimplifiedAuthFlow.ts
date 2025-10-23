@@ -5,7 +5,11 @@ import {
 } from "../openapi-rq/queries/queries";
 import { performProofOfWork } from "../services/computation/proofOfWork";
 import { apiAuthService } from "../services/keyManagement/apiAuthService";
-import type { PowChallengeResponse, PowSolution, VerificationRequest } from "../openapi-rq/requests/types.gen";
+import type {
+  PowChallengeResponse,
+  PowSolution,
+  VerificationRequest,
+} from "../openapi-rq/requests/types.gen";
 
 export interface AuthenticationStatus {
   // Overall status
@@ -47,7 +51,7 @@ const useSimplifiedAuthFlow = () => {
       try {
         // Validate token if needed
         apiAuthService.setBearerToken(authToken);
-        
+
         setStatus((prev) => ({
           ...prev,
           isComplete: true,
@@ -82,7 +86,7 @@ const useSimplifiedAuthFlow = () => {
       // Compute the solution
       const solution = await performProofOfWork(
         challenge.challenge_data,
-        challenge.difficulty
+        challenge.difficulty,
       );
 
       setStatus((prev) => ({
@@ -94,19 +98,19 @@ const useSimplifiedAuthFlow = () => {
       const powSolution: PowSolution = {
         challenge_id: challenge.challenge_id,
         nonce: solution.nonce,
-        hash: solution.hash
+        hash: solution.hash,
       };
 
       // Create the verification request
       const verificationRequest: VerificationRequest = {
         solution: powSolution,
         public_key: "",
-        relay_id: crypto.randomUUID()
+        relay_id: crypto.randomUUID(),
       };
 
       // Verify the solution
       const response = await verifyPowSolution({
-        requestBody: verificationRequest
+        requestBody: verificationRequest,
       });
 
       // Store the token
@@ -130,7 +134,7 @@ const useSimplifiedAuthFlow = () => {
         error instanceof Error
           ? error.message
           : "Failed to complete proof of work";
-      
+
       setStatus((prev) => ({
         ...prev,
         error: errorMessage,
@@ -138,7 +142,7 @@ const useSimplifiedAuthFlow = () => {
         isPowComputing: false,
         powStatus: "Verification failed",
       }));
-      
+
       return false;
     }
   }, [getPowChallenge, verifyPowSolution]);
@@ -160,7 +164,7 @@ const useSimplifiedAuthFlow = () => {
         error instanceof Error
           ? error.message
           : "Authentication initialization failed";
-      
+
       setStatus((prev) => ({
         ...prev,
         error: errorMessage,

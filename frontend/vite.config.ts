@@ -7,23 +7,23 @@ export default defineConfig({
   server: {
     port: 5174,
     proxy: {
-      '/api': {
-        target: 'http://localhost:3001',
+      "/api": {
+        target: "http://localhost:3001",
         changeOrigin: true,
         secure: false,
       },
-      '/healthz': {
-        target: 'http://localhost:3001',
+      "/healthz": {
+        target: "http://localhost:3001",
         changeOrigin: true,
         secure: false,
       },
-      '/api-docs': {
-        target: 'http://localhost:3001',
+      "/api-docs": {
+        target: "http://localhost:3001",
         changeOrigin: true,
         secure: false,
       },
-      '/swagger-ui': {
-        target: 'http://localhost:3001',
+      "/swagger-ui": {
+        target: "http://localhost:3001",
         changeOrigin: true,
         secure: false,
       },

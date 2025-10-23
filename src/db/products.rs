@@ -21,8 +21,11 @@ impl Product {
         quantity_available: i32,
         image_id: Option<Uuid>,
     ) -> Result<ProductModel, String> {
-        debug!("Creating product with: store_id={}, name={}", store_id, name);
-        
+        debug!(
+            "Creating product with: store_id={}, name={}",
+            store_id, name
+        );
+
         let product = ProductActiveModel {
             id: Set(Uuid::new_v4()),
             store_id: Set(store_id),
@@ -34,7 +37,7 @@ impl Product {
             image_id: Set(image_id),
             ..Default::default()
         };
-        
+
         debug!("Product ActiveModel created: {:?}", product);
         let res = product.insert(db).await.map_err(|e| {
             error!("Failed to create product: {:?}", e);
@@ -73,9 +76,8 @@ impl Product {
     }
 
     /// List all products (no store filter), newest first
-    pub async fn list_all(
-        db: &DatabaseConnection,
-    ) -> Result<Vec<ProductModel>, String> {
+    #[allow(dead_code)]
+    pub async fn list_all(db: &DatabaseConnection) -> Result<Vec<ProductModel>, String> {
         let products = ProductEntity::find()
             .order_by_desc(product::Column::CreatedAt)
             .all(db)
@@ -139,7 +141,7 @@ impl Product {
         debug!("Product deleted: {}", id);
         Ok(())
     }
-    
+
     pub async fn update_image(
         db: &DatabaseConnection,
         id: Uuid,

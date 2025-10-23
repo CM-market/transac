@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { X, Package, DollarSign, Hash, Upload, Image as ImageIcon } from "lucide-react";
+import {
+  X,
+  Package,
+  DollarSign,
+  Hash,
+  Upload,
+  Image as ImageIcon,
+} from "lucide-react";
 
 export interface ProductFormData {
   name: string;
@@ -38,17 +45,22 @@ const ProductCreationModal: React.FC<ProductCreationModalProps> = ({
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === 'price' || name === 'quantity_available' ? Number(value) : value,
+      [name]:
+        name === "price" || name === "quantity_available"
+          ? Number(value)
+          : value,
     }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
+
     // Limit to 3 images
     if (files.length > 3) {
       alert(t("maxImagesError", "You can only upload up to 3 images"));
@@ -56,18 +68,22 @@ const ProductCreationModal: React.FC<ProductCreationModalProps> = ({
     }
 
     // Validate file types
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    const invalidFiles = files.filter(file => !validTypes.includes(file.type));
-    
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    const invalidFiles = files.filter(
+      (file) => !validTypes.includes(file.type),
+    );
+
     if (invalidFiles.length > 0) {
-      alert(t("invalidFileType", "Please select only JPEG, PNG, or WebP images"));
+      alert(
+        t("invalidFileType", "Please select only JPEG, PNG, or WebP images"),
+      );
       return;
     }
 
     // Validate file sizes (max 5MB each)
     const maxSize = 5 * 1024 * 1024; // 5MB
-    const oversizedFiles = files.filter(file => file.size > maxSize);
-    
+    const oversizedFiles = files.filter((file) => file.size > maxSize);
+
     if (oversizedFiles.length > 0) {
       alert(t("fileTooLarge", "Each image must be less than 5MB"));
       return;
@@ -76,17 +92,17 @@ const ProductCreationModal: React.FC<ProductCreationModalProps> = ({
     setSelectedImages(files);
 
     // Create preview URLs
-    const previews = files.map(file => URL.createObjectURL(file));
+    const previews = files.map((file) => URL.createObjectURL(file));
     setImagePreviews(previews);
   };
 
   const removeImage = (index: number) => {
     const newImages = selectedImages.filter((_, i) => i !== index);
     const newPreviews = imagePreviews.filter((_, i) => i !== index);
-    
+
     // Revoke the URL to free memory
     URL.revokeObjectURL(imagePreviews[index]);
-    
+
     setSelectedImages(newImages);
     setImagePreviews(newPreviews);
   };
@@ -94,9 +110,13 @@ const ProductCreationModal: React.FC<ProductCreationModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
-      await onSubmit({ ...formData, store_id: storeId, images: selectedImages });
+      await onSubmit({
+        ...formData,
+        store_id: storeId,
+        images: selectedImages,
+      });
       // Reset form on success
       setFormData({
         name: "",
@@ -106,7 +126,7 @@ const ProductCreationModal: React.FC<ProductCreationModalProps> = ({
         store_id: storeId,
       });
       // Clean up image previews
-      imagePreviews.forEach(url => URL.revokeObjectURL(url));
+      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
       setSelectedImages([]);
       setImagePreviews([]);
       onClose();
@@ -152,10 +172,13 @@ const ProductCreationModal: React.FC<ProductCreationModalProps> = ({
             <h3 className="text-lg font-medium text-gray-900">
               {t("productInformation", "Product Information")}
             </h3>
-            
+
             {/* Product Name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 {t("productName", "Product Name")} *
               </label>
               <input
@@ -172,7 +195,10 @@ const ProductCreationModal: React.FC<ProductCreationModalProps> = ({
 
             {/* Description */}
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 {t("description", "Description")}
               </label>
               <textarea
@@ -182,13 +208,19 @@ const ProductCreationModal: React.FC<ProductCreationModalProps> = ({
                 value={formData.description}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={t("descriptionPlaceholder", "Describe your product")}
+                placeholder={t(
+                  "descriptionPlaceholder",
+                  "Describe your product",
+                )}
               />
             </div>
 
             {/* Price */}
             <div>
-              <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="price"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 <DollarSign className="w-4 h-4 inline mr-1" />
                 {t("price", "Price")} (XAF) *
               </label>
@@ -208,7 +240,10 @@ const ProductCreationModal: React.FC<ProductCreationModalProps> = ({
 
             {/* Quantity */}
             <div>
-              <label htmlFor="quantity_available" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="quantity_available"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 <Hash className="w-4 h-4 inline mr-1" />
                 {t("quantity", "Quantity Available")} *
               </label>
@@ -231,13 +266,14 @@ const ProductCreationModal: React.FC<ProductCreationModalProps> = ({
             <h3 className="text-lg font-medium text-gray-900">
               {t("productImages", "Product Images")}
             </h3>
-            
+
             <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-700">
                 <Upload className="w-4 h-4 inline mr-1" />
-                {t("uploadImages", "Upload Images")} ({t("maxThreeImages", "Max 3 images")})
+                {t("uploadImages", "Upload Images")} (
+                {t("maxThreeImages", "Max 3 images")})
               </label>
-              
+
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
                 <input
                   type="file"
@@ -299,7 +335,9 @@ const ProductCreationModal: React.FC<ProductCreationModalProps> = ({
               disabled={isSubmitting}
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? t("creating", "Creating...") : t("createProduct", "Create Product")}
+              {isSubmitting
+                ? t("creating", "Creating...")
+                : t("createProduct", "Create Product")}
             </button>
           </div>
         </form>

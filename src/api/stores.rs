@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+#[allow(dead_code)]
 #[derive(Deserialize, ToSchema)]
 pub struct CreateStoreRequest {
     pub name: String,
@@ -24,6 +25,7 @@ pub struct CreateStoreRequest {
     pub owner_device_id: Option<String>,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, ToSchema)]
 pub struct UpdateStoreRequest {
     pub name: String,
@@ -35,16 +37,19 @@ pub struct UpdateStoreRequest {
     pub contact_whatsapp: Option<String>,
 }
 
+#[allow(dead_code)]
 #[derive(Serialize, ToSchema)]
 pub struct StoreResponse {
     pub store: StoreModel,
 }
 
+#[allow(dead_code)]
 #[derive(Serialize, ToSchema)]
 pub struct StoresListResponse {
     pub stores: Vec<StoreModel>,
 }
 
+#[allow(dead_code)]
 #[derive(Serialize, ToSchema)]
 pub struct StoreShareResponse {
     pub store_id: String,
@@ -64,6 +69,7 @@ pub struct StoreShareResponse {
         (status = 500, description = "Internal server error")
     )
 )]
+#[allow(dead_code)]
 pub async fn create_store(
     State(db): State<DatabaseConnection>,
     Json(request): Json<CreateStoreRequest>,
@@ -100,6 +106,7 @@ pub async fn create_store(
         (status = 500, description = "Internal server error")
     )
 )]
+#[allow(dead_code)]
 pub async fn get_store(
     State(db): State<DatabaseConnection>,
     Path(id): Path<Uuid>,
@@ -120,6 +127,7 @@ pub async fn get_store(
         (status = 500, description = "Internal server error")
     )
 )]
+#[allow(dead_code)]
 pub async fn list_stores(State(db): State<DatabaseConnection>) -> impl IntoResponse {
     match Store::list(&db).await {
         Ok(stores) => (StatusCode::OK, Json(StoresListResponse { stores })).into_response(),
@@ -143,6 +151,7 @@ pub async fn list_stores(State(db): State<DatabaseConnection>) -> impl IntoRespo
         (status = 500, description = "Internal server error")
     )
 )]
+#[allow(dead_code)]
 pub async fn update_store(
     State(db): State<DatabaseConnection>,
     Path(id): Path<Uuid>,
@@ -180,6 +189,7 @@ pub async fn update_store(
         (status = 500, description = "Internal server error")
     )
 )]
+#[allow(dead_code)]
 pub async fn delete_store(
     State(db): State<DatabaseConnection>,
     Path(id): Path<Uuid>,
@@ -204,6 +214,7 @@ pub async fn delete_store(
         (status = 500, description = "Internal server error")
     )
 )]
+#[allow(dead_code)]
 pub async fn get_store_share_links(
     State(db): State<DatabaseConnection>,
     Path(id): Path<Uuid>,
@@ -237,6 +248,7 @@ pub async fn get_store_share_links(
     }
 }
 
+#[allow(dead_code)]
 pub fn router(db: DatabaseConnection) -> Router<()> {
     Router::new()
         .route("/stores", post(create_store))

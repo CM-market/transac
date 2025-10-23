@@ -1,11 +1,11 @@
+use crate::auth::JwtService;
 use axum::{
     extract::Request,
     http::{HeaderMap, StatusCode},
     middleware::Next,
     response::Response,
 };
-use tracing::{info, warn, error, debug};
-use crate::auth::JwtService;
+use tracing::{debug, info, warn};
 
 /// Determine if cryptographic validation should be skipped for a given path
 pub fn should_skip_validation(path: &str) -> bool {
@@ -60,7 +60,9 @@ pub async fn crypto_validation_middleware(
         debug!(path = %path, "Detected bearer token, validating");
 
         // Validate JWT using JwtService (env-based secret)
-        let jwt = JwtService::new().map_err(|_| StatusCode::INTERNAL_SERVER_ERROR).unwrap();
+        let jwt = JwtService::new()
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+            .unwrap();
         match jwt.validate_token(&token) {
             Ok(claims) => {
                 info!(path = %path, relay_id = %claims.relay_id, "Authenticated request");

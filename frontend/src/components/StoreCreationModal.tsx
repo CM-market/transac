@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { X, Store, MapPin, Phone, Mail, MessageCircle, Upload } from "lucide-react";
+import {
+  X,
+  Store,
+  MapPin,
+  Phone,
+  Mail,
+  MessageCircle,
+  Upload,
+} from "lucide-react";
 
 interface StoreCreationModalProps {
   isOpen: boolean;
@@ -31,9 +39,11 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -42,7 +52,7 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       await onSubmit(formData);
       // Reset form on success
@@ -88,7 +98,10 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Store Name */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               {t("storeName", "Store Name")} *
             </label>
             <input
@@ -105,7 +118,10 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               {t("storeDescription", "Store Description")}
             </label>
             <textarea
@@ -115,13 +131,19 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
               value={formData.description}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              placeholder={t("storeDescriptionPlaceholder", "Describe what your store sells")}
+              placeholder={t(
+                "storeDescriptionPlaceholder",
+                "Describe what your store sells",
+              )}
             />
           </div>
 
           {/* Logo Upload */}
           <div>
-            <label htmlFor="logo_url" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="logo_url"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               {t("storeLogo", "Store Logo")}
             </label>
             <div className="flex items-center space-x-4">
@@ -155,7 +177,10 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
 
           {/* Location */}
           <div>
-            <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="location"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               <MapPin className="w-4 h-4 inline mr-1" />
               {t("location", "Location")} *
             </label>
@@ -176,10 +201,13 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
             <h3 className="text-lg font-medium text-gray-900">
               {t("contactInformation", "Contact Information")}
             </h3>
-            
+
             {/* WhatsApp */}
             <div>
-              <label htmlFor="contact_whatsapp" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="contact_whatsapp"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 <MessageCircle className="w-4 h-4 inline mr-1" />
                 {t("whatsappNumber", "WhatsApp Number")} *
               </label>
@@ -194,7 +222,10 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
                 placeholder={t("whatsappPlaceholder", "+237 123 456 789")}
               />
               <p className="text-xs text-gray-500 mt-1">
-                {t("whatsappHint", "Customers will contact you via WhatsApp for orders")}
+                {t(
+                  "whatsappHint",
+                  "Customers will contact you via WhatsApp for orders",
+                )}
               </p>
             </div>
           </div>

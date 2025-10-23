@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { X, Store, MapPin, MessageCircle, Plus, Package, Star, Calendar } from "lucide-react";
+import {
+  X,
+  Store,
+  MapPin,
+  MessageCircle,
+  Plus,
+  Package,
+  Star,
+  Calendar,
+} from "lucide-react";
 
 interface StoreViewModalProps {
   isOpen: boolean;
@@ -27,7 +36,7 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
 
   const fetchStoreProducts = async () => {
     if (!store) return;
-    
+
     setLoading(true);
     try {
       const response = await fetch(`/api/v1/products?store_id=${store.id}`);
@@ -96,7 +105,9 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
             {store.contact_whatsapp && (
               <div className="flex items-center space-x-2">
                 <MessageCircle className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">{store.contact_whatsapp}</span>
+                <span className="text-sm text-gray-600">
+                  {store.contact_whatsapp}
+                </span>
               </div>
             )}
 
@@ -136,7 +147,9 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-600 mt-2">{t("loadingProducts", "Loading products...")}</p>
+              <p className="text-gray-600 mt-2">
+                {t("loadingProducts", "Loading products...")}
+              </p>
             </div>
           ) : products.length === 0 ? (
             <div className="text-center py-8">
@@ -157,27 +170,35 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {products.map((product) => (
-                <div key={product.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div
+                  key={product.id}
+                  className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                >
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
                       <Package className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">{product.name}</h4>
-                      <p className="text-sm text-gray-600">{formatPrice(product.price)}</p>
+                      <h4 className="font-medium text-gray-900">
+                        {product.name}
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        {formatPrice(product.price)}
+                      </p>
                     </div>
                   </div>
-                  
+
                   {product.description && (
-                    <p className="text-sm text-gray-600 mb-2">{product.description}</p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {product.description}
+                    </p>
                   )}
-                  
+
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>
-                      {product.quantity_available > 0 
+                      {product.quantity_available > 0
                         ? `${product.quantity_available} in stock`
-                        : "Out of stock"
-                      }
+                        : "Out of stock"}
                     </span>
                     <span>{formatDate(product.created_at)}</span>
                   </div>

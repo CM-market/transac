@@ -19,7 +19,7 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
   const navigate = useNavigate();
 
   const handleSellClick = () => {
-    navigate('/seller-dashboard');
+    navigate("/seller-dashboard");
   };
 
   return (

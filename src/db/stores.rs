@@ -11,6 +11,7 @@ pub struct Store;
 
 #[allow(dead_code)]
 impl Store {
+    #[allow(clippy::too_many_arguments)]
     pub async fn create(
         db: &DatabaseConnection,
         name: &str,
@@ -71,6 +72,7 @@ impl Store {
         Ok(stores)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn update(
         db: &DatabaseConnection,
         id: Uuid,

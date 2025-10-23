@@ -48,9 +48,11 @@ const StoreEditModal: React.FC<StoreEditModalProps> = ({
     }
   }, [store]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -59,7 +61,7 @@ const StoreEditModal: React.FC<StoreEditModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       await onSubmit(formData);
       onClose();
@@ -100,10 +102,13 @@ const StoreEditModal: React.FC<StoreEditModalProps> = ({
             <h3 className="text-lg font-medium text-gray-900">
               {t("basicInformation", "Basic Information")}
             </h3>
-            
+
             {/* Store Name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 {t("storeName", "Store Name")} *
               </label>
               <input
@@ -120,7 +125,10 @@ const StoreEditModal: React.FC<StoreEditModalProps> = ({
 
             {/* Description */}
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 {t("description", "Description")}
               </label>
               <textarea
@@ -130,13 +138,19 @@ const StoreEditModal: React.FC<StoreEditModalProps> = ({
                 value={formData.description}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder={t("descriptionPlaceholder", "Describe your store and products")}
+                placeholder={t(
+                  "descriptionPlaceholder",
+                  "Describe your store and products",
+                )}
               />
             </div>
 
             {/* Logo URL */}
             <div>
-              <label htmlFor="logo_url" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="logo_url"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 {t("logoUrl", "Logo URL")}
               </label>
               <input
@@ -146,13 +160,19 @@ const StoreEditModal: React.FC<StoreEditModalProps> = ({
                 value={formData.logo_url}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder={t("logoUrlPlaceholder", "https://example.com/logo.png")}
+                placeholder={t(
+                  "logoUrlPlaceholder",
+                  "https://example.com/logo.png",
+                )}
               />
             </div>
 
             {/* Location */}
             <div>
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="location"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 <MapPin className="w-4 h-4 inline mr-1" />
                 {t("location", "Location")} *
               </label>
@@ -174,10 +194,13 @@ const StoreEditModal: React.FC<StoreEditModalProps> = ({
             <h3 className="text-lg font-medium text-gray-900">
               {t("contactInformation", "Contact Information")}
             </h3>
-            
+
             {/* WhatsApp */}
             <div>
-              <label htmlFor="contact_whatsapp" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="contact_whatsapp"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 <MessageCircle className="w-4 h-4 inline mr-1" />
                 {t("whatsappNumber", "WhatsApp Number")} *
               </label>
@@ -208,7 +231,9 @@ const StoreEditModal: React.FC<StoreEditModalProps> = ({
               disabled={isSubmitting}
               className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? t("updating", "Updating...") : t("updateStore", "Update Store")}
+              {isSubmitting
+                ? t("updating", "Updating...")
+                : t("updateStore", "Update Store")}
             </button>
           </div>
         </form>

@@ -45,15 +45,14 @@ impl S3MediaStorage {
             .map_err(|_| "AWS_ACCESS_KEY_ID environment variable not set".to_string())?;
         let secret_key = env::var("AWS_SECRET_ACCESS_KEY")
             .map_err(|_| "AWS_SECRET_ACCESS_KEY environment variable not set".to_string())?;
-        
+
         // Get endpoint URL from environment variable (for MinIO)
-        let endpoint_url = env::var("AWS_ENDPOINT_URL")
-            .unwrap_or_else(|_| "http://localhost:9000".to_string());
-        
+        let endpoint_url =
+            env::var("AWS_ENDPOINT_URL").unwrap_or_else(|_| "http://localhost:9000".to_string());
+
         // Get region from environment variable or use default
-        let region_name = env::var("AWS_REGION")
-            .unwrap_or_else(|_| "us-east-1".to_string());
-        
+        let region_name = env::var("AWS_REGION").unwrap_or_else(|_| "us-east-1".to_string());
+
         let region = RegionProviderChain::default_provider()
             .or_else(aws_config::Region::new(region_name.clone()))
             .region()
@@ -61,13 +60,11 @@ impl S3MediaStorage {
 
         // Build AWS config with explicit credentials and endpoint
         let credentials = aws_sdk_s3::config::Credentials::new(
-            access_key,
-            secret_key,
-            None, // session_token
-            None, // expiry
-            "static" // provider_name
+            access_key, secret_key, None,     // session_token
+            None,     // expiry
+            "static", // provider_name
         );
-        
+
         let config = aws_config::defaults(aws_config::BehaviorVersion::latest())
             .region(region)
             .endpoint_url(&endpoint_url)
@@ -79,13 +76,13 @@ impl S3MediaStorage {
         let s3_config = aws_sdk_s3::config::Builder::from(&config)
             .force_path_style(true)
             .build();
-        
+
         let client = S3Client::from_conf(s3_config);
 
         // Get bucket name from environment variable or use default
         let bucket_name =
             env::var("S3_BUCKET_NAME").unwrap_or_else(|_| "transac-media".to_string());
-        
+
         // Log connection details (without sensitive info)
         tracing::info!(
             "Initializing S3 media storage with bucket: {}, region: {}, endpoint: {}",
@@ -114,10 +111,10 @@ impl S3MediaStorage {
             client,
             bucket_name,
         };
-        
+
         // Verify bucket exists and is accessible
         storage.ensure_bucket_exists().await?;
-        
+
         Ok(storage)
     }
 
@@ -125,7 +122,9 @@ impl S3MediaStorage {
     /// Creates the bucket if it doesn't exist
     async fn ensure_bucket_exists(&self) -> Result<(), String> {
         // Check if bucket exists
-        let exists = match self.client.head_bucket()
+        let exists = match self
+            .client
+            .head_bucket()
             .bucket(&self.bucket_name)
             .send()
             .await
@@ -133,9 +132,14 @@ impl S3MediaStorage {
             Ok(_) => {
                 tracing::info!("Bucket '{}' exists and is accessible", self.bucket_name);
                 true
-            },
+            }
             Err(e) => {
-                tracing::warn!("Bucket '{}' check failed: {} | debug={:?}", self.bucket_name, e, e);
+                tracing::warn!(
+                    "Bucket '{}' check failed: {} | debug={:?}",
+                    self.bucket_name,
+                    e,
+                    e
+                );
                 false
             }
         };
@@ -143,7 +147,9 @@ impl S3MediaStorage {
         // If bucket doesn't exist, try to create it
         if !exists {
             tracing::info!("Attempting to create bucket '{}'", self.bucket_name);
-            match self.client.create_bucket()
+            match self
+                .client
+                .create_bucket()
                 .bucket(&self.bucket_name)
                 .send()
                 .await
@@ -152,14 +158,27 @@ impl S3MediaStorage {
                     tracing::info!("Successfully created bucket '{}'", self.bucket_name);
 
                     // Wait until the bucket is actually available (MinIO may take a moment)
-                    if let Err(e) = self.wait_for_bucket_availability(Duration::from_secs(5)).await {
-                        tracing::error!("Bucket '{}' not available after creation: {}", self.bucket_name, e);
-                        return Err(format!("Bucket '{}' not available after creation: {}", self.bucket_name, e));
+                    if let Err(e) = self
+                        .wait_for_bucket_availability(Duration::from_secs(5))
+                        .await
+                    {
+                        tracing::error!(
+                            "Bucket '{}' not available after creation: {}",
+                            self.bucket_name,
+                            e
+                        );
+                        return Err(format!(
+                            "Bucket '{}' not available after creation: {}",
+                            self.bucket_name, e
+                        ));
                     }
-                },
+                }
                 Err(e) => {
                     tracing::error!("Failed to create bucket '{}': {:?}", self.bucket_name, e);
-                    return Err(format!("Failed to create bucket '{}': {}", self.bucket_name, e));
+                    return Err(format!(
+                        "Failed to create bucket '{}': {}",
+                        self.bucket_name, e
+                    ));
                 }
             }
         }
@@ -173,18 +192,36 @@ impl S3MediaStorage {
         let mut attempts: u32 = 0;
         loop {
             attempts += 1;
-            match self.client.head_bucket().bucket(&self.bucket_name).send().await {
+            match self
+                .client
+                .head_bucket()
+                .bucket(&self.bucket_name)
+                .send()
+                .await
+            {
                 Ok(_) => {
-                    tracing::info!("Bucket '{}' became available after {} attempt(s)", self.bucket_name, attempts);
+                    tracing::info!(
+                        "Bucket '{}' became available after {} attempt(s)",
+                        self.bucket_name,
+                        attempts
+                    );
                     return Ok(());
                 }
                 Err(e) => {
                     if start.elapsed() >= timeout {
-                        return Err(format!("Bucket '{}' not available within {:?}: {}", self.bucket_name, timeout, e));
+                        return Err(format!(
+                            "Bucket '{}' not available within {:?}: {}",
+                            self.bucket_name, timeout, e
+                        ));
                     }
                     // Exponential backoff: 50ms, 100ms, 200ms, ... up to 800ms
                     let backoff_ms = 50u64.saturating_mul(1u64 << (attempts.min(4) - 1));
-                    tracing::debug!("Waiting for bucket '{}', retrying in {}ms (attempt #{})", self.bucket_name, backoff_ms, attempts);
+                    tracing::debug!(
+                        "Waiting for bucket '{}', retrying in {}ms (attempt #{})",
+                        self.bucket_name,
+                        backoff_ms,
+                        attempts
+                    );
                     sleep(Duration::from_millis(backoff_ms)).await;
                 }
             }
@@ -242,9 +279,10 @@ impl MediaStorage for S3MediaStorage {
             &file_data,
             "application/octet-stream",
             None,
-        ).await
+        )
+        .await
     }
-    
+
     async fn upload_media_data(
         &self,
         product_id: Uuid,
@@ -279,7 +317,8 @@ impl MediaStorage for S3MediaStorage {
 
         // Prepare upload request
         // Upload the file to S3/MinIO (MinIO may not support canned ACLs; rely on bucket policy)
-        let result = self.client
+        let result = self
+            .client
             .put_object()
             .bucket(&self.bucket_name)
             .key(&s3_key)
@@ -296,7 +335,7 @@ impl MediaStorage for S3MediaStorage {
             "Successfully uploaded file to S3. ETag: {:?}",
             result.e_tag()
         );
-        
+
         Ok(s3_key)
     }
 
@@ -354,7 +393,7 @@ impl MediaStorage for StubMediaStorage {
             Uuid::new_v4()
         ))
     }
-    
+
     async fn upload_media_data(
         &self,
         product_id: Uuid,

@@ -107,7 +107,9 @@ interface SellerDashboardProps {
 const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
-  const [activeTab, setActiveTab] = useState<"overview" | "stores" | "products" | "images">("overview");
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "stores" | "products" | "images"
+  >("overview");
   const [showCreateStore, setShowCreateStore] = useState(false);
   const [showEditStore, setShowEditStore] = useState(false);
   const [showViewStore, setShowViewStore] = useState(false);
@@ -144,26 +146,30 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
 
       if (!storeId) {
         // Ambiguous: multiple or zero stores and none selected
-        console.warn('Cannot fetch products: store_id is required in seller flow');
+        console.warn(
+          "Cannot fetch products: store_id is required in seller flow",
+        );
         showToast({
-          type: 'warning',
-          title: 'Select a Store',
-          message: 'Please select a store to view its products.',
+          type: "warning",
+          title: "Select a Store",
+          message: "Please select a store to view its products.",
         });
         setProducts([]);
         return;
       }
 
-      const response = await fetch(`/api/v1/products?store_id=${encodeURIComponent(storeId)}`);
+      const response = await fetch(
+        `/api/v1/products?store_id=${encodeURIComponent(storeId)}`,
+      );
       if (response.ok) {
         const data = await response.json();
         setProducts(data.products || []);
       } else {
-        console.error('Failed to fetch products');
+        console.error("Failed to fetch products");
         setProducts([]);
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error("Error fetching products:", error);
       setProducts([]);
     } finally {
       setProductsLoading(false);
@@ -174,21 +180,23 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await fetch('/api/v1/stores');
+
+      const response = await fetch("/api/v1/stores");
       if (!response.ok) {
         throw new Error(`Failed to fetch stores: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log("Fetched stores:", data);
-      
+
       // The API might return { stores: [...] } or just [...]
       const storesList = data.stores || data || [];
       setStores(storesList);
     } catch (error) {
       console.error("Error fetching stores:", error);
-      setError(error instanceof Error ? error.message : 'Failed to fetch stores');
+      setError(
+        error instanceof Error ? error.message : "Failed to fetch stores",
+      );
       // Fallback to mock data on error
       setStores(mockStores);
     } finally {
@@ -203,7 +211,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
 
   // Whenever stores or selected store change, and the Products tab is active, fetch products for the active store
   useEffect(() => {
-    if (activeTab === 'products') {
+    if (activeTab === "products") {
       fetchProducts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -214,7 +222,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
     if (!imageId) return null;
     // For now, let's try to use the S3 key directly if it looks like one
     // Otherwise use the UUID mapping
-    if (imageId.includes('products/')) {
+    if (imageId.includes("products/")) {
       // This looks like an S3 key, use it directly
       return `/api/v1/media/${encodeURIComponent(imageId)}`;
     }
@@ -223,11 +231,14 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   };
 
   // Helper function to get product image or fallback
-  const getProductImageElement = (product: Product, size: 'small' | 'medium' = 'small') => {
+  const getProductImageElement = (
+    product: Product,
+    size: "small" | "medium" = "small",
+  ) => {
     const imageUrl = getImageUrl(product.image_id);
-    const sizeClasses = size === 'small' ? 'w-12 h-12' : 'w-16 h-16';
-    const iconSize = size === 'small' ? 'w-6 h-6' : 'w-8 h-8';
-    
+    const sizeClasses = size === "small" ? "w-12 h-12" : "w-16 h-16";
+    const iconSize = size === "small" ? "w-6 h-6" : "w-8 h-8";
+
     if (imageUrl) {
       return (
         <div className="relative group">
@@ -235,15 +246,17 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
             src={imageUrl}
             alt={product.name}
             className={`${sizeClasses} rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity`}
-            onClick={() => window.open(imageUrl, '_blank')}
+            onClick={() => window.open(imageUrl, "_blank")}
             onError={(e) => {
               // Fallback to icon if image fails to load
               const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              target.nextElementSibling?.classList.remove('hidden');
+              target.style.display = "none";
+              target.nextElementSibling?.classList.remove("hidden");
             }}
           />
-          <div className={`${sizeClasses} bg-gray-200 rounded-lg flex items-center justify-center hidden`}>
+          <div
+            className={`${sizeClasses} bg-gray-200 rounded-lg flex items-center justify-center hidden`}
+          >
             <Package className={`${iconSize} text-gray-500`} />
           </div>
           {/* Overlay icon for click indication */}
@@ -253,28 +266,30 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         </div>
       );
     }
-    
+
     return (
-      <div className={`${sizeClasses} bg-gray-200 rounded-lg flex items-center justify-center`}>
+      <div
+        className={`${sizeClasses} bg-gray-200 rounded-lg flex items-center justify-center`}
+      >
         <Package className={`${iconSize} text-gray-500`} />
       </div>
     );
   };
 
   const handleShareStore = (storeId: string) => {
-    const store = stores.find(s => s.id === storeId);
+    const store = stores.find((s) => s.id === storeId);
     if (store && store.contact_whatsapp) {
       // Extract phone number (remove + and any spaces/dashes)
-      const phoneNumber = store.contact_whatsapp.replace(/[+\s-]/g, '');
+      const phoneNumber = store.contact_whatsapp.replace(/[+\s-]/g, "");
       const shareUrl = `https://transac.site/store/${storeId}`;
       const whatsappMessage = `Check out my store '${store.name}' on Transac: ${shareUrl}`;
       const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(whatsappMessage)}`;
-      window.open(whatsappUrl, '_blank');
+      window.open(whatsappUrl, "_blank");
     }
   };
 
   const handleViewStore = (storeId: string) => {
-    const store = stores.find(s => s.id === storeId);
+    const store = stores.find((s) => s.id === storeId);
     if (store) {
       setSelectedStore(store);
       setShowViewStore(true);
@@ -282,7 +297,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   };
 
   const handleEditStore = (storeId: string) => {
-    const store = stores.find(s => s.id === storeId);
+    const store = stores.find((s) => s.id === storeId);
     if (store) {
       setSelectedStore(store);
       setShowEditStore(true);
@@ -290,11 +305,16 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   };
 
   const handleDeleteStore = async (storeId: string) => {
-    const store = stores.find(s => s.id === storeId);
-    if (store && confirm(`Are you sure you want to delete "${store.name}"? This action cannot be undone.`)) {
+    const store = stores.find((s) => s.id === storeId);
+    if (
+      store &&
+      confirm(
+        `Are you sure you want to delete "${store.name}"? This action cannot be undone.`,
+      )
+    ) {
       try {
         const response = await fetch(`/api/v1/stores/${storeId}`, {
-          method: 'DELETE',
+          method: "DELETE",
         });
 
         if (!response.ok) {
@@ -302,19 +322,20 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         }
 
         showToast({
-          type: 'success',
-          title: 'Store Deleted',
+          type: "success",
+          title: "Store Deleted",
           message: `"${store.name}" has been deleted successfully.`,
         });
-        
+
         // Refresh the stores list
         await fetchStores();
       } catch (error) {
         console.error("Error deleting store:", error);
         showToast({
-          type: 'error',
-          title: 'Delete Failed',
-          message: error instanceof Error ? error.message : 'Unknown error occurred',
+          type: "error",
+          title: "Delete Failed",
+          message:
+            error instanceof Error ? error.message : "Unknown error occurred",
         });
       }
     }
@@ -323,12 +344,12 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   const handleCreateStore = async (storeData: StoreFormData) => {
     try {
       console.log("Creating store:", storeData);
-      
+
       // Make API call to create store
-      const response = await fetch('/api/v1/stores', {
-        method: 'POST',
+      const response = await fetch("/api/v1/stores", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: storeData.name,
@@ -342,28 +363,30 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to create store: ${response.status} ${errorText}`);
+        throw new Error(
+          `Failed to create store: ${response.status} ${errorText}`,
+        );
       }
 
       const result = await response.json();
       console.log("Store created successfully:", result);
-      
+
       // Show success message
       showToast({
-        type: 'success',
-        title: 'Store Created',
+        type: "success",
+        title: "Store Created",
         message: `"${storeData.name}" has been created successfully!`,
       });
-      
+
       // Refresh the stores list to show the new store
       await fetchStores();
-      
     } catch (error) {
       console.error("Error creating store:", error);
       showToast({
-        type: 'error',
-        title: 'Creation Failed',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        type: "error",
+        title: "Creation Failed",
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
       throw error; // Re-throw to let the modal handle the error state
     }
@@ -372,9 +395,9 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   const handleUpdateStore = async (storeData: StoreEditData) => {
     try {
       const response = await fetch(`/api/v1/stores/${storeData.id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: storeData.name,
@@ -387,33 +410,35 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to update store: ${response.status} ${errorText}`);
+        throw new Error(
+          `Failed to update store: ${response.status} ${errorText}`,
+        );
       }
 
       showToast({
-        type: 'success',
-        title: 'Store Updated',
+        type: "success",
+        title: "Store Updated",
         message: `"${storeData.name}" has been updated successfully!`,
       });
-      
+
       // Refresh the stores list
       await fetchStores();
       setShowEditStore(false);
       setSelectedStore(null);
-      
     } catch (error) {
       console.error("Error updating store:", error);
       showToast({
-        type: 'error',
-        title: 'Update Failed',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        type: "error",
+        title: "Update Failed",
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
       throw error;
     }
   };
 
   const handleAddProduct = (storeId: string) => {
-    const store = stores.find(s => s.id === storeId);
+    const store = stores.find((s) => s.id === storeId);
     if (store) {
       setSelectedStore(store);
       setShowCreateProduct(true);
@@ -423,7 +448,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   const handleCreateProduct = async (productData: ProductFormData) => {
     try {
       console.log("Creating product:", productData);
-      
+
       // First, create the product without images
       const productPayload = {
         name: productData.name,
@@ -432,23 +457,25 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         quantity_available: productData.quantity_available,
         store_id: productData.store_id,
       };
-      
-      const response = await fetch('/api/v1/products', {
-        method: 'POST',
+
+      const response = await fetch("/api/v1/products", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(productPayload),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to create product: ${response.status} ${errorText}`);
+        throw new Error(
+          `Failed to create product: ${response.status} ${errorText}`,
+        );
       }
 
       const result = await response.json();
       console.log("Product created successfully:", result);
-      
+
       // If images were selected, upload them
       if (productData.images && productData.images.length > 0) {
         try {
@@ -458,32 +485,32 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
           console.error("Error uploading images:", imageError);
           // Don't fail the whole operation if image upload fails
           showToast({
-            type: 'warning',
-            title: 'Product Created',
+            type: "warning",
+            title: "Product Created",
             message: `"${productData.name}" was created but some images failed to upload.`,
           });
         }
       }
-      
+
       // Show success message
       showToast({
-        type: 'success',
-        title: 'Product Created',
+        type: "success",
+        title: "Product Created",
         message: `"${productData.name}" has been added to ${selectedStore?.name}!`,
       });
-      
+
       // Close the product modal and refresh products list
       setShowCreateProduct(false);
-      
+
       // Refresh the products list for the product's store
       await fetchProducts(productData.store_id);
-      
     } catch (error) {
       console.error("Error creating product:", error);
       showToast({
-        type: 'error',
-        title: 'Creation Failed',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        type: "error",
+        title: "Creation Failed",
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
       throw error;
     }
@@ -492,20 +519,20 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   const uploadProductImages = async (productId: string, images: File[]) => {
     for (let i = 0; i < images.length; i++) {
       const formData = new FormData();
-      formData.append('file', images[i]);
-      
+      formData.append("file", images[i]);
+
       const response = await fetch(`/api/v1/products/${productId}/media`, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to upload image ${i + 1}`);
       }
-      
+
       const result = await response.json();
-      console.log('Image upload result:', result);
-      
+      console.log("Image upload result:", result);
+
       // The result contains image_url which can be used directly
       // This will be handled by the product refresh
     }
@@ -583,8 +610,18 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
-              <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <svg
+                className="w-4 h-4 inline mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
               {t("images", "Images")}
             </button>
@@ -602,57 +639,83 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                     <Store className="w-6 h-6 text-emerald-600" />
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">{t("totalStores", "Total Stores")}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stores.length}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      {t("totalStores", "Total Stores")}
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {stores.length}
+                    </p>
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="p-2 bg-blue-100 rounded-lg">
                     <Package className="w-6 h-6 text-blue-600" />
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">{t("totalProducts", "Total Products")}</p>
-                    <p className="text-2xl font-bold text-gray-900">{products.length}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      {t("totalProducts", "Total Products")}
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {products.length}
+                    </p>
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="p-2 bg-purple-100 rounded-lg">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <svg
+                      className="w-6 h-6 text-purple-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">{t("totalImages", "Total Images")}</p>
-                    <p className="text-2xl font-bold text-gray-900">{products.filter(p => p.image_id).length}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      {t("totalImages", "Total Images")}
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {products.filter((p) => p.image_id).length}
+                    </p>
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="p-2 bg-yellow-100 rounded-lg">
                     <Star className="w-6 h-6 text-yellow-600" />
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">{t("avgRating", "Avg Rating")}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      {t("avgRating", "Avg Rating")}
+                    </p>
                     <p className="text-2xl font-bold text-gray-900">4.8</p>
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="p-2 bg-purple-100 rounded-lg">
                     <Users className="w-6 h-6 text-purple-600" />
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">{t("totalViews", "Total Views")}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      {t("totalViews", "Total Views")}
+                    </p>
                     <p className="text-2xl font-bold text-gray-900">1,234</p>
                   </div>
                 </div>
@@ -671,8 +734,12 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                 >
                   <Plus className="w-6 h-6 text-emerald-600 mr-3" />
                   <div className="text-left">
-                    <p className="font-medium text-gray-900">{t("createStore", "Create Store")}</p>
-                    <p className="text-sm text-gray-600">{t("createStoreDesc", "Set up a new store")}</p>
+                    <p className="font-medium text-gray-900">
+                      {t("createStore", "Create Store")}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {t("createStoreDesc", "Set up a new store")}
+                    </p>
                   </div>
                 </button>
               </div>
@@ -684,7 +751,9 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         {activeTab === "stores" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">{t("myStores", "My Stores")}</h2>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {t("myStores", "My Stores")}
+              </h2>
               <button
                 onClick={() => setShowCreateStore(true)}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
@@ -697,7 +766,9 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
             {loading ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">{t("loadingStores", "Loading stores...")}</p>
+                <p className="text-gray-600">
+                  {t("loadingStores", "Loading stores...")}
+                </p>
               </div>
             ) : stores.length === 0 ? (
               <div className="text-center py-12">
@@ -706,7 +777,10 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                   {t("noStores", "No stores yet")}
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  {t("noStoresDesc", "Create your first store to start selling")}
+                  {t(
+                    "noStoresDesc",
+                    "Create your first store to start selling",
+                  )}
                 </p>
                 <button
                   onClick={() => setShowCreateStore(true)}
@@ -718,11 +792,16 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {stores.map((store) => (
-                  <div key={store.id} className="bg-white rounded-lg shadow border border-gray-200">
+                  <div
+                    key={store.id}
+                    className="bg-white rounded-lg shadow border border-gray-200"
+                  >
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center space-x-3">
-                          <div className={`w-12 h-12 ${store.color || 'bg-emerald-500'} rounded-lg flex items-center justify-center`}>
+                          <div
+                            className={`w-12 h-12 ${store.color || "bg-emerald-500"} rounded-lg flex items-center justify-center`}
+                          >
                             <Store className="w-6 h-6 text-white" />
                           </div>
                           <div>
@@ -734,18 +813,20 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                                 </span>
                               )}
                             </h3>
-                            <p className="text-sm text-gray-600">{store.description}</p>
+                            <p className="text-sm text-gray-600">
+                              {store.description}
+                            </p>
                           </div>
                         </div>
                         <div className="flex space-x-2">
-                          <button 
+                          <button
                             onClick={() => handleEditStore(store.id)}
                             className="p-2 text-gray-400 hover:text-gray-600"
                             title="Edit Store"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDeleteStore(store.id)}
                             className="p-2 text-gray-400 hover:text-red-600"
                             title="Delete Store"
@@ -774,14 +855,17 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                         <div className="flex items-center space-x-4">
                           <div className="flex items-center">
                             <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-                            <span className="text-sm font-medium">{store.rating}</span>
+                            <span className="text-sm font-medium">
+                              {store.rating}
+                            </span>
                           </div>
                           <div className="text-sm text-gray-600">
                             {store.total_products} {t("products", "products")}
                           </div>
                         </div>
                         <div className="text-sm text-gray-500">
-                          {t("created", "Created")} {formatDate(store.created_at)}
+                          {t("created", "Created")}{" "}
+                          {formatDate(store.created_at)}
                         </div>
                       </div>
 
@@ -793,7 +877,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                           <Share2 className="w-4 h-4" />
                           <span>{t("share", "Share")}</span>
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleViewStore(store.id)}
                           className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
                         >
@@ -813,14 +897,17 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         {activeTab === "products" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">{t("products", "Products")}</h2>
-              <button 
+              <h2 className="text-2xl font-bold text-gray-900">
+                {t("products", "Products")}
+              </h2>
+              <button
                 onClick={() => {
                   if (stores.length === 0) {
                     showToast({
-                      type: 'warning',
-                      title: 'No Stores',
-                      message: 'Please create a store first before adding products.',
+                      type: "warning",
+                      title: "No Stores",
+                      message:
+                        "Please create a store first before adding products.",
                     });
                   } else if (stores.length === 1) {
                     // If only one store, use it directly
@@ -840,7 +927,9 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
 
             <div className="bg-white rounded-lg shadow overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">{t("productList", "Product List")}</h3>
+                <h3 className="text-lg font-medium text-gray-900">
+                  {t("productList", "Product List")}
+                </h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -869,14 +958,23 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {productsLoading ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                        <td
+                          colSpan={6}
+                          className="px-6 py-4 text-center text-gray-500"
+                        >
                           {t("loadingProducts", "Loading products...")}
                         </td>
                       </tr>
                     ) : products.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                          {t("noProducts", "No products found. Create your first product!")}
+                        <td
+                          colSpan={6}
+                          className="px-6 py-4 text-center text-gray-500"
+                        >
+                          {t(
+                            "noProducts",
+                            "No products found. Create your first product!",
+                          )}
                         </td>
                       </tr>
                     ) : (
@@ -885,47 +983,53 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="mr-4">
-                                {getProductImageElement(product, 'medium')}
+                                {getProductImageElement(product, "medium")}
                               </div>
                               <div>
-                                <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                                <div className="text-sm text-gray-500">{product.description}</div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {product.name}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {product.description}
+                                </div>
                               </div>
                             </div>
                           </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {/* Find store name by store_id */}
-                          {stores.find(s => s.id === product.store_id)?.name || 'Unknown Store'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatPrice(product.price)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            product.quantity_available > 0
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}>
-                            {product.quantity_available > 0 
-                              ? `${product.quantity_available} ${t("inStock", "in stock")}`
-                              : t("outOfStock", "Out of stock")
-                            }
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(product.created_at)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex space-x-2">
-                            <button className="text-blue-600 hover:text-blue-900">
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button className="text-red-600 hover:text-red-900">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {/* Find store name by store_id */}
+                            {stores.find((s) => s.id === product.store_id)
+                              ?.name || "Unknown Store"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {formatPrice(product.price)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                product.quantity_available > 0
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {product.quantity_available > 0
+                                ? `${product.quantity_available} ${t("inStock", "in stock")}`
+                                : t("outOfStock", "Out of stock")}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {formatDate(product.created_at)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex space-x-2">
+                              <button className="text-blue-600 hover:text-blue-900">
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button className="text-red-600 hover:text-red-900">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
                       ))
                     )}
                   </tbody>
@@ -939,7 +1043,9 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         {activeTab === "images" && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <h2 className="text-2xl font-bold text-gray-900">{t("allImages", "All Images")}</h2>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {t("allImages", "All Images")}
+              </h2>
               <div className="flex items-center gap-4">
                 <div className="relative">
                   <input
@@ -949,61 +1055,110 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                     onChange={(e) => setImageSearchTerm(e.target.value)}
                     className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
                   />
-                  <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg
+                    className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
                   </svg>
                 </div>
                 <div className="text-sm text-gray-500">
-                  {products.filter(p => p.image_id && 
-                    (imageSearchTerm === "" || 
-                     p.name.toLowerCase().includes(imageSearchTerm.toLowerCase()) ||
-                     (p.description && p.description.toLowerCase().includes(imageSearchTerm.toLowerCase()))
-                    )
-                  ).length} {t("imagesFound", "images found")}
+                  {
+                    products.filter(
+                      (p) =>
+                        p.image_id &&
+                        (imageSearchTerm === "" ||
+                          p.name
+                            .toLowerCase()
+                            .includes(imageSearchTerm.toLowerCase()) ||
+                          (p.description &&
+                            p.description
+                              .toLowerCase()
+                              .includes(imageSearchTerm.toLowerCase()))),
+                    ).length
+                  }{" "}
+                  {t("imagesFound", "images found")}
                 </div>
               </div>
             </div>
 
             {productsLoading ? (
               <div className="flex justify-center items-center h-64">
-                <div className="text-gray-500">{t("loadingImages", "Loading images...")}</div>
+                <div className="text-gray-500">
+                  {t("loadingImages", "Loading images...")}
+                </div>
               </div>
-            ) : products.filter(p => p.image_id).length === 0 ? (
+            ) : products.filter((p) => p.image_id).length === 0 ? (
               <div className="text-center py-12">
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">{t("noImages", "No images uploaded")}</h3>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  {t("noImages", "No images uploaded")}
+                </h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  {t("noImagesDesc", "Upload some product images to see them here.")}
+                  {t(
+                    "noImagesDesc",
+                    "Upload some product images to see them here.",
+                  )}
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {products
-                  .filter(product => product.image_id && 
-                    (imageSearchTerm === "" || 
-                     product.name.toLowerCase().includes(imageSearchTerm.toLowerCase()) ||
-                     (product.description && product.description.toLowerCase().includes(imageSearchTerm.toLowerCase()))
-                    )
+                  .filter(
+                    (product) =>
+                      product.image_id &&
+                      (imageSearchTerm === "" ||
+                        product.name
+                          .toLowerCase()
+                          .includes(imageSearchTerm.toLowerCase()) ||
+                        (product.description &&
+                          product.description
+                            .toLowerCase()
+                            .includes(imageSearchTerm.toLowerCase()))),
                   )
                   .map((product) => (
-                    <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                    <div
+                      key={product.id}
+                      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                    >
                       <div className="aspect-square relative">
                         <img
-                          src={getImageUrl(product.image_id) || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNzVMMTI1IDEwMEgxMTJWMTI1SDg4VjEwMEg3NUwxMDAgNzVaIiBmaWxsPSIjOUI5QkEwIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkEwIiBmb250LXNpemU9IjEyIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+Cjwvc3ZnPg=='}
+                          src={
+                            getImageUrl(product.image_id) ||
+                            "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNzVMMTI1IDEwMEgxMTJWMTI1SDg4VjEwMEg3NUwxMDAgNzVaIiBmaWxsPSIjOUI5QkEwIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkEwIiBmb250LXNpemU9IjEyIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+Cjwvc3ZnPg=="
+                          }
                           alt={product.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNzVMMTI1IDEwMEgxMTJWMTI1SDg4VjEwMEg3NUwxMDAgNzVaIiBmaWxsPSIjOUI5QkEwIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkEwIiBmb250LXNpemU9IjEyIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+Cjwvc3ZnPg==';
+                            target.src =
+                              "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNzVMMTI1IDEwMEgxMTJWMTI1SDg4VjEwMEg3NUwxMDAgNzVaIiBmaWxsPSIjOUI5QkEwIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkEwIiBmb250LXNpemU9IjEyIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+Cjwvc3ZnPg==";
                           }}
                         />
                         <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-opacity flex items-center justify-center">
                           <button
                             onClick={() => {
                               const imageUrl = getImageUrl(product.image_id);
-                              if (imageUrl) window.open(imageUrl, '_blank');
+                              if (imageUrl) window.open(imageUrl, "_blank");
                             }}
                             className="opacity-0 hover:opacity-100 transition-opacity bg-white rounded-full p-2 shadow-lg"
                           >
@@ -1012,12 +1167,19 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                         </div>
                       </div>
                       <div className="p-4">
-                        <h3 className="font-medium text-gray-900 text-sm truncate">{product.name}</h3>
-                        <p className="text-xs text-gray-500 mt-1 truncate">{product.description}</p>
+                        <h3 className="font-medium text-gray-900 text-sm truncate">
+                          {product.name}
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1 truncate">
+                          {product.description}
+                        </p>
                         <div className="flex items-center justify-between mt-2">
-                          <span className="text-sm font-medium text-emerald-600">{formatPrice(product.price)}</span>
+                          <span className="text-sm font-medium text-emerald-600">
+                            {formatPrice(product.price)}
+                          </span>
                           <span className="text-xs text-gray-500">
-                            {stores.find(s => s.id === product.store_id)?.name || 'Unknown Store'}
+                            {stores.find((s) => s.id === product.store_id)
+                              ?.name || "Unknown Store"}
                           </span>
                         </div>
                         <div className="flex items-center justify-between mt-2 text-xs text-gray-500">

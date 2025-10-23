@@ -27,7 +27,7 @@ export class PasswordManager {
 
     // Generate a new secure password
     const password = this.generateSecurePassword();
-    
+
     // Store the password in sessionStorage
     sessionStorage.setItem("password", password);
     return password;

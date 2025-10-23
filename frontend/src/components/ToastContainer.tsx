@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
-import Toast, { ToastProps } from './Toast';
+import React, { useState, useCallback } from "react";
+import Toast, { ToastProps } from "./Toast";
 
 export interface ToastData {
-  type: 'success' | 'error' | 'warning' | 'info';
+  type: "success" | "error" | "warning" | "info";
   title: string;
   message?: string;
   duration?: number;
@@ -17,7 +17,7 @@ export const ToastContext = React.createContext<ToastContextType | null>(null);
 export const useToast = () => {
   const context = React.useContext(ToastContext);
   if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
+    throw new Error("useToast must be used within a ToastProvider");
   }
   return context;
 };
@@ -31,11 +31,11 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
 
   const showToast = useCallback((toast: ToastData) => {
     const id = Math.random().toString(36).substr(2, 9);
-    setToasts(prev => [...prev, { ...toast, id }]);
+    setToasts((prev) => [...prev, { ...toast, id }]);
   }, []);
 
   const removeToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
   return (
