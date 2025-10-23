@@ -68,6 +68,8 @@ interface Store {
   rating?: number;
   total_products?: number;
   created_at: string;
+  // Optional UI color used only for mock/demo or UI badges
+  color?: string;
 }
 
 const mockProducts = [
@@ -1213,7 +1215,18 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
           setSelectedStore(null);
         }}
         onSubmit={handleUpdateStore}
-        store={selectedStore}
+        store={
+          selectedStore
+            ? {
+                id: selectedStore.id,
+                name: selectedStore.name,
+                description: selectedStore.description || "",
+                logo_url: selectedStore.logo_url || "",
+                location: selectedStore.location || "",
+                contact_whatsapp: selectedStore.contact_whatsapp || "",
+              }
+            : null
+        }
       />
 
       {/* Store View Modal */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   X,
@@ -11,10 +11,30 @@ import {
   Calendar,
 } from "lucide-react";
 
+interface StoreLite {
+  id: string;
+  name: string;
+  description?: string;
+  logo_url?: string;
+  location?: string;
+  contact_whatsapp?: string;
+  rating?: number;
+  created_at: string;
+}
+
+interface ProductLite {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  quantity_available: number;
+  created_at: string;
+}
+
 interface StoreViewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  store: any | null;
+  store: StoreLite | null;
   onAddProduct: (storeId: string) => void;
 }
 
@@ -25,24 +45,17 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
   onAddProduct,
 }) => {
   const { t } = useTranslation();
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<ProductLite[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (store && isOpen) {
-      fetchStoreProducts();
-    }
-  }, [store, isOpen]);
-
-  const fetchStoreProducts = async () => {
+  const fetchStoreProducts = useCallback(async () => {
     if (!store) return;
-
     setLoading(true);
     try {
       const response = await fetch(`/api/v1/products?store_id=${store.id}`);
       if (response.ok) {
         const data = await response.json();
-        setProducts(data.products || data || []);
+        setProducts((data.products || data || []) as ProductLite[]);
       }
     } catch (error) {
       console.error("Error fetching store products:", error);
@@ -50,7 +63,13 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [store]);
+
+  useEffect(() => {
+    if (store && isOpen) {
+      fetchStoreProducts();
+    }
+  }, [store, isOpen, fetchStoreProducts]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("fr-CM");

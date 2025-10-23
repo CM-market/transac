@@ -816,7 +816,11 @@ async fn serve_direct_media_path(s3_key: &str) -> axum::response::Response {
         Ok(s) => s,
         Err(e) => {
             tracing::error!("Failed to initialize S3 storage: {}", e);
-            return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to initialize storage").into_response();
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to initialize storage",
+            )
+                .into_response();
         }
     };
 
@@ -829,7 +833,7 @@ async fn serve_direct_media_path(s3_key: &str) -> axum::response::Response {
                 .header("Cache-Control", "public, max-age=3600") // Cache for 1 hour
                 .body(axum::body::Body::from(data))
                 .unwrap()
-        },
+        }
         Err(e) => {
             tracing::error!("Failed to get media file {}: {}", s3_key, e);
             (StatusCode::NOT_FOUND, "Media file not found").into_response()
@@ -839,7 +843,10 @@ async fn serve_direct_media_path(s3_key: &str) -> axum::response::Response {
 
 // Placeholder function - in a real implementation, this would query MinIO to find the file
 #[allow(dead_code)]
-async fn find_product_image_in_minio(_s3_key_pattern: &str, _image_id: uuid::Uuid) -> Option<String> {
+async fn find_product_image_in_minio(
+    _s3_key_pattern: &str,
+    _image_id: uuid::Uuid,
+) -> Option<String> {
     // For now, return None - this function would need to list MinIO objects
     // and find the one that matches the image_id
     None
@@ -910,7 +917,8 @@ async fn get_media_from_storage(
         Some("webp") => "image/webp",
         Some("svg") => "image/svg+xml",
         _ => "application/octet-stream",
-    }.to_string();
+    }
+    .to_string();
 
     Ok((data, content_type))
 }
