@@ -132,10 +132,29 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
     return new Date(dateString).toLocaleDateString("fr-CM");
   };
 
-  const fetchProducts = async () => {
+  // Fetch products for a specific store (seller flow)
+  const fetchProducts = async (explicitStoreId?: string) => {
     try {
       setProductsLoading(true);
-      const response = await fetch('/api/v1/products');
+
+      // Determine the store id to query
+      let storeId: string | undefined = explicitStoreId;
+      if (!storeId && selectedStore) storeId = selectedStore.id;
+      if (!storeId && stores.length === 1) storeId = stores[0].id;
+
+      if (!storeId) {
+        // Ambiguous: multiple or zero stores and none selected
+        console.warn('Cannot fetch products: store_id is required in seller flow');
+        showToast({
+          type: 'warning',
+          title: 'Select a Store',
+          message: 'Please select a store to view its products.',
+        });
+        setProducts([]);
+        return;
+      }
+
+      const response = await fetch(`/api/v1/products?store_id=${encodeURIComponent(storeId)}`);
       if (response.ok) {
         const data = await response.json();
         setProducts(data.products || []);
@@ -177,10 +196,18 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
     }
   };
 
+  // Initial load: fetch stores; products will be fetched once a store is known
   useEffect(() => {
     fetchStores();
-    fetchProducts();
   }, []);
+
+  // Whenever stores or selected store change, and the Products tab is active, fetch products for the active store
+  useEffect(() => {
+    if (activeTab === 'products') {
+      fetchProducts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, stores, selectedStore]);
 
   // Helper function to generate image URL from image_id
   const getImageUrl = (imageId?: string) => {
@@ -448,8 +475,8 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       // Close the product modal and refresh products list
       setShowCreateProduct(false);
       
-      // Refresh the products list to show the new product
-      await fetchProducts();
+      // Refresh the products list for the product's store
+      await fetchProducts(productData.store_id);
       
     } catch (error) {
       console.error("Error creating product:", error);

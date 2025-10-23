@@ -71,6 +71,21 @@ impl Product {
             })?;
         Ok(products)
     }
+
+    /// List all products (no store filter), newest first
+    pub async fn list_all(
+        db: &DatabaseConnection,
+    ) -> Result<Vec<ProductModel>, String> {
+        let products = ProductEntity::find()
+            .order_by_desc(product::Column::CreatedAt)
+            .all(db)
+            .await
+            .map_err(|e| {
+                error!("Failed to list products: {:?}", e);
+                "Failed to list products. Please try again later.".to_string()
+            })?;
+        Ok(products)
+    }
     pub async fn update(
         db: &DatabaseConnection,
         id: Uuid,

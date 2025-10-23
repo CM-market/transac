@@ -5,6 +5,7 @@ use crate::config::Config;
 use sea_orm::{Database, DatabaseConnection};
 use std::time::Duration;
 use tokio::time::sleep;
+use tracing::warn;
 
 pub async fn create_connection(config: &Config) -> anyhow::Result<DatabaseConnection> {
     let max_attempts = 20u32;

@@ -4,7 +4,7 @@ services:
     container_name: transac_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: transac_db
+      POSTGRES_DB: transac_database
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     healthcheck:
@@ -12,6 +12,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    ports:
+      - "5432:5432"
     volumes:
       - transac_db_data:/var/lib/postgresql/data
     networks:

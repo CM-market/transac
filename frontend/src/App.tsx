@@ -1,11 +1,9 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter as Router } from "react-router-dom";
 
 import useSimplifiedAuthFlow from "./hooks/useSimplifiedAuthFlow";
-import PowScreen from "./components/PowScreen";
-import MarketplaceWelcome from "./components/MarketplaceWelcome";
 import AppRoutes from "./routes/AppRoutes";
 import { ToastProvider } from "./components/ToastContainer";
 
@@ -22,30 +20,9 @@ function App() {
   // Use the simplified authentication flow (without registration)
   const authStatus = useSimplifiedAuthFlow();
 
-  // App state management - simplified for marketplace flow
-  const [showPowScreen, setShowPowScreen] = useState(true);
-  const [showMarketplaceWelcome, setShowMarketplaceWelcome] = useState(false);
-  const [hasInitialized, setHasInitialized] = useState(false);
-
-  // Check if authentication is already complete
-  useEffect(() => {
-    const authToken = localStorage.getItem("authToken");
-    if (authToken) {
-      // Skip POW if already authenticated
-      setShowPowScreen(false);
-      setShowMarketplaceWelcome(true);
-      setHasInitialized(true);
-    } else if (!hasInitialized) {
-      setShowPowScreen(true);
-      setShowMarketplaceWelcome(false);
-      setHasInitialized(true);
-    }
-  }, [hasInitialized]);
-
   // Handle POW completion
   const handlePowComplete = useCallback(() => {
-    setShowPowScreen(false);
-    setShowMarketplaceWelcome(true);
+    // No-op: AppRoutes handles transitions based on authStatus
   }, []);
 
   // Handle marketplace actions
@@ -62,18 +39,6 @@ function App() {
   const handleRetry = useCallback(() => {
     window.location.reload();
   }, []);
-
-  // Show POW screen during authentication
-  if (showPowScreen && (authStatus.isLoading || authStatus.isPowComputing)) {
-    return (
-      <PowScreen onPowComplete={handlePowComplete} authStatus={authStatus} />
-    );
-  }
-
-  // Show marketplace welcome after authentication
-  if (showMarketplaceWelcome) {
-    return <MarketplaceWelcome onBuy={handleBuy} onSell={handleSell} />;
-  }
 
   // Delegate to AppRoutes for handling loading, error states and routing
   return (

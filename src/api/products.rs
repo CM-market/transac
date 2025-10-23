@@ -336,7 +336,7 @@ pub async fn upload_product_media(
             
             // If we have file data, use it, otherwise fall back to the old method
             let s3_key = if let Some(file_data) = &analysis_result.file_data {
-                match stub.upload_media_data(id, file_name, file_data, content_type).await {
+                match stub.upload_media_data(id, file_name, file_data, content_type, Some(image_id)).await {
                     Ok(key) => key,
                     Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
                 }
@@ -362,7 +362,7 @@ pub async fn upload_product_media(
     
     // If we have file data, use it, otherwise fall back to the old method
     let s3_key = if let Some(file_data) = &analysis_result.file_data {
-        match s3.upload_media_data(id, file_name, file_data, content_type).await {
+        match s3.upload_media_data(id, file_name, file_data, content_type, Some(image_id)).await {
             Ok(key) => key,
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
         }
@@ -461,7 +461,7 @@ pub async fn edit_product_media(
             
             // If we have file data, use it, otherwise fall back to the old method
             let s3_key = if let Some(file_data) = &analysis_result.file_data {
-                match stub.upload_media_data(id, file_name, file_data, content_type).await {
+                match stub.upload_media_data(id, file_name, file_data, content_type, Some(image_id)).await {
                     Ok(key) => key,
                     Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
                 }
@@ -502,7 +502,7 @@ pub async fn edit_product_media(
     
     // If we have file data, use it, otherwise fall back to the old method
     let s3_key = if let Some(file_data) = &analysis_result.file_data {
-        match s3.upload_media_data(id, file_name, file_data, content_type).await {
+        match s3.upload_media_data(id, file_name, file_data, content_type, Some(image_id)).await {
             Ok(key) => key,
             Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
         }

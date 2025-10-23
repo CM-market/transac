@@ -12,6 +12,7 @@ mod db;
 mod error;
 mod events;
 mod request_middleware;
+mod migrator;
 
 use crate::auth::JwtService;
 use crate::crypto::PowService;
@@ -32,6 +33,83 @@ pub struct ApiContext {
     // pool: sqlx::PgPool,
     pow_service: Arc<PowService>,
     jwt_service: Arc<JwtService>,
+}
+
+// Search the bucket for an object whose key contains the given image_id (UUID)
+async fn find_s3_key_by_image_id(image_id: uuid::Uuid) -> Result<Option<String>, String> {
+    // Prepare S3 client (same env setup as other S3 interactions)
+    let access_key = std::env::var("AWS_ACCESS_KEY_ID")
+        .map_err(|_| "AWS_ACCESS_KEY_ID environment variable not set".to_string())?;
+    let secret_key = std::env::var("AWS_SECRET_ACCESS_KEY")
+        .map_err(|_| "AWS_SECRET_ACCESS_KEY environment variable not set".to_string())?;
+    let endpoint_url = std::env::var("AWS_ENDPOINT_URL")
+        .unwrap_or_else(|_| "http://localhost:9000".to_string());
+    let region_name = std::env::var("AWS_REGION")
+        .unwrap_or_else(|_| "us-east-1".to_string());
+    let bucket_name = std::env::var("S3_BUCKET_NAME")
+        .unwrap_or_else(|_| "transac-media".to_string());
+
+    let region = aws_config::meta::region::RegionProviderChain::default_provider()
+        .or_else(aws_config::Region::new(region_name))
+        .region()
+        .await;
+
+    let credentials = aws_sdk_s3::config::Credentials::new(
+        access_key,
+        secret_key,
+        None,
+        None,
+        "static",
+    );
+
+    let config = aws_config::defaults(aws_config::BehaviorVersion::latest())
+        .region(region)
+        .endpoint_url(&endpoint_url)
+        .credentials_provider(credentials)
+        .load()
+        .await;
+
+    let s3_config = aws_sdk_s3::config::Builder::from(&config)
+        .force_path_style(true)
+        .build();
+    let client = aws_sdk_s3::Client::from_conf(s3_config);
+
+    // We embedded a UUID in the key at upload time like
+    // products/{product_id}/media/{media_uuid}_{basename}.{ext}
+    // We'll scan keys under the common prefix and look for the UUID substring
+    let uuid_str = image_id.to_string();
+    let mut continuation: Option<String> = None;
+
+    loop {
+        let mut req = client
+            .list_objects_v2()
+            .bucket(&bucket_name)
+            .prefix("products/");
+        if let Some(token) = continuation.as_ref() {
+            req = req.continuation_token(token);
+        }
+        let resp = req
+            .send()
+            .await
+            .map_err(|e| format!("Failed to list objects: {}", e))?;
+
+        let objects = resp.contents();
+        if let Some(found) = objects
+            .iter()
+            .filter_map(|o| o.key())
+            .find(|key| key.contains(&uuid_str))
+        {
+            return Ok(Some(found.to_string()));
+        }
+
+        if let Some(token) = resp.next_continuation_token() {
+            continuation = Some(token.to_string());
+        } else {
+            break;
+        }
+    }
+
+    Ok(None)
 }
 use db::create_connection;
 
@@ -55,7 +133,7 @@ struct UuidSchema;
     tag = "System"
 )]
 async fn healthz() -> impl IntoResponse {
-    tracing::info!("Health check requested");
+    tracing::debug!("Health check requested");
     Json(HealthResponse { message: "ok" })
 }
 
@@ -132,7 +210,7 @@ async fn create_store_endpoint(
 ) -> impl IntoResponse {
     use crate::db::stores::Store;
     
-    tracing::info!("Store creation requested: {:?}", request);
+    tracing::debug!("Store creation requested");
     
     let name = match request.get("name").and_then(|v| v.as_str()) {
         Some(name) => name,
@@ -187,7 +265,7 @@ async fn list_stores_endpoint(
 ) -> impl IntoResponse {
     use crate::db::stores::Store;
     
-    tracing::info!("Stores list requested");
+    tracing::debug!("Stores list requested");
     
     match Store::list(&pool).await {
         Ok(stores) => {
@@ -212,7 +290,7 @@ async fn delete_store_endpoint(
     use crate::db::stores::Store;
     use uuid::Uuid;
     
-    tracing::info!("Store deletion requested for ID: {}", store_id);
+    tracing::debug!(store_id = %store_id, "Store deletion requested");
     
     // Parse the store_id to UUID
     let uuid = match Uuid::parse_str(&store_id) {
@@ -243,7 +321,7 @@ async fn update_store_endpoint(
     use crate::db::stores::Store;
     use uuid::Uuid;
     
-    tracing::info!("Store update requested for ID: {}", store_id);
+    tracing::debug!(store_id = %store_id, "Store update requested");
     
     // Parse the store_id to UUID
     let uuid = match Uuid::parse_str(&store_id) {
@@ -302,7 +380,7 @@ async fn create_product_endpoint(
     use crate::db::products::Product;
     use uuid::Uuid;
     
-    tracing::info!("Product creation requested: {:?}", request);
+    tracing::debug!("Product creation requested");
     
     let name = request.get("name").and_then(|v| v.as_str()).unwrap_or("");
     let description = request.get("description").and_then(|v| v.as_str());
@@ -310,11 +388,11 @@ async fn create_product_endpoint(
     let quantity_available = request.get("quantity_available").and_then(|v| v.as_i64()).unwrap_or(0) as i32;
     let store_id_str = request.get("store_id").and_then(|v| v.as_str()).unwrap_or("");
     
-    tracing::debug!("Parsed values: name={}, price={}, quantity={}, store_id_str={}", name, price, quantity_available, store_id_str);
+    tracing::debug!(name = %name, price = %price, quantity = %quantity_available, store_id = %store_id_str, "Parsed product values");
     
     let store_id = match Uuid::parse_str(store_id_str) {
         Ok(uuid) => {
-            tracing::debug!("Successfully parsed store_id: {}", uuid);
+            tracing::debug!(store_id = %uuid, "Successfully parsed store_id");
             uuid
         },
         Err(e) => {
@@ -336,14 +414,14 @@ async fn create_product_endpoint(
         None, // image_id
     ).await {
         Ok(product) => {
-            tracing::info!("Product created successfully: {}", product.id);
+            tracing::info!(product_id = %product.id, "Product created successfully");
             let response = serde_json::json!({
                 "product": product
             });
             (StatusCode::CREATED, Json(response)).into_response()
         }
         Err(err) => {
-            tracing::error!("Failed to create product - detailed error: {}", err);
+            tracing::error!(error = %err, "Failed to create product");
             (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to create product: {}", err)).into_response()
         }
     }
@@ -359,12 +437,17 @@ async fn list_products_endpoint(
     
     let store_id = params.get("store_id")
         .and_then(|s| Uuid::parse_str(s).ok());
-    
-    let result = if let Some(store_id) = store_id {
-        Product::list_by_store(&pool, store_id).await
-    } else {
-        Ok(vec![]) // Return empty for now
-    };
+    // Seller flow: require explicit store_id for product listing
+    if store_id.is_none() {
+        return (
+            StatusCode::BAD_REQUEST,
+            "store_id query parameter is required to list products for a seller",
+        )
+            .into_response();
+    }
+
+    let store_id = store_id.unwrap();
+    let result = Product::list_by_store(&pool, store_id).await;
     
     match result {
         Ok(products) => {
@@ -374,7 +457,7 @@ async fn list_products_endpoint(
             (StatusCode::OK, Json(response)).into_response()
         }
         Err(err) => {
-            tracing::error!("Failed to list products: {}", err);
+            tracing::error!(error = %err, "Failed to list products");
             (StatusCode::INTERNAL_SERVER_ERROR, "Failed to list products").into_response()
         }
     }
@@ -388,7 +471,7 @@ async fn upload_product_media_endpoint(
 ) -> impl IntoResponse {
     use uuid::Uuid;
     
-    tracing::info!("Media upload requested for product: {}", product_id);
+    tracing::info!(product_id = %product_id, "Media upload requested");
     
     let product_uuid = match Uuid::parse_str(&product_id) {
         Ok(uuid) => uuid,
@@ -401,7 +484,7 @@ async fn upload_product_media_endpoint(
     use crate::db::products::Product;
     match Product::get(&pool, product_uuid).await {
         Ok(_) => {
-            tracing::info!("Product {} exists, proceeding with upload", product_uuid);
+            tracing::debug!(product_id = %product_uuid, "Product exists, proceeding with upload");
         }
         Err(_) => {
             return (StatusCode::NOT_FOUND, "Product not found").into_response();
@@ -409,7 +492,7 @@ async fn upload_product_media_endpoint(
     }
     
     // Process the uploaded file
-    tracing::info!("Starting multipart processing");
+    tracing::debug!("Starting multipart processing");
     while let Some(field) = match multipart.next_field().await {
         Ok(field) => field,
         Err(e) => {
@@ -421,18 +504,18 @@ async fn upload_product_media_endpoint(
         let filename = field.file_name().unwrap_or("unknown").to_string();
         let content_type = field.content_type().unwrap_or("application/octet-stream").to_string();
         
-        tracing::info!("Processing field: {} (filename: {}, type: {})", name, filename, content_type);
+        tracing::debug!(field_name = %name, filename = %filename, content_type = %content_type, "Processing multipart field");
         
         if name == "file" {
             let data = match field.bytes().await {
                 Ok(data) => data,
                 Err(e) => {
-                    tracing::error!("Failed to read file data: {}", e);
+                    tracing::error!(error = %e, "Failed to read file data");
                     return (StatusCode::BAD_REQUEST, "Failed to read file").into_response();
                 }
             };
             
-            tracing::info!("File uploaded successfully: {} bytes", data.len());
+            tracing::debug!(size_bytes = data.len(), "File read from multipart");
             
             // Upload to MinIO/S3 using the proper S3MediaStorage implementation
             use crate::api::media_storage::{MediaStorage, S3MediaStorage};
@@ -440,41 +523,38 @@ async fn upload_product_media_endpoint(
             let storage = match S3MediaStorage::new().await {
                 Ok(s) => s,
                 Err(e) => {
-                    tracing::error!("Failed to initialize S3 storage: {}", e);
+                    tracing::error!(error = %e, "Failed to initialize S3 storage");
                     return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to initialize storage").into_response();
                 }
             };
             
+            // Generate image_id first so the S3 key contains this UUID
+            let image_id = uuid::Uuid::new_v4();
             let s3_key = match storage.upload_media_data(
                 product_uuid,
                 &filename,
                 &data,
-                &content_type
+                &content_type,
+                Some(image_id),
             ).await {
                 Ok(key) => {
-                    tracing::info!("File uploaded to MinIO with key: {}", key);
+                    tracing::info!(s3_key = %key, "File uploaded to object storage");
                     key
                 },
                 Err(e) => {
-                    tracing::error!("Failed to upload to MinIO: {}", e);
+                    tracing::error!(error = %e, "Failed to upload to object storage");
                     return (StatusCode::INTERNAL_SERVER_ERROR, format!("MinIO upload failed: {}", e)).into_response();
                 }
             };
             
-            // Create a simple mapping: use base64 encoded S3 key as image_id
-            // This allows us to decode it back in the serve endpoint
-            use base64::{Engine as _, engine::general_purpose};
-            let s3_key_encoded = general_purpose::STANDARD.encode(&s3_key);
-            let image_id = uuid::Uuid::new_v4();
-            
             // Update the product with the image_id
             use crate::db::products::Product;
             if let Err(e) = Product::update_image(&pool, product_uuid, Some(image_id)).await {
-                tracing::error!("Failed to update product with image_id: {}", e);
+                tracing::error!(error = %e, "Failed to update product with image_id");
                 // Continue anyway, as the image was uploaded successfully
             }
             
-            tracing::info!("Image stored: {} -> {} (encoded: {})", image_id, s3_key, s3_key_encoded);
+            tracing::info!(image_id = %image_id, s3_key = %s3_key, "Image stored");
             
             let response = serde_json::json!({
                 "success": true,
@@ -484,7 +564,8 @@ async fn upload_product_media_endpoint(
                 "size": data.len(),
                 "content_type": content_type,
                 "s3_key": s3_key,
-                "image_url": format!("/api/v1/media/{}", general_purpose::STANDARD.encode(&s3_key))
+                // UUID based serving endpoint
+                "image_url": format!("/api/v1/media/{}", image_id)
             });
             
             return (StatusCode::OK, Json(response)).into_response();
@@ -500,12 +581,11 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "transac=debug,tower_http=debug,axum::routing=debug".into()),
+                .unwrap_or_else(|_| "transac=info,tower_http=info,axum::routing=info".into()),
         )
         .with(
             tracing_subscriber::fmt::layer()
                 .with_target(true)
-                .with_thread_ids(true)
                 .with_line_number(true)
                 .with_file(true),
         )
@@ -533,6 +613,17 @@ async fn main() -> anyhow::Result<()> {
         .layer(middleware::from_fn(crypto_validation_middleware));
 
     let pool = create_connection(&config).await?;
+    if config.run_migrations_on_start {
+        use sea_orm_migration::MigratorTrait;
+        info!("Running database migrations at startup");
+        if let Err(e) = migrator::Migrator::up(&pool, None).await {
+            tracing::error!(error = %e, "Database migrations failed");
+            return Err(anyhow::anyhow!(e));
+        }
+        info!("Database migrations completed");
+    } else {
+        tracing::info!("RUN_MIGRATIONS_ON_START is false; skipping migrations");
+    }
 
     // Create a separate router for stores and products with database state
     let stores_router = Router::new()
@@ -559,11 +650,10 @@ async fn main() -> anyhow::Result<()> {
                         method = %request.method(),
                         uri = %request.uri(),
                         version = ?request.version(),
-                        headers = ?request.headers(),
                     )
                 })
                 .on_request(|_request: &axum::http::Request<_>, _span: &tracing::Span| {
-                    tracing::info!("Started processing request")
+                    tracing::debug!("Started processing request")
                 })
                 .on_response(
                     |response: &axum::http::Response<_>,
@@ -652,13 +742,13 @@ async fn serve_media_endpoint(
     use axum::response::Response;
     use axum::body::Body;
     
-    tracing::info!("Serving media file: {}", path);
+    tracing::info!(path = %path, "Serving media file");
     
     // Try to decode the path as base64 encoded S3 key first
     use base64::{Engine as _, engine::general_purpose};
     if let Ok(decoded_bytes) = general_purpose::STANDARD.decode(&path) {
         if let Ok(s3_key) = String::from_utf8(decoded_bytes) {
-            tracing::info!("Decoded S3 key from base64: {}", s3_key);
+            tracing::debug!(s3_key = %s3_key, "Decoded S3 key from base64");
             return serve_direct_media_path(&s3_key).await;
         }
     }
@@ -672,11 +762,21 @@ async fn serve_media_endpoint(
         }
     };
     
-    // Find the product with this image_id to get the actual S3 key
-    // For now, we'll skip the UUID lookup since we have base64 decoding
-    // This is a fallback that we might not need
-    tracing::warn!("UUID lookup not implemented yet: {}", image_id);
-    (StatusCode::NOT_FOUND, "Image not found - use base64 encoded S3 key").into_response()
+    // Try to find an S3 object whose key contains this image_id (UUID) that we embedded at upload time
+    match find_s3_key_by_image_id(image_id).await {
+        Ok(Some(s3_key)) => {
+            tracing::debug!(s3_key = %s3_key, "Resolved image_id to S3 key");
+            return serve_direct_media_path(&s3_key).await;
+        }
+        Ok(None) => {
+            tracing::warn!(image_id = %image_id, "No S3 object found for image_id");
+            return (StatusCode::NOT_FOUND, "Image not found").into_response();
+        }
+        Err(e) => {
+            tracing::error!(error = %e, image_id = %image_id, "Failed to resolve image_id to S3 key");
+            return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to resolve image").into_response();
+        }
+    }
 }
 
 // Helper function to serve media directly by S3 path

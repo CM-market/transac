@@ -3,8 +3,9 @@ use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_s3::Client as S3Client;
 use axum::extract::Multipart;
 use bytes::Bytes;
-use serde_json;
 use std::env;
+use std::time::Duration;
+use tokio::time::sleep;
 use uuid::Uuid;
 
 #[async_trait]
@@ -23,6 +24,7 @@ pub trait MediaStorage {
         file_name: &str,
         file_data: &[u8],
         content_type: &str,
+        image_id: Option<Uuid>,
     ) -> Result<String, String>;
 
     #[allow(dead_code)]
@@ -92,6 +94,21 @@ impl S3MediaStorage {
             &endpoint_url
         );
 
+        // One-time diagnostic: list buckets visible to the client
+        match client.list_buckets().send().await {
+            Ok(output) => {
+                let names: Vec<String> = output
+                    .buckets()
+                    .iter()
+                    .filter_map(|b| b.name().map(|s| s.to_string()))
+                    .collect();
+                tracing::info!("S3 list_buckets returned: {:?}", names);
+            }
+            Err(e) => {
+                tracing::warn!("S3 list_buckets failed: {:?}", e);
+            }
+        }
+
         // Create a new instance
         let storage = Self {
             client,
@@ -118,7 +135,7 @@ impl S3MediaStorage {
                 true
             },
             Err(e) => {
-                tracing::warn!("Bucket '{}' check failed: {}", self.bucket_name, e);
+                tracing::warn!("Bucket '{}' check failed: {} | debug={:?}", self.bucket_name, e, e);
                 false
             }
         };
@@ -133,69 +150,43 @@ impl S3MediaStorage {
             {
                 Ok(_) => {
                     tracing::info!("Successfully created bucket '{}'", self.bucket_name);
-                    
-                    // Set bucket policy to allow public read access
-                    if let Err(e) = self.set_public_read_policy().await {
-                        tracing::warn!("Failed to set public read policy for bucket '{}': {}", self.bucket_name, e);
-                        // Continue anyway, as the bucket was created successfully
+
+                    // Wait until the bucket is actually available (MinIO may take a moment)
+                    if let Err(e) = self.wait_for_bucket_availability(Duration::from_secs(5)).await {
+                        tracing::error!("Bucket '{}' not available after creation: {}", self.bucket_name, e);
+                        return Err(format!("Bucket '{}' not available after creation: {}", self.bucket_name, e));
                     }
                 },
                 Err(e) => {
+                    tracing::error!("Failed to create bucket '{}': {:?}", self.bucket_name, e);
                     return Err(format!("Failed to create bucket '{}': {}", self.bucket_name, e));
                 }
-            }
-        } else {
-            // Even if bucket exists, ensure it has public read policy
-            if let Err(e) = self.set_public_read_policy().await {
-                tracing::warn!("Failed to set public read policy for existing bucket '{}': {}", self.bucket_name, e);
             }
         }
 
         Ok(())
     }
 
-    /// Set bucket policy to allow public read access
-    async fn set_public_read_policy(&self) -> Result<(), String> {
-        // First, try to disable public access blocks (for AWS S3 compatibility)
-        if let Err(e) = self.client
-            .delete_public_access_block()
-            .bucket(&self.bucket_name)
-            .send()
-            .await
-        {
-            tracing::debug!("Could not delete public access block (may not exist): {}", e);
-            // This is okay, MinIO might not support this or it might not exist
-        }
-
-        // Set bucket policy to allow public read access
-        let policy = serde_json::json!({
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Sid": "PublicReadGetObject",
-                    "Effect": "Allow",
-                    "Principal": "*",
-                    "Action": "s3:GetObject",
-                    "Resource": format!("arn:aws:s3:::{}/*", self.bucket_name)
+    /// Wait for the bucket to become available by retrying head_bucket for up to `timeout`.
+    async fn wait_for_bucket_availability(&self, timeout: Duration) -> Result<(), String> {
+        let start = std::time::Instant::now();
+        let mut attempts: u32 = 0;
+        loop {
+            attempts += 1;
+            match self.client.head_bucket().bucket(&self.bucket_name).send().await {
+                Ok(_) => {
+                    tracing::info!("Bucket '{}' became available after {} attempt(s)", self.bucket_name, attempts);
+                    return Ok(());
                 }
-            ]
-        });
-
-        let policy_str = policy.to_string();
-        
-        match self.client
-            .put_bucket_policy()
-            .bucket(&self.bucket_name)
-            .policy(policy_str)
-            .send()
-            .await
-        {
-            Ok(_) => {
-                tracing::info!("Successfully set public read policy for bucket '{}'", self.bucket_name);
-                Ok(())
-            },
-            Err(e) => {
-                Err(format!("Failed to set bucket policy: {}", e))
+                Err(e) => {
+                    if start.elapsed() >= timeout {
+                        return Err(format!("Bucket '{}' not available within {:?}: {}", self.bucket_name, timeout, e));
+                    }
+                    // Exponential backoff: 50ms, 100ms, 200ms, ... up to 800ms
+                    let backoff_ms = 50u64.saturating_mul(1u64 << (attempts.min(4) - 1));
+                    tracing::debug!("Waiting for bucket '{}', retrying in {}ms (attempt #{})", self.bucket_name, backoff_ms, attempts);
+                    sleep(Duration::from_millis(backoff_ms)).await;
+                }
             }
         }
     }
@@ -250,6 +241,7 @@ impl MediaStorage for S3MediaStorage {
             &filename,
             &file_data,
             "application/octet-stream",
+            None,
         ).await
     }
     
@@ -259,6 +251,7 @@ impl MediaStorage for S3MediaStorage {
         file_name: &str,
         file_data: &[u8],
         content_type: &str,
+        image_id: Option<Uuid>,
     ) -> Result<String, String> {
         if file_data.is_empty() {
             return Err("Cannot upload empty file data".to_string());
@@ -266,7 +259,7 @@ impl MediaStorage for S3MediaStorage {
 
         // Generate S3 key with organized folder structure
         let file_extension = file_name.split('.').next_back().unwrap_or("bin");
-        let media_id = Uuid::new_v4();
+        let media_id = image_id.unwrap_or_else(Uuid::new_v4);
         let s3_key = format!(
             "products/{}/media/{}_{}.{}",
             product_id,
@@ -285,17 +278,19 @@ impl MediaStorage for S3MediaStorage {
         );
 
         // Prepare upload request
-        // Upload the file to S3/MinIO with public-read ACL
+        // Upload the file to S3/MinIO (MinIO may not support canned ACLs; rely on bucket policy)
         let result = self.client
             .put_object()
             .bucket(&self.bucket_name)
             .key(&s3_key)
             .body(file_data.to_vec().into())
             .content_type(content_type)
-            .acl(aws_sdk_s3::types::ObjectCannedAcl::PublicRead)
             .send()
             .await
-            .map_err(|e| format!("Failed to upload to S3: {}", e))?;
+            .map_err(|e| {
+                tracing::error!("S3 put_object failed: {:?}", e);
+                format!("Failed to upload to S3: {}", e)
+            })?;
 
         tracing::info!(
             "Successfully uploaded file to S3. ETag: {:?}",
@@ -366,12 +361,13 @@ impl MediaStorage for StubMediaStorage {
         _file_name: &str,
         _file_data: &[u8],
         _content_type: &str,
+        image_id: Option<Uuid>,
     ) -> Result<String, String> {
         // Return a stubbed S3 key for development
         Ok(format!(
             "products/{}/media_stub_{}.jpg",
             product_id,
-            Uuid::new_v4()
+            image_id.unwrap_or_else(Uuid::new_v4)
         ))
     }
 
