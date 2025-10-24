@@ -224,7 +224,7 @@ pub async fn get_store_share_links(
         Ok(store) => {
             let store_id = id.to_string();
             let base_url = "https://transac.site"; // This should come from config
-            let share_url = format!("{}/store/{}", base_url, store_id);
+            let share_url = format!("{base_url}/store/{store_id}");
             let whatsapp_message = format!(
                 "Check out my store '{}' on Transac: {}",
                 store.name, share_url

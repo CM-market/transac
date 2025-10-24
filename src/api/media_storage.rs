@@ -328,7 +328,7 @@ impl MediaStorage for S3MediaStorage {
             .await
             .map_err(|e| {
                 tracing::error!("S3 put_object failed: {:?}", e);
-                format!("Failed to upload to S3: {}", e)
+                format!("Failed to upload to S3: {e}")
             })?;
 
         tracing::info!(
