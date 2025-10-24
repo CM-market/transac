@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render } from "@testing-library/react";
+import { screen, fireEvent } from "@testing-library/dom";
 import MarketplaceWelcome from "./MarketplaceWelcome";
 import { vi } from "vitest";
 
