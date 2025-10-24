@@ -38,7 +38,7 @@ async fn main() -> anyhow::Result<()> {
                     })?;
                 warn!("Target database not found; attempting to create it");
                 let admin_conn = Database::connect(&admin_url).await?;
-                let create_db_sql = format!("CREATE DATABASE \"{}\";", db_name);
+                let create_db_sql = format!("CREATE DATABASE \"{db_name}\";");
                 // Ignore error if it already exists (race conditions)
                 let _ = admin_conn
                     .execute(Statement::from_string(
@@ -71,6 +71,6 @@ fn build_admin_url_and_db_name(db_url: &str) -> Option<(String, String)> {
     if dbname.is_empty() {
         return None;
     }
-    let admin_url = format!("{}postgres", prefix);
+    let admin_url = format!("{prefix}postgres");
     Some((admin_url, dbname.to_string()))
 }

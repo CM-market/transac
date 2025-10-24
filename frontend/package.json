@@ -18,7 +18,7 @@
     "test:unit": "vitest || echo 'Unit tests suppressed (non-fatal)'",
     "coverage": "vitest run --coverage",
     "codegen": "openapi-rq -i openapi.json -o ./src/openapi-rq -c fetch",
-    "postinstall": "node scripts/fetch_openapi.js && npm run codegen"
+    "postinstall": "sh -c 'if [ -f scripts/fetch_openapi.js ]; then node scripts/fetch_openapi.js; else echo \"fetch_openapi.js not found, using existing openapi.json\"; fi' && npm run codegen"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",
@@ -71,7 +71,7 @@
     "openapi-typescript": "^7.9.1",
     "postcss": "^8.4.32",
     "prettier": "^3.6.2",
-    "ts-morph": "^23.0.0",
+    "ts-morph": "^22.0.0",
     "tailwindcss": "^3.4.1",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.35.1",

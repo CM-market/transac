@@ -91,7 +91,7 @@ async fn find_s3_key_by_image_id(image_id: uuid::Uuid) -> Result<Option<String>,
         let resp = req
             .send()
             .await
-            .map_err(|e| format!("Failed to list objects: {}", e))?;
+            .map_err(|e| format!("Failed to list objects: {e}"))?;
 
         let objects = resp.contents();
         if let Some(found) = objects
@@ -425,7 +425,7 @@ async fn create_product_endpoint(
             tracing::error!(error = %err, "Failed to create product");
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to create product: {}", err),
+                format!("Failed to create product: {err}"),
             )
                 .into_response()
         }
@@ -501,7 +501,7 @@ async fn upload_product_media_endpoint(
         Ok(field) => field,
         Err(e) => {
             tracing::error!("Failed to get next multipart field: {}", e);
-            return (StatusCode::BAD_REQUEST, format!("Multipart error: {}", e)).into_response();
+            return (StatusCode::BAD_REQUEST, format!("Multipart error: {e}")).into_response();
         }
     } {
         let name = field.name().unwrap_or("unknown").to_string();
@@ -559,7 +559,7 @@ async fn upload_product_media_endpoint(
                     tracing::error!(error = %e, "Failed to upload to object storage");
                     return (
                         StatusCode::INTERNAL_SERVER_ERROR,
-                        format!("MinIO upload failed: {}", e),
+                        format!("MinIO upload failed: {e}"),
                     )
                         .into_response();
                 }
@@ -898,14 +898,14 @@ async fn get_media_from_storage(
         .key(path)
         .send()
         .await
-        .map_err(|e| format!("Failed to get object from S3: {}", e))?;
+        .map_err(|e| format!("Failed to get object from S3: {e}"))?;
 
     // Read the body
     let data = result
         .body
         .collect()
         .await
-        .map_err(|e| format!("Failed to read object body: {}", e))?
+        .map_err(|e| format!("Failed to read object body: {e}"))?
         .into_bytes()
         .to_vec();
 
