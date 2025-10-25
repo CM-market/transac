@@ -6,7 +6,7 @@ use axum::{
     extract::{Multipart, Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
-    routing::{post, get},
+    routing::{get, post},
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
@@ -34,6 +34,7 @@ pub struct CreateReviewRequest {
 }
 
 #[derive(Deserialize, ToSchema)]
+#[allow(dead_code)]
 pub struct ListReviewsQuery {
     pub product_id: Uuid,
 }
@@ -132,10 +133,7 @@ async fn create_product(
     ),
     tag = "Products"
 )]
-async fn get_product(
-    State(state): State<ApiContext>,
-    Path(id): Path<Uuid>,
-) -> impl IntoResponse {
+async fn get_product(State(state): State<ApiContext>, Path(id): Path<Uuid>) -> impl IntoResponse {
     match Product::get(&state.pool, id).await {
         Ok(product) => Json::<ProductModel>(product).into_response(),
         Err(e) => (axum::http::StatusCode::NOT_FOUND, e).into_response(),
@@ -159,7 +157,10 @@ async fn list_products(
     State(state): State<ApiContext>,
     Query(query): Query<ListProductsQuery>,
 ) -> impl IntoResponse {
-    tracing::info!("Attempting to list products with query: {:?}", query.store_id);
+    tracing::info!(
+        "Attempting to list products with query: {:?}",
+        query.store_id
+    );
 
     let result = Product::list_all(&state.pool).await;
 

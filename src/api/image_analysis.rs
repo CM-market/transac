@@ -177,8 +177,10 @@ impl Default for ImageAnalysisService {
 }
 
 /// Stub implementation for development/testing
+#[allow(dead_code)]
 pub struct StubImageAnalysisService;
 
+#[allow(dead_code)]
 impl StubImageAnalysisService {
     pub async fn analyze_image(
         &self,

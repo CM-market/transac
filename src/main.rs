@@ -46,7 +46,6 @@ struct HealthResponse {
     message: &'static str,
 }
 
-
 /// Health check endpoint
 #[utoipa::path(
     get,
@@ -179,7 +178,6 @@ async fn main() -> anyhow::Result<()> {
 
     let api_routes = Router::new().nest("/api/v1/pow", pow_routes());
 
-
     let mut openapi = ApiDoc::openapi();
     openapi.servers = Some(vec![utoipa::openapi::Server::new(config.server_url)]);
 
@@ -187,12 +185,10 @@ async fn main() -> anyhow::Result<()> {
         .route("/healthz", get(healthz))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi))
         .merge(api_routes)
-        .merge(
-            api::api_router().layer(middleware::from_fn_with_state(
-                api_context.clone(),
-                crypto_validation_middleware,
-            )),
-        )
+        .merge(api::api_router().layer(middleware::from_fn_with_state(
+            api_context.clone(),
+            crypto_validation_middleware,
+        )))
         .layer(middleware::from_fn(
             request_middleware::request_logging_middleware,
         ))

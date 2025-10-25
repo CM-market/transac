@@ -24,8 +24,6 @@ pub struct Model {
     pub created_at: DateTime<Utc>,
 }
 
-
-
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(has_many = "super::review::Entity")]
@@ -37,6 +35,5 @@ impl Related<super::review::Entity> for Entity {
         Relation::Review.def()
     }
 }
-
 
 impl ActiveModelBehavior for ActiveModel {}

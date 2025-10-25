@@ -49,3 +49,5 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({
     </FavoritesContext.Provider>
   );
 };
+
+export { useFavorites } from "@/hooks/useFavorites";

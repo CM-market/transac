@@ -1,7 +1,7 @@
 use crate::entity::review::{
     self, ActiveModel as ReviewActiveModel, Entity as ReviewEntity, Model as ReviewModel,
 };
-use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, QueryFilter, ColumnTrait, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use tracing::{debug, error};
 use uuid::Uuid;
 
@@ -40,7 +40,10 @@ impl Review {
             .all(db)
             .await
             .map_err(|e| {
-                error!("Failed to fetch reviews for product {}: {:?}", product_id, e);
+                error!(
+                    "Failed to fetch reviews for product {}: {:?}",
+                    product_id, e
+                );
                 "Failed to fetch reviews. Please try again later.".to_string()
             })
     }

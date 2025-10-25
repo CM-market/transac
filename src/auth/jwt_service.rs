@@ -1,6 +1,6 @@
+use crate::auth::claims::Claims;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
-use crate::auth::claims::Claims;
 use std::env;
 
 /// JWT service for token generation and validation
@@ -47,11 +47,13 @@ impl JwtService {
         Ok(token_data.claims)
     }
 
+    #[allow(dead_code)]
     pub fn get_relay_id(&self, token: &str) -> Result<String, String> {
         let claims = self.validate_token(token)?;
         Ok(claims.sub)
     }
 
+    #[allow(dead_code)]
     pub fn is_token_valid(&self, token: &str) -> bool {
         self.validate_token(token).is_ok()
     }

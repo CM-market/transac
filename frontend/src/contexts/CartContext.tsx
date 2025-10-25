@@ -75,3 +75,5 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     </CartContext.Provider>
   );
 };
+
+export { useCart } from "@/hooks/useCart";

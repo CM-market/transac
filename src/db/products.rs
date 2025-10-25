@@ -1,9 +1,7 @@
 use crate::entity::product::{
     self, ActiveModel as ProductActiveModel, Entity as ProductEntity, Model as ProductModel,
 };
-use sea_orm::{
-    ActiveModelTrait, DatabaseConnection, EntityTrait, QueryOrder, Set,
-};
+use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, QueryOrder, Set};
 use tracing::{debug, error};
 use uuid::Uuid;
 
@@ -32,7 +30,7 @@ impl Product {
             category: Set(category.to_owned()),
             return_policy: Set(return_policy.to_owned()),
             average_rating: Set(Some(0.0)), // Initialize with 0.0
-            review_count: Set(0),          // Initialize with 0
+            review_count: Set(0),           // Initialize with 0
             ..Default::default()
         };
         let res = product.insert(db).await.map_err(|e| {
@@ -55,7 +53,6 @@ impl Product {
         Ok(product)
     }
 
-
     pub async fn list_all(db: &DatabaseConnection) -> Result<Vec<ProductModel>, String> {
         let products = ProductEntity::find()
             .order_by_desc(product::Column::CreatedAt)
@@ -67,7 +64,7 @@ impl Product {
             })?;
         Ok(products)
     }
-    
+
     pub async fn update(
         db: &DatabaseConnection,
         id: Uuid,
@@ -185,8 +182,7 @@ impl Product {
                 "Failed to update product rating and review count {}: {:?}",
                 product_id, e
             );
-            "Failed to update product rating and review count. Please try again later."
-                .to_string()
+            "Failed to update product rating and review count. Please try again later.".to_string()
         })?;
         Ok(())
     }

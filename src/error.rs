@@ -8,6 +8,7 @@ pub enum AppError {
     Validation(String),
 
     #[error("Not found: {0}")]
+    #[allow(dead_code)]
     NotFound(String),
 
     #[error("Internal error: {0}")]

@@ -1,7 +1,7 @@
 use crate::entity::user::{
     self, ActiveModel as UserActiveModel, Entity as UserEntity, Model as UserModel,
 };
-use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, QueryFilter, Set, ColumnTrait};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use tracing::{debug, error};
 
 pub struct User;

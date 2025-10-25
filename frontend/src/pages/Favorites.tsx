@@ -1,10 +1,11 @@
 import React from "react";
-import { useFavorites } from "@/contexts/FavoritesContext";
-import { useCart } from "@/contexts/CartContext";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useCart } from "@/hooks/useCart";
 import ProductCard from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { type Product } from "@/types/product";
 
 const Favorites: React.FC = () => {
   const { favorites } = useFavorites();
@@ -20,7 +21,7 @@ const Favorites: React.FC = () => {
         </h1>
         {favorites.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
-            {favorites.map((product) => (
+            {favorites.map((product: Product) => (
               <ProductCard
                 key={product.id}
                 product={product}
