@@ -67,7 +67,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-transac_database}}
+      DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-transac_db}}
       POW_DIFFICULTY: ${POW_DIFFICULTY:-4}
       RUN_MIGRATIONS_ON_START: ${RUN_MIGRATIONS_ON_START:-true}
       POW_TIMEOUT_MINUTES: ${POW_TIMEOUT_MINUTES:-10}
