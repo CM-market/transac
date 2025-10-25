@@ -15,14 +15,27 @@ pub struct Model {
     pub sku: Option<String>,
     pub name: String,
     pub description: Option<String>,
-    #[schema(value_type = String, format = "uuid")]
-    pub image_id: Uuid,
     pub price: f64,
     pub quantity_available: i32,
+    #[schema(value_type = String, format = "uuid")]
+    pub image_id: Option<Uuid>,
     pub created_at: DateTime<Utc>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(
+        belongs_to = "crate::entity::store::Entity",
+        from = "Column::StoreId",
+        to = "crate::entity::store::Column::Id"
+    )]
+    Store,
+}
+
+impl Related<crate::entity::store::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Store.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}

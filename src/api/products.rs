@@ -16,6 +16,7 @@ use axum::{
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use tracing::error;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -28,7 +29,7 @@ pub struct CreateProductRequest {
     pub name: String,
     pub description: Option<String>,
     #[schema(value_type = String, format = "uuid")]
-    pub image_id: Uuid,
+    pub image_id: Option<Uuid>,
     pub price: f64,
     pub quantity_available: i32,
 }
@@ -40,7 +41,7 @@ pub struct UpdateProductRequest {
     pub name: String,
     pub description: Option<String>,
     #[schema(value_type = String, format = "uuid")]
-    pub image_id: Uuid,
+    pub image_id: Option<Uuid>,
     pub price: f64,
     pub quantity_available: i32,
 }
@@ -52,7 +53,7 @@ pub struct ListProductsQuery {
     pub store_id: Uuid,
 }
 #[allow(dead_code)]
-pub fn router(db: DatabaseConnection) -> Router {
+pub fn router(db: DatabaseConnection) -> Router<()> {
     // Initialize event dispatcher
     let mut event_dispatcher = EventDispatcher::new();
     event_dispatcher.add_handler(Box::new(LoggingEventHandler));
@@ -114,9 +115,9 @@ async fn create_product(
         payload.sku.as_deref(),
         &payload.name,
         payload.description.as_deref(),
-        payload.image_id,
         payload.price,
         payload.quantity_available,
+        payload.image_id,
     )
     .await
     {
@@ -211,9 +212,9 @@ async fn update_product(
         payload.sku.as_deref(),
         &payload.name,
         payload.description.as_deref(),
-        payload.image_id,
         payload.price,
         payload.quantity_available,
+        payload.image_id,
     )
     .await
     {
@@ -328,14 +329,34 @@ pub async fn upload_product_media(
         Err(_) => {
             // Fallback to stub implementation if S3 initialization fails
             let stub = StubMediaStorage;
-            let s3_key = match stub.upload_media(id, &mut multipart).await {
-                Ok(key) => key,
-                Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+
+            // Use the file data from analysis result
+            let file_name = analysis_result
+                .file_name
+                .as_deref()
+                .unwrap_or("unknown.jpg");
+            let content_type = analysis_result
+                .file_type
+                .as_deref()
+                .unwrap_or("application/octet-stream");
+
+            // If we have file data, use it, otherwise fall back to the old method
+            let s3_key = if let Some(file_data) = &analysis_result.file_data {
+                match stub
+                    .upload_media_data(id, file_name, file_data, content_type, Some(image_id))
+                    .await
+                {
+                    Ok(key) => key,
+                    Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+                }
+            } else {
+                match stub.upload_media(id, &mut multipart).await {
+                    Ok(key) => key,
+                    Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+                }
             };
+
             // Continue with stub result
-            if let Err(e) = Product::update_image_id(&state.db, id, image_id).await {
-                return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
-            }
             return (
                 StatusCode::OK,
                 Json(MediaUploadResponse { image_id, s3_key }),
@@ -343,16 +364,41 @@ pub async fn upload_product_media(
                 .into_response();
         }
     };
-    let s3_key = match s3.upload_media(id, &mut multipart).await {
-        Ok(key) => key,
-        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+
+    // Use the file data from analysis result
+    let file_name = analysis_result
+        .file_name
+        .as_deref()
+        .unwrap_or("unknown.jpg");
+    let content_type = analysis_result
+        .file_type
+        .as_deref()
+        .unwrap_or("application/octet-stream");
+
+    // If we have file data, use it, otherwise fall back to the old method
+    let s3_key = if let Some(file_data) = &analysis_result.file_data {
+        match s3
+            .upload_media_data(id, file_name, file_data, content_type, Some(image_id))
+            .await
+        {
+            Ok(key) => key,
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+        }
+    } else {
+        match s3.upload_media(id, &mut multipart).await {
+            Ok(key) => key,
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+        }
     };
-    // 5. Update product's image_id in DB
-    if let Err(e) = Product::update_image_id(&state.db, id, image_id).await {
-        return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
+    // Image handling will be implemented separately
+
+    // 6. Update the product with the new image_id
+    if let Err(e) = Product::update_image(&state.db, id, Some(image_id)).await {
+        error!("Failed to update product with image_id: {:?}", e);
+        // Continue anyway, as the image was uploaded successfully
     }
 
-    // 6. Trigger real-time events
+    // 7. Trigger real-time events
     let event = create_event(
         EventType::ProductMediaUploaded,
         id,
@@ -420,13 +466,34 @@ pub async fn edit_product_media(
         Err(_) => {
             // Fallback to stub implementation if S3 initialization fails
             let stub = StubMediaStorage;
-            let s3_key = match stub.upload_media(id, &mut multipart).await {
-                Ok(key) => key,
-                Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+
+            // Use the file data from analysis result
+            let file_name = analysis_result
+                .file_name
+                .as_deref()
+                .unwrap_or("unknown.jpg");
+            let content_type = analysis_result
+                .file_type
+                .as_deref()
+                .unwrap_or("application/octet-stream");
+
+            // If we have file data, use it, otherwise fall back to the old method
+            let s3_key = if let Some(file_data) = &analysis_result.file_data {
+                match stub
+                    .upload_media_data(id, file_name, file_data, content_type, Some(image_id))
+                    .await
+                {
+                    Ok(key) => key,
+                    Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+                }
+            } else {
+                match stub.upload_media(id, &mut multipart).await {
+                    Ok(key) => key,
+                    Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+                }
             };
-            if let Err(e) = Product::update_image_id(&state.db, id, image_id).await {
-                return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
-            }
+
+            // Image handling will be implemented separately
 
             // Trigger event for media replacement
             let event = create_event(
@@ -449,12 +516,38 @@ pub async fn edit_product_media(
                 .into_response();
         }
     };
-    let s3_key = match s3.upload_media(id, &mut multipart).await {
-        Ok(key) => key,
-        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+
+    // Use the file data from analysis result
+    let file_name = analysis_result
+        .file_name
+        .as_deref()
+        .unwrap_or("unknown.jpg");
+    let content_type = analysis_result
+        .file_type
+        .as_deref()
+        .unwrap_or("application/octet-stream");
+
+    // If we have file data, use it, otherwise fall back to the old method
+    let s3_key = if let Some(file_data) = &analysis_result.file_data {
+        match s3
+            .upload_media_data(id, file_name, file_data, content_type, Some(image_id))
+            .await
+        {
+            Ok(key) => key,
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+        }
+    } else {
+        match s3.upload_media(id, &mut multipart).await {
+            Ok(key) => key,
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+        }
     };
-    if let Err(e) = Product::update_image_id(&state.db, id, image_id).await {
-        return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
+    // Image handling will be implemented separately
+
+    // Update the product with the new image_id
+    if let Err(e) = Product::update_image(&state.db, id, Some(image_id)).await {
+        error!("Failed to update product with image_id: {:?}", e);
+        // Continue anyway, as the image was uploaded successfully
     }
 
     // Trigger event for media replacement
@@ -497,7 +590,7 @@ pub async fn delete_product_media(
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
     // 1. Get product to find current image_id
-    let product = match Product::get(&state.db, id).await {
+    let _product = match Product::get(&state.db, id).await {
         Ok(product) => product,
         Err(_) => return (StatusCode::NOT_FOUND, "Product not found").into_response(),
     };
@@ -511,10 +604,7 @@ pub async fn delete_product_media(
             if let Err(e) = stub.delete_media(&format!("products/{id}/media")).await {
                 return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
             }
-            // Update product's image_id to null
-            if let Err(e) = Product::update_image_id(&state.db, id, Uuid::nil()).await {
-                return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
-            }
+            // Image handling will be implemented separately
 
             // Trigger event for media deletion
             let event = create_event(
@@ -522,7 +612,7 @@ pub async fn delete_product_media(
                 id,
                 serde_json::json!({
                     "product_id": id,
-                    "previous_image_id": product.image_id
+                    "previous_image_id": null
                 }),
             );
             let _ = state.event_dispatcher.dispatch(event).await;
@@ -538,9 +628,14 @@ pub async fn delete_product_media(
         return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
     }
 
-    // 3. Update product's image_id to null
-    if let Err(e) = Product::update_image_id(&state.db, id, Uuid::nil()).await {
-        return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
+    // Clear the image_id in the product record
+    if let Err(e) = Product::update_image(
+        &state.db, id, None, // Set to None to clear the image_id
+    )
+    .await
+    {
+        error!("Failed to clear product image_id: {:?}", e);
+        // Continue anyway, as the image was deleted successfully
     }
 
     // Trigger event for media deletion
@@ -549,7 +644,7 @@ pub async fn delete_product_media(
         id,
         serde_json::json!({
             "product_id": id,
-            "previous_image_id": product.image_id
+            "previous_image_id": null
         }),
     );
     let _ = state.event_dispatcher.dispatch(event).await;

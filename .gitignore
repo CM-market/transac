@@ -30,6 +30,20 @@ coverage/
 # Node (if any JS/TS is added)
 node_modules/
 
+# Generated files
+frontend/openapi.json
+frontend/src/openapi-rq/
+
+# Test files and scripts (optional - can be committed if needed)
+scripts/test_*.sh
+scripts/create_test_image.sh
+
+# Documentation that's work-in-progress
+docs/BYTSTREAM_CONVERSION_FIX.md
+docs/IMAGE_UPLOAD_FIX.md
+MINIO_IMPLEMENTATION_SUMMARY.md
+SOLUTION.md
+
 # Misc
 *.bak
 *.tmp

@@ -1,5 +1,5 @@
 pub mod products;
-mod stores;
+pub mod stores;
 
 use crate::config::Config;
 use sea_orm::{Database, DatabaseConnection};

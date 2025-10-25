@@ -337,9 +337,9 @@
           "id",
           "store_id",
           "name",
-          "image_id",
           "price",
           "quantity_available",
+          "image_id",
           "created_at"
         ],
         "properties": {
@@ -442,6 +442,7 @@
   "tags": [
     { "name": "System", "description": "System health and status endpoints" },
     { "name": "POW", "description": "Proof of Work authentication endpoints" },
-    { "name": "Products", "description": "Product management endpoints" }
+    { "name": "Products", "description": "Product management endpoints" },
+    { "name": "Stores", "description": "Store management endpoints" }
   ]
 }
