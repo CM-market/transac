@@ -63,6 +63,7 @@ services:
     environment:
       DATABASE_URL: postgres://user:password@db:5432/transac_db
       POW_DIFFICULTY: 4
+      RUN_MIGRATIONS_ON_START: true
       POW_TIMEOUT_MINUTES: 10
       S3_BUCKET_NAME: transac-media
       JWT_SECRET: your-secret-key-change-in-production
