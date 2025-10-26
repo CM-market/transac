@@ -86,7 +86,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.frontend.dev
+      dockerfile: Dockerfile.frontend
     container_name: transac_frontend
     depends_on:
       backend:
