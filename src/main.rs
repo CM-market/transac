@@ -34,6 +34,16 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use config::Config;
 
+// Helper: extract device/relay id from Authorization: Bearer <token>
+fn extract_device_id_from_auth(headers: &axum::http::HeaderMap) -> Option<String> {
+    let auth_header = headers.get(axum::http::header::AUTHORIZATION)?;
+    let auth_str = auth_header.to_str().ok()?;
+    let token = auth_str.strip_prefix("Bearer ")?;
+    let jwt = JwtService::new().ok()?;
+    let claims = jwt.validate_token(token).ok()?;
+    Some(claims.relay_id)
+}
+
 #[derive(Clone)]
 pub struct ApiContext {
     // pool: sqlx::PgPool,
@@ -206,11 +216,24 @@ async fn verify_pow_solution(
 // Create store endpoint with database integration
 async fn create_store_endpoint(
     State(pool): State<sea_orm::DatabaseConnection>,
+    headers: axum::http::HeaderMap,
     Json(request): Json<serde_json::Value>,
 ) -> impl IntoResponse {
     use crate::db::stores::Store;
 
     tracing::debug!("Store creation requested");
+
+    // Require a valid device token for seller flow
+    let device_id = match extract_device_id_from_auth(&headers) {
+        Some(id) => id,
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                "Missing or invalid Authorization token",
+            )
+                .into_response();
+        }
+    };
 
     let name = match request.get("name").and_then(|v| v.as_str()) {
         Some(name) => name,
@@ -227,7 +250,8 @@ async fn create_store_endpoint(
 
     let contact_whatsapp = request.get("contact_whatsapp").and_then(|v| v.as_str());
 
-    let owner_device_id = request.get("owner_device_id").and_then(|v| v.as_str());
+    // Owner is taken from JWT claims, ignore client-sent owner_device_id
+    let owner_device_id = Some(device_id.as_str());
 
     match Store::create(
         &pool,
@@ -259,17 +283,32 @@ async fn create_store_endpoint(
 // List stores endpoint
 async fn list_stores_endpoint(
     State(pool): State<sea_orm::DatabaseConnection>,
+    headers: axum::http::HeaderMap,
 ) -> impl IntoResponse {
     use crate::db::stores::Store;
 
     tracing::debug!("Stores list requested");
 
+    // If a valid Authorization token is provided, restrict to the owner's stores (seller flow)
+    if let Some(device_id) = extract_device_id_from_auth(&headers) {
+        match Store::list_by_owner(&pool, &device_id).await {
+            Ok(stores) => {
+                tracing::info!(owner = %device_id, count = stores.len(), "Returning owner-scoped stores");
+                let response = serde_json::json!({ "stores": stores });
+                return (StatusCode::OK, Json(response)).into_response();
+            }
+            Err(err) => {
+                tracing::error!("Failed to list stores for owner {}: {}", device_id, err);
+                return (StatusCode::INTERNAL_SERVER_ERROR, err).into_response();
+            }
+        }
+    }
+
+    // No Authorization header -> public list (buyer flow)
     match Store::list(&pool).await {
         Ok(stores) => {
-            tracing::info!("Found {} stores", stores.len());
-            let response = serde_json::json!({
-                "stores": stores
-            });
+            tracing::info!("Found {} stores (public list)", stores.len());
+            let response = serde_json::json!({ "stores": stores });
             (StatusCode::OK, Json(response)).into_response()
         }
         Err(err) => {
@@ -283,6 +322,7 @@ async fn list_stores_endpoint(
 async fn delete_store_endpoint(
     State(pool): State<sea_orm::DatabaseConnection>,
     Path(store_id): Path<String>,
+    headers: axum::http::HeaderMap,
 ) -> impl IntoResponse {
     use crate::db::stores::Store;
     use uuid::Uuid;
@@ -296,6 +336,28 @@ async fn delete_store_endpoint(
             return (StatusCode::BAD_REQUEST, "Invalid store ID format").into_response();
         }
     };
+
+    // Require valid JWT and ensure ownership before delete
+    let device_id = match extract_device_id_from_auth(&headers) {
+        Some(id) => id,
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                "Missing or invalid Authorization token",
+            )
+                .into_response();
+        }
+    };
+
+    // Verify store belongs to this device
+    match Store::get(&pool, uuid).await {
+        Ok(store) => {
+            if store.owner_device_id.as_deref() != Some(device_id.as_str()) {
+                return (StatusCode::FORBIDDEN, "Not allowed to delete this store").into_response();
+            }
+        }
+        Err(_) => return (StatusCode::NOT_FOUND, "Store not found").into_response(),
+    }
 
     match Store::delete(&pool, uuid).await {
         Ok(_) => {
@@ -313,6 +375,7 @@ async fn delete_store_endpoint(
 async fn update_store_endpoint(
     State(pool): State<sea_orm::DatabaseConnection>,
     Path(store_id): Path<String>,
+    headers: axum::http::HeaderMap,
     Json(request): Json<serde_json::Value>,
 ) -> impl IntoResponse {
     use crate::db::stores::Store;
