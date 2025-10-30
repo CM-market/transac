@@ -63,6 +63,7 @@ impl JwtService {
     }
 
     /// Generate a token with an explicit role (e.g., "seller" vs "buyer").
+    #[allow(dead_code)]
     pub fn generate_token_with_role(
         &self,
         relay_id: String,

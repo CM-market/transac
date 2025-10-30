@@ -55,15 +55,13 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
     try {
       const token =
         apiAuthService.getCurrentToken() || localStorage.getItem("authToken");
-      const response = await fetch(`/api/v1/products?store_id=${store.id}`,
-        {
-          headers: token
-            ? {
-                Authorization: `Bearer ${token}`,
-              }
-            : undefined,
-        }
-      );
+      const response = await fetch(`/api/v1/products?store_id=${store.id}`, {
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : undefined,
+      });
       if (response.ok) {
         const data = await response.json();
         setProducts((data.products || data || []) as ProductLite[]);
