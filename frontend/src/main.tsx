@@ -14,7 +14,7 @@ async function initializeAndRenderApp() {
   try {
     // Prefer current origin so the frontend can proxy to backend in any env
     OpenAPI.BASE = window.location.origin;
-    
+
     // Initialize PWA features
     initializePWA();
   } finally {

@@ -175,7 +175,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         setProducts(data.products || []);
       } else if (response.status === 401) {
         console.log("User not authenticated for products, using mock data");
-        setProducts(mockProducts.filter(p => p.store_id === storeId));
+        setProducts(mockProducts.filter((p) => p.store_id === storeId));
       } else {
         console.error("Failed to fetch products");
         setProducts([]);

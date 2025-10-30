@@ -52,7 +52,9 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
             className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:from-blue-800 active:to-blue-900 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl sm:rounded-2xl transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
           >
             <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-base sm:text-lg font-medium">{t("buyButton", "Buy Products")}</span>
+            <span className="text-base sm:text-lg font-medium">
+              {t("buyButton", "Buy Products")}
+            </span>
           </button>
 
           <button
@@ -60,7 +62,9 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
             className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 active:from-emerald-800 active:to-emerald-900 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl sm:rounded-2xl transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
           >
             <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-base sm:text-lg font-medium">{t("sellButton", "Sell Products")}</span>
+            <span className="text-base sm:text-lg font-medium">
+              {t("sellButton", "Sell Products")}
+            </span>
           </button>
         </div>
 
@@ -91,7 +95,10 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
                 <Store className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
               </div>
               <span className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                {t("featureLocal", "Local market focused on Cameroon businesses")}
+                {t(
+                  "featureLocal",
+                  "Local market focused on Cameroon businesses",
+                )}
               </span>
             </div>
           </div>
@@ -109,7 +116,10 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
 
         {/* Footer */}
         <p className="text-center text-xs sm:text-sm text-gray-500 mt-6 sm:mt-8 leading-relaxed">
-          {t("marketplaceFooter", "Transac - Powering B2B commerce in Cameroon")}
+          {t(
+            "marketplaceFooter",
+            "Transac - Powering B2B commerce in Cameroon",
+          )}
         </p>
       </div>
     </div>

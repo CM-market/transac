@@ -5,9 +5,9 @@
  * This script creates PNG icons in various sizes for PWA compatibility
  */
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,22 +31,22 @@ function generatePlaceholderIcon(size) {
     <text x="50%" y="50%" text-anchor="middle" dy="0.35em" fill="white" 
           font-family="Arial, sans-serif" font-size="${size * 0.4}" font-weight="bold">T</text>
   </svg>`;
-  
+
   return canvas;
 }
 
 // Create icons directory
-const iconsDir = path.join(__dirname, '../public/icons');
+const iconsDir = path.join(__dirname, "../public/icons");
 if (!fs.existsSync(iconsDir)) {
   fs.mkdirSync(iconsDir, { recursive: true });
 }
 
 // Generate placeholder icons
-ICON_SIZES.forEach(size => {
+ICON_SIZES.forEach((size) => {
   const svgContent = generatePlaceholderIcon(size);
   const filename = `icon-${size}x${size}.svg`;
   const filepath = path.join(iconsDir, filename);
-  
+
   fs.writeFileSync(filepath, svgContent);
   console.log(`Generated ${filename}`);
 });
@@ -55,7 +55,7 @@ ICON_SIZES.forEach(size => {
 // This is a basic approach - in production use proper image generation
 const createPngPlaceholder = (size) => {
   const svgContent = generatePlaceholderIcon(size);
-  const base64 = Buffer.from(svgContent).toString('base64');
+  const base64 = Buffer.from(svgContent).toString("base64");
   return `data:image/svg+xml;base64,${base64}`;
 };
 
@@ -75,18 +75,21 @@ const converterHtml = `<!DOCTYPE html>
   <h1>PWA Icon Generator</h1>
   <p>Right-click on each canvas and "Save image as" to download PNG files.</p>
   <div class="icon-grid">
-    ${ICON_SIZES.map(size => `
+    ${ICON_SIZES.map(
+      (size) => `
       <div class="icon-item">
         <h3>${size}x${size}</h3>
         <canvas id="canvas-${size}" width="${size}" height="${size}"></canvas>
         <br><br>
         <button onclick="downloadIcon(${size})">Download PNG</button>
       </div>
-    `).join('')}
+    `,
+    ).join("")}
   </div>
 
   <script>
-    ${ICON_SIZES.map(size => `
+    ${ICON_SIZES.map(
+      (size) => `
       // Generate ${size}x${size} icon
       const canvas${size} = document.getElementById('canvas-${size}');
       const ctx${size} = canvas${size}.getContext('2d');
@@ -107,8 +110,9 @@ const converterHtml = `<!DOCTYPE html>
       ctx${size}.font = 'bold ${size * 0.4}px Arial';
       ctx${size}.textAlign = 'center';
       ctx${size}.textBaseline = 'middle';
-      ctx${size}.fillText('T', ${size/2}, ${size/2});
-    `).join('\n')}
+      ctx${size}.fillText('T', ${size / 2}, ${size / 2});
+    `,
+    ).join("\n")}
 
     function downloadIcon(size) {
       const canvas = document.getElementById('canvas-' + size);
@@ -138,9 +142,13 @@ const converterHtml = `<!DOCTYPE html>
 </body>
 </html>`;
 
-fs.writeFileSync(path.join(iconsDir, 'converter.html'), converterHtml);
-console.log('Created converter.html for manual PNG generation');
+fs.writeFileSync(path.join(iconsDir, "converter.html"), converterHtml);
+console.log("Created converter.html for manual PNG generation");
 
-console.log('\nIcon generation complete!');
-console.log('Open public/icons/converter.html in a browser to generate PNG files.');
-console.log('Or use a proper tool like sharp, puppeteer, or online converters.');
+console.log("\nIcon generation complete!");
+console.log(
+  "Open public/icons/converter.html in a browser to generate PNG files.",
+);
+console.log(
+  "Or use a proper tool like sharp, puppeteer, or online converters.",
+);
