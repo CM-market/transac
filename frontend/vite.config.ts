@@ -58,7 +58,8 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       strategies: 'generateSW',
       devOptions: {
-        enabled: true
+        enabled: true,
+        type: 'module'
       },
       useCredentials: true,
       workbox: {

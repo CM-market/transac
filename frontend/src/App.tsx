@@ -7,6 +7,8 @@ import useSimplifiedAuthFlow from "./hooks/useSimplifiedAuthFlow";
 import AppRoutes from "./routes/AppRoutes";
 import { ToastProvider } from "./components/ToastContainer";
 import { PWAStatusIndicator } from "./components/PWAInstallPrompt";
+import { CompactOfflineIndicator } from "./components/OfflineIndicator";
+import { useOfflinePreload } from "./hooks/useOfflineData";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -20,6 +22,9 @@ const queryClient = new QueryClient({
 function App() {
   // Use the simplified authentication flow (without registration)
   const authStatus = useSimplifiedAuthFlow();
+  
+  // Initialize offline functionality
+  useOfflinePreload();
 
   // Handle POW completion
   const handlePowComplete = useCallback(() => {
@@ -58,6 +63,7 @@ function AppWithRouter() {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <Router>
+          <CompactOfflineIndicator />
           <App />
           <PWAStatusIndicator />
         </Router>

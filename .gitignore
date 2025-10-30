@@ -4,6 +4,7 @@ target/
 **/*.swp
 **/*.log
 **/*.sqlite
+cargo.lock
 
 # Environment files
 .env

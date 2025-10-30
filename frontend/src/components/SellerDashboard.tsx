@@ -18,6 +18,8 @@ import {
   Trash2,
 } from "lucide-react";
 import ConnectionStatus from "./ConnectionStatus";
+import { OfflineIndicator, useOfflineStatus } from "./OfflineIndicator";
+import { useOfflineData, useOfflineMutation } from "../hooks/useOfflineData";
 import StoreCreationModal, { StoreFormData } from "./StoreCreationModal";
 import StoreEditModal, { StoreEditData } from "./StoreEditModal";
 import StoreViewModal from "./StoreViewModal";
@@ -33,10 +35,12 @@ const mockStores = [
     location: "Douala, Cameroon",
     contact_phone: "+237 123 456 789",
     contact_email: "info@techhub.cm",
+    contact_whatsapp: "+237 123 456 789",
     is_verified: true,
     rating: 4.8,
     total_products: 156,
     created_at: "2024-01-15",
+    color: "bg-emerald-500",
   },
 ];
 
@@ -78,6 +82,7 @@ const mockProducts = [
     quantity_available: 25,
     store_id: "1",
     created_at: "2024-03-01",
+    image_id: "sample-image-1",
   },
   {
     id: "2",
@@ -87,6 +92,7 @@ const mockProducts = [
     quantity_available: 10,
     store_id: "1",
     created_at: "2024-03-05",
+    image_id: "sample-image-2",
   },
   {
     id: "3",
@@ -106,6 +112,8 @@ interface SellerDashboardProps {
 const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
+  const { isOnline, isOffline } = useOfflineStatus();
+  
   const [activeTab, setActiveTab] = useState<
     "overview" | "stores" | "products" | "images"
   >("overview");
@@ -114,12 +122,34 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   const [showViewStore, setShowViewStore] = useState(false);
   const [showCreateProduct, setShowCreateProduct] = useState(false);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-  const [stores, setStores] = useState<Store[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [productsLoading, setProductsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [imageSearchTerm, setImageSearchTerm] = useState("");
+
+  // Use offline-aware data fetching
+  const {
+    data: storesData,
+    loading,
+    error,
+    fromCache: storesFromCache,
+    refetch: refetchStores
+  } = useOfflineData<{stores: Store[]}>('/api/v1/stores', {
+    cacheFirst: true,
+    staleWhileRevalidate: true,
+    refetchOnReconnect: true
+  });
+
+  const stores = storesData?.stores || mockStores;
+
+  const {
+    data: productsData,
+    loading: productsLoading,
+    fromCache: productsFromCache,
+    refetch: refetchProducts
+  } = useOfflineData<{products: Product[]}>('/api/v1/products', {
+    cacheFirst: true,
+    staleWhileRevalidate: true
+  });
+
+  const products = productsData?.products || mockProducts;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-CM", {
@@ -133,95 +163,43 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
     return new Date(dateString).toLocaleDateString("fr-CM");
   };
 
-  // Fetch products for a specific store (seller flow)
-  const fetchProducts = async (explicitStoreId?: string) => {
-    try {
-      setProductsLoading(true);
-
-      // Determine the store id to query
-      let storeId: string | undefined = explicitStoreId;
-      if (!storeId && selectedStore) storeId = selectedStore.id;
-      if (!storeId && stores.length === 1) storeId = stores[0].id;
-
-      if (!storeId) {
-        // Ambiguous: multiple or zero stores and none selected
-        console.warn(
-          "Cannot fetch products: store_id is required in seller flow",
-        );
-        showToast({
-          type: "warning",
-          title: "Select a Store",
-          message: "Please select a store to view its products.",
-        });
-        setProducts([]);
-        return;
-      }
-
-      const response = await fetch(
-        `/api/v1/products?store_id=${encodeURIComponent(storeId)}`,
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data.products || []);
-      } else if (response.status === 401) {
-        console.log("User not authenticated for products, using mock data");
-        setProducts(mockProducts.filter(p => p.store_id === storeId));
-      } else {
-        console.error("Failed to fetch products");
-        setProducts([]);
-      }
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      setProducts([]);
-    } finally {
-      setProductsLoading(false);
+  // Use offline mutation for creating stores
+  const createStoreMutation = useOfflineMutation('/api/v1/stores', 'POST', {
+    onSuccess: () => {
+      showToast({
+        type: "success",
+        title: "Store Created",
+        message: isOffline ? "Store will be created when you're back online" : "Store created successfully",
+      });
+      refetchStores();
+    },
+    onError: (error) => {
+      showToast({
+        type: "error",
+        title: "Error",
+        message: error,
+      });
     }
-  };
+  });
 
-  const fetchStores = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch("/api/v1/stores");
-      if (!response.ok) {
-        // For 401 errors, silently fall back to mock data (user not authenticated)
-        if (response.status === 401) {
-          console.log("User not authenticated, using mock data");
-          setStores(mockStores);
-          return;
-        }
-        throw new Error(`Failed to fetch stores: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("Fetched stores:", data);
-
-      // The API might return { stores: [...] } or just [...]
-      const storesList = data.stores || data || [];
-      setStores(storesList);
-    } catch (error) {
-      console.error("Error fetching stores:", error);
-      // Silently fall back to mock data instead of showing error
-      console.log("Falling back to mock data");
-      setStores(mockStores);
-    } finally {
-      setLoading(false);
+  // Create product mutation
+  const createProductMutation = useOfflineMutation('/api/v1/products', 'POST', {
+    onSuccess: () => {
+      showToast({
+        type: "success",
+        title: "Product Created",
+        message: isOffline ? "Product will be created when you're back online" : "Product created successfully",
+      });
+      refetchProducts();
+    },
+    onError: (error) => {
+      showToast({
+        type: "error",
+        title: "Error",
+        message: error,
+      });
     }
-  };
-
-  // Initial load: fetch stores; products will be fetched once a store is known
-  useEffect(() => {
-    fetchStores();
-  }, []);
-
-  // Whenever stores or selected store change, and the Products tab is active, fetch products for the active store
-  useEffect(() => {
-    if (activeTab === "products") {
-      fetchProducts();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, stores, selectedStore]);
+  });
 
   // Helper function to generate image URL from image_id
   const getImageUrl = (imageId?: string) => {
@@ -334,7 +312,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         });
 
         // Refresh the stores list
-        await fetchStores();
+        await refetchStores();
       } catch (error) {
         console.error("Error deleting store:", error);
         showToast({
@@ -385,7 +363,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       });
 
       // Refresh the stores list to show the new store
-      await fetchStores();
+      await refetchStores();
     } catch (error) {
       console.error("Error creating store:", error);
       showToast({
@@ -428,7 +406,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       });
 
       // Refresh the stores list
-      await fetchStores();
+      await refetchStores();
       setShowEditStore(false);
       setSelectedStore(null);
     } catch (error) {
@@ -509,7 +487,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       setShowCreateProduct(false);
 
       // Refresh the products list for the product's store
-      await fetchProducts(productData.store_id);
+      await refetchProducts();
     } catch (error) {
       console.error("Error creating product:", error);
       showToast({
@@ -557,6 +535,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
+              <OfflineIndicator />
               <ConnectionStatus />
               {onBack && (
                 <button
