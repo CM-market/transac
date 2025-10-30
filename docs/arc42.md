@@ -55,6 +55,82 @@ flowchart LR
   Admin[Merchant Dashboard] --> API
 ```
 
+## 6.2 Seller: Device registration (POW) and JWT issuance
+
+```mermaid
+sequenceDiagram
+  participant F as Frontend (Seller)
+  participant API as Rust API
+
+  F->>API: POST /api/v1/pow/challenge
+  API-->>F: 200 {challenge}
+  F->>F: Compute POW solution on device
+  F->>API: POST /api/v1/pow/verify {solution, relay_id, public_key}
+  API-->>F: 200 {token(JWT with relay_id)}
+```
+
+Notes:
+
+* The JWT `sub`/`relay_id` represents the device identity. It is used to bind stores/products to a seller device.
+* Frontend must attach `Authorization: Bearer <token>` to seller API calls.
+
+## 6.3 Seller: Create Store (device-bound)
+
+```mermaid
+sequenceDiagram
+  participant F as Frontend (Seller)
+  participant API as Rust API
+  participant DB as PostgreSQL
+
+  F->>API: POST /api/v1/stores (Authorization: Bearer JWT) {name, ...}
+  API->>API: Validate JWT → extract device_id (relay_id)
+  API->>DB: INSERT stores {owner_device_id = device_id, ...}
+  DB-->>API: store row
+  API-->>F: 201 {store}
+```
+
+Rules:
+
+* Server ignores any client-provided `owner_device_id`; it is taken from JWT.
+* Missing/invalid JWT → 401.
+
+## 6.4 Seller: List My Stores (isolated)
+
+```mermaid
+sequenceDiagram
+  participant F as Frontend (Seller)
+  participant API as Rust API
+  participant DB as PostgreSQL
+
+  F->>API: GET /api/v1/stores (Authorization: Bearer JWT)
+  API->>API: Validate JWT → get device_id
+  API->>DB: SELECT * FROM stores WHERE owner_device_id = device_id ORDER BY created_at DESC
+  DB-->>API: [stores...]
+  API-->>F: 200 {stores}
+```
+
+Notes:
+
+* Without Authorization header: endpoint returns the public list (buyer flow).
+* With valid Authorization: endpoint returns only the owner's stores (seller isolation).
+
+## 6.5 Seller: Upload Product Media
+
+```mermaid
+sequenceDiagram
+  participant F as Frontend (Seller)
+  participant API as Rust API
+  participant S3 as Object Storage
+  participant DB as PostgreSQL
+
+  F->>API: POST /api/v1/products {store_id,...} (Authorization: Bearer JWT)
+  API->>DB: INSERT products (store_id,...)
+  F->>API: POST /api/v1/products/:id/media (multipart file)
+  API->>S3: put_object products/{product_id}/media/{image_uuid}_name.ext
+  API->>DB: UPDATE products SET image_id = image_uuid WHERE id = :id
+  API-->>F: 200 {image_id, s3_key, image_url:/api/v1/media/{image_id}}
+```
+
 ---
 
 # 4. Solution Strategy
@@ -66,7 +142,7 @@ flowchart LR
 * API design: RESTful or GraphQL (recommend REST for simplicity; GraphQL optional for complex queries).
 * Strong transactional boundaries around checkout / order creation (use DB transactions).
 * Event-driven patterns for asynchronous work (emails, inventory sync, analytics) via durable queue (e.g., RabbitMQ / Kafka / Redis Streams).
-* Secure by default: TLS everywhere, JWT Access tokens, role-based access control (merchant/admin/customer).
+* Secure by default: TLS everywhere, Proof-of-Work (POW) bootstrap + JWT access tokens bound to device (relay_id), role-based access control (merchant/admin/customer).
 * Container-first and infra as code for reproducible deployments.
 
 ---
@@ -87,7 +163,7 @@ Below are the major components with responsibilities.
 **Top-level modules**
 
 * `api` — HTTP handlers (actix-web/axum).
-* `auth` — authentication & authorization (JWT / OAuth integration).
+* `auth` — authentication & authorization. Proof-of-Work (POW) bootstrap issues a JWT bound to the device (`relay_id`). JWT is required for seller actions and used to scope access by device.
 * `catalog` — stores and products endpoints and business logic.
 * `cart` — cart lifecycle, merging guest carts, cart validation.
 * `orders` — order creation, validation, status transitions.
@@ -170,6 +246,10 @@ erDiagram
         UUID id PK
         VARCHAR name
         TEXT description
+        TEXT logo_url
+        TEXT location
+        TEXT contact_whatsapp
+        TEXT owner_device_id
         TIMESTAMP created_at
     }
     PRODUCTS {
@@ -182,7 +262,7 @@ erDiagram
         UUID image_id
         TIMESTAMP created_at
     }
- 
+
 
     STORES ||--o{ PRODUCTS : "has"
 
@@ -199,11 +279,17 @@ erDiagram
 
 # 8. Component Interfaces & APIs
 
-**REST endpoint examples**
+**REST endpoint examples (selected)**
 
-* `GET /stores`
+* `GET /api/v1/stores`
+  * Buyer flow (no Authorization): returns public list of stores.
+  * Seller flow (with Authorization: Bearer JWT): returns only stores owned by the device (`owner_device_id = relay_id`).
+* `POST /api/v1/stores` (Authorization required)
+  * Server sets `owner_device_id` from JWT device claim; client field ignored.
 * `GET /stores/:storeId/products`
 * `GET /products/:id`
+* `POST /api/v1/products` (Authorization recommended)
+* `POST /api/v1/products/:id/media` (multipart)
 * 
 **Idempotency**
 
@@ -223,6 +309,12 @@ erDiagram
 * Payment PCI scope: use payment provider hosted page (Stripe Checkout) to minimize PCI scope.
 * Secrets in vault (HashiCorp Vault / cloud secret manager).
 * Regular dependency scanning.
+
+### Device-bound authentication
+
+* Sellers perform a POW challenge/response to get a JWT via `POST /api/v1/pow/challenge` and `POST /api/v1/pow/verify`.
+* The JWT contains `relay_id` (device id). The backend extracts it and uses it as `owner_device_id`.
+* Seller-only operations (e.g., create store) require a valid JWT. Store listing is scoped by device when JWT is provided.
 
 ## 9.2 Testing
 

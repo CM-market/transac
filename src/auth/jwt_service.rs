@@ -4,17 +4,18 @@ use serde::{Deserialize, Serialize};
 use std::env;
 
 /// JWT claims structure
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
     pub sub: String,        // Subject (user ID)
     pub exp: i64,           // Expiration time
     pub iat: i64,           // Issued at
     pub relay_id: String,   // Relay identifier
     pub public_key: String, // Public key used for authentication
+    pub role: String,       // Role of the token bearer (e.g., "seller", "buyer")
 }
 
 impl Claims {
-    pub fn new(relay_id: String, public_key: String, expiration_hours: i64) -> Self {
+    pub fn new(relay_id: String, public_key: String, expiration_hours: i64, role: String) -> Self {
         let now = Utc::now();
         Self {
             sub: relay_id.clone(),
@@ -22,6 +23,7 @@ impl Claims {
             iat: now.timestamp(),
             relay_id,
             public_key,
+            role,
         }
     }
 }
@@ -53,8 +55,22 @@ impl JwtService {
     }
 
     pub fn generate_token(&self, relay_id: String, public_key: String) -> Result<String, String> {
-        let claims = Claims::new(relay_id, public_key, 24); // 24 hours expiration
+        // Backward-compatible: default role to "seller" for existing callers
+        let claims = Claims::new(relay_id, public_key, 24, "seller".to_string()); // 24 hours expiration
 
+        encode(&Header::default(), &claims, &self.encoding_key)
+            .map_err(|e| format!("Failed to generate token: {e}"))
+    }
+
+    /// Generate a token with an explicit role (e.g., "seller" vs "buyer").
+    #[allow(dead_code)]
+    pub fn generate_token_with_role(
+        &self,
+        relay_id: String,
+        public_key: String,
+        role: String,
+    ) -> Result<String, String> {
+        let claims = Claims::new(relay_id, public_key, 24, role);
         encode(&Header::default(), &claims, &self.encoding_key)
             .map_err(|e| format!("Failed to generate token: {e}"))
     }
