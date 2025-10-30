@@ -2,7 +2,9 @@ use crate::entity::store::{
     self, ActiveModel as StoreActiveModel, Entity as StoreEntity, Model as StoreModel,
 };
 use chrono::Utc;
-use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, QueryOrder, Set};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder, Set,
+};
 use tracing::{debug, error};
 use uuid::Uuid;
 
@@ -67,6 +69,26 @@ impl Store {
             .await
             .map_err(|e| {
                 error!("Failed to list stores: {:?}", e);
+                "Failed to list stores. Please try again later.".to_string()
+            })?;
+        Ok(stores)
+    }
+
+    /// List stores owned by a specific device (seller flow)
+    pub async fn list_by_owner(
+        db: &DatabaseConnection,
+        owner_device_id: &str,
+    ) -> Result<Vec<StoreModel>, String> {
+        let stores = StoreEntity::find()
+            .filter(store::Column::OwnerDeviceId.eq(owner_device_id.to_owned()))
+            .order_by_desc(store::Column::CreatedAt)
+            .all(db)
+            .await
+            .map_err(|e| {
+                error!(
+                    "Failed to list stores for owner {}: {:?}",
+                    owner_device_id, e
+                );
                 "Failed to list stores. Please try again later.".to_string()
             })?;
         Ok(stores)

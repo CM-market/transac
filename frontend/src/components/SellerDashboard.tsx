@@ -23,6 +23,7 @@ import StoreEditModal, { StoreEditData } from "./StoreEditModal";
 import StoreViewModal from "./StoreViewModal";
 import ProductCreationModal, { ProductFormData } from "./ProductCreationModal";
 import { useToast } from "./ToastContainer";
+import { apiAuthService } from "../services/keyManagement/apiAuthService";
 
 // Simplified mock data
 const mockStores = [
@@ -157,8 +158,17 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         return;
       }
 
+      const token =
+        apiAuthService.getCurrentToken() || localStorage.getItem("authToken");
       const response = await fetch(
         `/api/v1/products?store_id=${encodeURIComponent(storeId)}`,
+        {
+          headers: token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : undefined,
+        },
       );
       if (response.ok) {
         const data = await response.json();
@@ -183,7 +193,15 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("/api/v1/stores");
+      const token =
+        apiAuthService.getCurrentToken() || localStorage.getItem("authToken");
+      const response = await fetch("/api/v1/stores", {
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : undefined,
+      });
       if (!response.ok) {
         // For 401 errors, silently fall back to mock data (user not authenticated)
         if (response.status === 401) {
@@ -319,8 +337,15 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       )
     ) {
       try {
+        const token =
+          apiAuthService.getCurrentToken() || localStorage.getItem("authToken");
         const response = await fetch(`/api/v1/stores/${storeId}`, {
           method: "DELETE",
+          headers: token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : undefined,
         });
 
         if (!response.ok) {
@@ -352,10 +377,13 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       console.log("Creating store:", storeData);
 
       // Make API call to create store
+      const token =
+        apiAuthService.getCurrentToken() || localStorage.getItem("authToken");
       const response = await fetch("/api/v1/stores", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           name: storeData.name,
@@ -400,10 +428,13 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
 
   const handleUpdateStore = async (storeData: StoreEditData) => {
     try {
+      const token =
+        apiAuthService.getCurrentToken() || localStorage.getItem("authToken");
       const response = await fetch(`/api/v1/stores/${storeData.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           name: storeData.name,
@@ -527,9 +558,16 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       const formData = new FormData();
       formData.append("file", images[i]);
 
+      const token =
+        apiAuthService.getCurrentToken() || localStorage.getItem("authToken");
       const response = await fetch(`/api/v1/products/${productId}/media`, {
         method: "POST",
         body: formData,
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : undefined,
       });
 
       if (!response.ok) {

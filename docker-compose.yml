@@ -6,15 +6,16 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-transac_db}
-      POSTGRES_USER: ${POSTGRES_USER:-user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: transac_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
     healthcheck:
       test:
         [
           "CMD-SHELL",
           "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-transac_db}",
         ]
+
       interval: 5s
       timeout: 5s
       retries: 10
@@ -71,7 +72,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgres://user:password@localhost:5432/transac_db}
+      DATABASE_URL: ${DATABASE_URL:-postgres://user:password@db:5432/transac_db}
       POW_DIFFICULTY: ${POW_DIFFICULTY:-4}
       RUN_MIGRATIONS_ON_START: ${RUN_MIGRATIONS_ON_START:-true}
       POW_TIMEOUT_MINUTES: ${POW_TIMEOUT_MINUTES:-10}
@@ -100,8 +101,8 @@ services:
     env_file:
       - .env
     environment:
-      - VITE_TRANSAC_WEBAUTH_RP_ID=${VITE_TRANSAC_WEBAUTH_RP_ID:-dev-id}
-      - VITE_TRANSAC_WEBAUTH_RP_NAME=${VITE_TRANSAC_WEBAUTH_RP_NAME:-dev-name}
+      - VITE_TRANSAC_WEBAUTH_RP_ID=${VITE_TRANSAC_WEBAUTH_RP_ID:-transac.site}
+      - VITE_TRANSAC_WEBAUTH_RP_NAME=${VITE_TRANSAC_WEBAUTH_RP_NAME:-Transac}
       - SERVER_NAME=${SERVER_NAME:-transac.site}
     volumes:
       # Mount your HTTPS-enabled nginx config
