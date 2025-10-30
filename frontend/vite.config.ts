@@ -54,99 +54,13 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "prompt",
+      registerType: "autoUpdate",
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
-      strategies: 'injectManifest',
-      srcDir: 'public',
-      filename: 'sw.js',
-      manifest: {
-        name: "Transac - B2B Marketplace",
-        short_name: "Transac",
-        description: "Professional B2B Marketplace for Cameroon - Connect, Trade, Grow",
-        start_url: "/",
-        scope: "/",
-        display: "standalone",
-        background_color: "#ffffff",
-        theme_color: "#10B981",
-        orientation: "portrait-primary",
-        categories: ["business", "shopping", "productivity"],
-        icons: [
-          {
-            src: "/icons/icon-72x72.png",
-            sizes: "72x72",
-            type: "image/png",
-            purpose: "maskable any"
-          },
-          {
-            src: "/icons/icon-96x96.png",
-            sizes: "96x96",
-            type: "image/png",
-            purpose: "maskable any"
-          },
-          {
-            src: "/icons/icon-128x128.png",
-            sizes: "128x128",
-            type: "image/png",
-            purpose: "maskable any"
-          },
-          {
-            src: "/icons/icon-144x144.png",
-            sizes: "144x144",
-            type: "image/png",
-            purpose: "maskable any"
-          },
-          {
-            src: "/icons/icon-152x152.png",
-            sizes: "152x152",
-            type: "image/png",
-            purpose: "maskable any"
-          },
-          {
-            src: "/icons/icon-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "maskable any"
-          },
-          {
-            src: "/icons/icon-384x384.png",
-            sizes: "384x384",
-            type: "image/png",
-            purpose: "maskable any"
-          },
-          {
-            src: "/icons/icon-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable any"
-          }
-        ],
-        shortcuts: [
-          {
-            name: "Browse Products",
-            short_name: "Products",
-            description: "Browse available products",
-            url: "/products",
-            icons: [
-              {
-                src: "/icons/icon-96x96.png",
-                sizes: "96x96"
-              }
-            ]
-          },
-          {
-            name: "Seller Dashboard",
-            short_name: "Dashboard",
-            description: "Manage your store",
-            url: "/seller-dashboard",
-            icons: [
-              {
-                src: "/icons/icon-96x96.png",
-                sizes: "96x96"
-              }
-            ]
-          }
-        ]
+      strategies: 'generateSW',
+      devOptions: {
+        enabled: true
       },
+      useCredentials: true,
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [

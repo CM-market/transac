@@ -6,7 +6,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 import useSimplifiedAuthFlow from "./hooks/useSimplifiedAuthFlow";
 import AppRoutes from "./routes/AppRoutes";
 import { ToastProvider } from "./components/ToastContainer";
-import { PWAInstallPrompt, PWAStatusIndicator } from "./components/PWAInstallPrompt";
+import { PWAStatusIndicator } from "./components/PWAInstallPrompt";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -59,7 +59,6 @@ function AppWithRouter() {
       <ToastProvider>
         <Router>
           <App />
-          <PWAInstallPrompt />
           <PWAStatusIndicator />
         </Router>
         <ReactQueryDevtools initialIsOpen={false} />

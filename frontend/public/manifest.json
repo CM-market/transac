@@ -1,5 +1,5 @@
 {
-  "name": "Transac - B2B Marketplace",
+  "name": "Transac",
   "short_name": "Transac",
   "description": "Professional B2B Marketplace for Cameroon - Connect, Trade, Grow",
   "start_url": "/",
@@ -58,22 +58,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable any"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshots/desktop-1.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Desktop view of the marketplace"
-    },
-    {
-      "src": "/screenshots/mobile-1.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mobile view of the marketplace"
     }
   ],
   "shortcuts": [

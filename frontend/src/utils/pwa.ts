@@ -9,42 +9,8 @@ declare global {
   }
 }
 
-// Service Worker Registration
-export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
-  if ('serviceWorker' in navigator) {
-    try {
-      console.log('[PWA] Registering service worker...');
-      const registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/',
-        updateViaCache: 'none'
-      });
-
-      console.log('[PWA] Service worker registered successfully:', registration);
-
-      // Handle updates
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        if (newWorker) {
-          console.log('[PWA] New service worker found, installing...');
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('[PWA] New service worker installed, prompting for reload');
-              showUpdateAvailableNotification();
-            }
-          });
-        }
-      });
-
-      return registration;
-    } catch (error) {
-      console.error('[PWA] Service worker registration failed:', error);
-      return null;
-    }
-  } else {
-    console.log('[PWA] Service workers are not supported');
-    return null;
-  }
-}
+// VitePWA handles service worker registration automatically
+// This comment replaces the manual registration function
 
 // Install Prompt Management
 let deferredPrompt: BeforeInstallPromptEvent | null = null;
@@ -64,19 +30,19 @@ export function setupInstallPrompt(): void {
     console.log('[PWA] Install prompt triggered');
     e.preventDefault();
     deferredPrompt = e as BeforeInstallPromptEvent;
-    
-    // Show custom install button
-    showInstallButton();
   });
 
-  // Also check if we can show install prompt immediately
+  // Show install popup on page load if app is not installed and user hasn't dismissed it
   setTimeout(() => {
-    if (!deferredPrompt && !isAppInstalled()) {
-      console.log('[PWA] No install prompt available, but app not installed');
-      // Show a fallback install instruction
-      showInstallInstructions();
+    if (!isAppInstalled() && !hasUserDismissedInstallPrompt()) {
+      console.log('[PWA] App not installed, showing install popup');
+      showInstallPopup();
+    } else if (isAppInstalled()) {
+      console.log('[PWA] App already installed, no popup needed');
+    } else {
+      console.log('[PWA] User dismissed install prompt, no popup shown');
     }
-  }, 1000);
+  }, 3000); // Give more time for Firefox to load manifest
 
   // Listen for successful installation
   window.addEventListener('appinstalled', () => {
@@ -94,82 +60,16 @@ export function setupInstallPrompt(): void {
   });
 }
 
-// Show install button
-function showInstallButton(): void {
-  const installButton = document.getElementById('pwa-install-button');
-  if (installButton) {
-    installButton.style.display = 'block';
-  } else {
-    // Create install button if it doesn't exist
-    createInstallButton();
-  }
-}
-
-// Hide install button
+// Hide any existing install elements (cleanup)
 function hideInstallButton(): void {
   const installButton = document.getElementById('pwa-install-button');
   if (installButton) {
-    installButton.style.display = 'none';
+    installButton.remove();
   }
-}
-
-// Show install instructions when prompt is not available
-function showInstallInstructions(): void {
-  const existingButton = document.getElementById('pwa-install-button');
-  if (existingButton) return;
-
-  console.log('[PWA] Creating fallback install button');
-
-  const button = document.createElement('button');
-  button.id = 'pwa-install-button';
-  button.innerHTML = `
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-      <polyline points="7,10 12,15 17,10"/>
-      <line x1="12" y1="15" x2="12" y2="3"/>
-    </svg>
-    Install App
-  `;
-  
-  // Use inline styles to ensure visibility
-  button.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 9999;
-    background: #10B981;
-    color: white;
-    padding: 12px 16px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 500;
-    font-size: 14px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  `;
-  
-  button.addEventListener('mouseenter', () => {
-    button.style.background = '#059669';
-    button.style.transform = 'translateY(-2px)';
-  });
-  
-  button.addEventListener('mouseleave', () => {
-    button.style.background = '#10B981';
-    button.style.transform = 'translateY(0)';
-  });
-  
-  button.addEventListener('click', () => {
-    console.log('[PWA] Install button clicked');
-    showInstallModal();
-  });
-  
-  document.body.appendChild(button);
-  console.log('[PWA] Install button added to page');
+  const installPopup = document.getElementById('pwa-install-popup');
+  if (installPopup) {
+    installPopup.remove();
+  }
 }
 
 // Show install instructions modal
@@ -213,9 +113,9 @@ function showInstallModal(): void {
       </button>
     </div>
     <div style="margin-bottom: 16px;">
-      <p style="margin: 8px 0; font-size: 14px; color: #4B5563;"><strong>Chrome/Edge:</strong> Click the menu (⋮) → "Install Transac" or "Add to Home screen"</p>
+      <p style="margin: 8px 0; font-size: 14px; color: #4B5563;"><strong>Chrome/Edge:</strong> Click the menu (⋮) → "Install Transac" or look for install icon in address bar</p>
+      <p style="margin: 8px 0; font-size: 14px; color: #4B5563;"><strong>Firefox:</strong> Click the menu (☰) → "Install this site as an app" or look for install icon in address bar</p>
       <p style="margin: 8px 0; font-size: 14px; color: #4B5563;"><strong>Safari:</strong> Tap Share button → "Add to Home Screen"</p>
-      <p style="margin: 8px 0; font-size: 14px; color: #4B5563;"><strong>Firefox:</strong> Tap menu → "Install" or "Add to Home screen"</p>
     </div>
     <button id="got-it-btn" style="
       width: 100%;
@@ -259,62 +159,189 @@ function showInstallModal(): void {
   document.body.appendChild(modal);
 }
 
-// Create install button
-function createInstallButton(): void {
-  const button = document.createElement('button');
-  button.id = 'pwa-install-button';
-  button.innerHTML = `
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-      <polyline points="7,10 12,15 17,10"/>
-      <line x1="12" y1="15" x2="12" y2="3"/>
-    </svg>
-    Install App
-  `;
-  
-  button.className = `
-    fixed bottom-4 right-4 z-50 bg-emerald-600 hover:bg-emerald-700 
-    text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2
-    transition-all duration-300 transform hover:scale-105
-    font-medium text-sm border-0 cursor-pointer
-  `;
-  
-  button.addEventListener('click', handleInstallClick);
-  document.body.appendChild(button);
-}
-
-// Handle install button click
-export async function handleInstallClick(): Promise<void> {
-  if (!deferredPrompt) {
-    console.log('[PWA] No install prompt available');
-    return;
-  }
-
-  try {
-    console.log('[PWA] Showing install prompt');
-    await deferredPrompt.prompt();
-    
-    const choiceResult = await deferredPrompt.userChoice;
-    console.log('[PWA] User choice:', choiceResult.outcome);
-    
-    if (choiceResult.outcome === 'accepted') {
-      console.log('[PWA] User accepted the install prompt');
-    } else {
-      console.log('[PWA] User dismissed the install prompt');
-    }
-    
-    deferredPrompt = null;
-    hideInstallButton();
-  } catch (error) {
-    console.error('[PWA] Error showing install prompt:', error);
-  }
-}
 
 // Check if app is installed
 export function isAppInstalled(): boolean {
   return window.matchMedia('(display-mode: standalone)').matches ||
-         (window.navigator as { standalone?: boolean }).standalone === true ||
+         (window.navigator as Navigator & { standalone?: boolean }).standalone === true ||
          document.referrer.includes('android-app://');
+}
+
+// Check if user has dismissed install prompt
+function hasUserDismissedInstallPrompt(): boolean {
+  const dismissed = localStorage.getItem('pwa-install-dismissed');
+  if (!dismissed) return false;
+  
+  // Check if dismissal was more than 7 days ago
+  const dismissedTime = parseInt(dismissed);
+  const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+  return dismissedTime > weekAgo;
+}
+
+// Mark install prompt as dismissed
+function markInstallPromptDismissed(): void {
+  localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+}
+
+// Show install popup on page load
+function showInstallPopup(): void {
+  const modal = document.createElement('div');
+  modal.id = 'pwa-install-popup';
+  
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: fadeIn 0.3s ease-out;
+  `;
+  
+  const popupContent = document.createElement('div');
+  popupContent.style.cssText = `
+    background: white;
+    border-radius: 16px;
+    max-width: 400px;
+    width: 100%;
+    padding: 32px 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    transform: scale(0.9);
+    animation: popIn 0.3s ease-out forwards;
+  `;
+  
+  popupContent.innerHTML = `
+    <div style="margin-bottom: 24px;">
+      <div style="width: 80px; height: 80px; background: #10B981; border-radius: 20px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7,10 12,15 17,10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      </div>
+      <h3 style="font-size: 24px; font-weight: 700; color: #111827; margin: 0 0 8px 0;">Install Transac</h3>
+      <p style="font-size: 16px; color: #6B7280; margin: 0; line-height: 1.5;">Get the full app experience with offline access and faster loading.</p>
+    </div>
+    
+    <div style="display: flex; gap: 12px; flex-direction: column;">
+      <button id="install-now-btn" style="
+        width: 100%;
+        background: #10B981;
+        color: white;
+        padding: 14px 24px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+      ">
+        Install Now
+      </button>
+      
+      <button id="maybe-later-btn" style="
+        width: 100%;
+        background: transparent;
+        color: #6B7280;
+        padding: 12px 24px;
+        border: 1px solid #E5E7EB;
+        border-radius: 12px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+      ">
+        Maybe Later
+      </button>
+    </div>
+  `;
+  
+  // Add CSS animations
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes popIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  modal.appendChild(popupContent);
+  
+  // Event listeners
+  const installBtn = popupContent.querySelector('#install-now-btn');
+  const laterBtn = popupContent.querySelector('#maybe-later-btn');
+  
+  const closePopup = () => {
+    modal.style.animation = 'fadeIn 0.2s ease-out reverse';
+    setTimeout(() => {
+      if (document.body.contains(modal)) {
+        document.body.removeChild(modal);
+      }
+    }, 200);
+  };
+  
+  installBtn?.addEventListener('click', () => {
+    if (deferredPrompt) {
+      // Use native install prompt
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('[PWA] User accepted the install prompt');
+        }
+        deferredPrompt = null;
+      });
+    } else {
+      // Show manual install instructions
+      closePopup();
+      setTimeout(() => showInstallModal(), 300);
+    }
+    closePopup();
+  });
+  
+  laterBtn?.addEventListener('click', () => {
+    markInstallPromptDismissed();
+    closePopup();
+  });
+  
+  // Close on backdrop click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      markInstallPromptDismissed();
+      closePopup();
+    }
+  });
+  
+  // Hover effects
+  installBtn?.addEventListener('mouseenter', () => {
+    (installBtn as HTMLElement).style.background = '#059669';
+    (installBtn as HTMLElement).style.transform = 'translateY(-1px)';
+  });
+  installBtn?.addEventListener('mouseleave', () => {
+    (installBtn as HTMLElement).style.background = '#10B981';
+    (installBtn as HTMLElement).style.transform = 'translateY(0)';
+  });
+  
+  laterBtn?.addEventListener('mouseenter', () => {
+    (laterBtn as HTMLElement).style.background = '#F9FAFB';
+    (laterBtn as HTMLElement).style.borderColor = '#D1D5DB';
+  });
+  laterBtn?.addEventListener('mouseleave', () => {
+    (laterBtn as HTMLElement).style.background = 'transparent';
+    (laterBtn as HTMLElement).style.borderColor = '#E5E7EB';
+  });
+  
+  document.body.appendChild(modal);
 }
 
 // Show update notification
@@ -386,15 +413,9 @@ export function setupNetworkMonitoring(): void {
 export function initializePWA(): void {
   console.log('[PWA] Initializing PWA features...');
   
-  // Register service worker
-  registerServiceWorker();
-  
-  // Setup install prompt (only if not already installed)
-  if (!isAppInstalled()) {
-    setupInstallPrompt();
-  }
-  
-  // Setup network monitoring
+  // VitePWA handles service worker registration automatically
+  // Just setup our custom features
+  setupInstallPrompt();
   setupNetworkMonitoring();
   
   console.log('[PWA] PWA features initialized');
