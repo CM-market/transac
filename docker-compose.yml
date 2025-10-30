@@ -101,7 +101,7 @@ services:
       - SERVER_NAME=${SERVER_NAME:-transac.site}
     volumes:
       # Mount your HTTPS-enabled nginx config
-      - ./nginx_conf:/etc/nginx/conf.d:ro
+      - ./nginx_conf:/etc/nginx/conf.d
 
       # Mount the SSL certificate and challenge volumes
       - letsencrypt:/etc/letsencrypt
