@@ -16,6 +16,7 @@ import {
   ExternalLink,
   Edit,
   Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import ConnectionStatus from "./ConnectionStatus";
 import { OfflineIndicator, useOfflineStatus } from "./OfflineIndicator";
@@ -26,23 +27,7 @@ import StoreViewModal from "./StoreViewModal";
 import ProductCreationModal, { ProductFormData } from "./ProductCreationModal";
 import { useToast } from "./ToastContainer";
 
-// Simplified mock data
-const mockStores = [
-  {
-    id: "1",
-    name: "TechHub Cameroon",
-    description: "Electronics and gadgets for businesses",
-    location: "Douala, Cameroon",
-    contact_phone: "+237 123 456 789",
-    contact_email: "info@techhub.cm",
-    contact_whatsapp: "+237 123 456 789",
-    is_verified: true,
-    rating: 4.8,
-    total_products: 156,
-    created_at: "2024-01-15",
-    color: "bg-emerald-500",
-  },
-];
+// Mock data removed - now using real API data
 
 // Define interfaces
 interface Product {
@@ -73,37 +58,7 @@ interface Store {
   color?: string;
 }
 
-const mockProducts = [
-  {
-    id: "1",
-    name: "Samsung Galaxy S24",
-    description: "Latest Samsung flagship smartphone",
-    price: 450000,
-    quantity_available: 25,
-    store_id: "1",
-    created_at: "2024-03-01",
-    image_id: "sample-image-1",
-  },
-  {
-    id: "2",
-    name: "MacBook Pro M3",
-    description: "Professional laptop with M3 chip",
-    price: 850000,
-    quantity_available: 10,
-    store_id: "1",
-    created_at: "2024-03-05",
-    image_id: "sample-image-2",
-  },
-  {
-    id: "3",
-    name: "iPhone 15 Pro",
-    description: "Premium iPhone with Pro features",
-    price: 650000,
-    quantity_available: 0,
-    store_id: "1",
-    created_at: "2024-03-10",
-  },
-];
+// Mock products removed - now using real API data
 
 interface SellerDashboardProps {
   onBack?: () => void;
@@ -137,19 +92,19 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
     refetchOnReconnect: true
   });
 
-  const stores = storesData?.stores || mockStores;
+  const stores = storesData?.stores || [];
 
   const {
     data: productsData,
     loading: productsLoading,
     fromCache: productsFromCache,
     refetch: refetchProducts
-  } = useOfflineData<{products: Product[]}>('/api/v1/products', {
+  } = useOfflineData<Product[]>('/api/v1/products', {
     cacheFirst: true,
     staleWhileRevalidate: true
   });
 
-  const products = productsData?.products || mockProducts;
+  const products = productsData || [];
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-CM", {
@@ -736,9 +691,16 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         {activeTab === "stores" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {t("myStores", "My Stores")}
-              </h2>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {t("myStores", "My Stores")}
+                </h2>
+                {storesFromCache && (
+                  <p className="text-sm text-amber-600 mt-1">
+                    📱 {t("showingCachedData", "Showing cached data")}
+                  </p>
+                )}
+              </div>
               <button
                 onClick={() => setShowCreateStore(true)}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
@@ -754,6 +716,22 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                 <p className="text-gray-600">
                   {t("loadingStores", "Loading stores...")}
                 </p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {t("errorLoadingStores", "Error loading stores")}
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {error}
+                </p>
+                <button
+                  onClick={() => refetchStores()}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                >
+                  {t("tryAgain", "Try Again")}
+                </button>
               </div>
             ) : stores.length === 0 ? (
               <div className="text-center py-12">
