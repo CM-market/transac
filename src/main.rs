@@ -20,7 +20,7 @@ mod events;
 mod migrator;
 mod request_middleware;
 
-use crate::auth::JwtService;
+use crate::auth::{Claims, JwtService};
 use crate::crypto::PowService;
 use crate::error::AppError;
 use axum::extract::State;
@@ -34,14 +34,18 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use config::Config;
 
-// Helper: extract device/relay id from Authorization: Bearer <token>
-fn extract_device_id_from_auth(headers: &axum::http::HeaderMap) -> Option<String> {
+// Helper: extract JWT claims from Authorization: Bearer <token>
+fn extract_claims_from_auth(headers: &axum::http::HeaderMap) -> Option<Claims> {
     let auth_header = headers.get(axum::http::header::AUTHORIZATION)?;
     let auth_str = auth_header.to_str().ok()?;
     let token = auth_str.strip_prefix("Bearer ")?;
     let jwt = JwtService::new().ok()?;
-    let claims = jwt.validate_token(token).ok()?;
-    Some(claims.relay_id)
+    jwt.validate_token(token).ok()
+}
+
+// Helper: extract device_id (relay_id) from Authorization header
+fn extract_device_id_from_auth(headers: &axum::http::HeaderMap) -> Option<String> {
+    extract_claims_from_auth(headers).map(|claims| claims.relay_id)
 }
 
 #[derive(Clone)]
@@ -223,13 +227,20 @@ async fn create_store_endpoint(
 
     tracing::debug!("Store creation requested");
 
-    // Require a valid device token for seller flow
-    let device_id = match extract_device_id_from_auth(&headers) {
-        Some(id) => id,
+    // Require a valid device token (seller role) for seller flow
+    let claims = match extract_claims_from_auth(&headers) {
+        Some(c) if c.role == "seller" => c,
         None => {
             return (
                 StatusCode::UNAUTHORIZED,
                 "Missing or invalid Authorization token",
+            )
+                .into_response();
+        }
+        Some(_) => {
+            return (
+                StatusCode::FORBIDDEN,
+                "Insufficient role for creating a store",
             )
                 .into_response();
         }
@@ -251,7 +262,7 @@ async fn create_store_endpoint(
     let contact_whatsapp = request.get("contact_whatsapp").and_then(|v| v.as_str());
 
     // Owner is taken from JWT claims, ignore client-sent owner_device_id
-    let owner_device_id = Some(device_id.as_str());
+    let owner_device_id = Some(claims.relay_id.as_str());
 
     match Store::create(
         &pool,
@@ -293,18 +304,18 @@ async fn list_stores_endpoint(
     if let Some(device_id) = extract_device_id_from_auth(&headers) {
         match Store::list_by_owner(&pool, &device_id).await {
             Ok(stores) => {
-                tracing::info!(owner = %device_id, count = stores.len(), "Returning owner-scoped stores");
+                tracing::info!(owner_device_id = %device_id, count = stores.len(), "Found stores for owner");
                 let response = serde_json::json!({ "stores": stores });
                 return (StatusCode::OK, Json(response)).into_response();
             }
             Err(err) => {
-                tracing::error!("Failed to list stores for owner {}: {}", device_id, err);
+                tracing::error!(owner_device_id = %device_id, error = %err, "Failed to list stores for owner");
                 return (StatusCode::INTERNAL_SERVER_ERROR, err).into_response();
             }
         }
+        // Non-seller roles fall through to public list
     }
-
-    // No Authorization header -> public list (buyer flow)
+    // No Authorization header or non-seller role -> public list (buyer flow)
     match Store::list(&pool).await {
         Ok(stores) => {
             tracing::info!("Found {} stores (public list)", stores.len());
@@ -337,13 +348,20 @@ async fn delete_store_endpoint(
         }
     };
 
-    // Require valid JWT and ensure ownership before delete
-    let device_id = match extract_device_id_from_auth(&headers) {
-        Some(id) => id,
+    // Require valid JWT with seller role and ensure ownership before delete
+    let claims = match extract_claims_from_auth(&headers) {
+        Some(c) if c.role == "seller" => c,
         None => {
             return (
                 StatusCode::UNAUTHORIZED,
                 "Missing or invalid Authorization token",
+            )
+                .into_response();
+        }
+        Some(_) => {
+            return (
+                StatusCode::FORBIDDEN,
+                "Insufficient role for deleting a store",
             )
                 .into_response();
         }
@@ -352,7 +370,7 @@ async fn delete_store_endpoint(
     // Verify store belongs to this device
     match Store::get(&pool, uuid).await {
         Ok(store) => {
-            if store.owner_device_id.as_deref() != Some(device_id.as_str()) {
+            if store.owner_device_id.as_deref() != Some(claims.relay_id.as_str()) {
                 return (StatusCode::FORBIDDEN, "Not allowed to delete this store").into_response();
             }
         }
@@ -375,7 +393,7 @@ async fn delete_store_endpoint(
 async fn update_store_endpoint(
     State(pool): State<sea_orm::DatabaseConnection>,
     Path(store_id): Path<String>,
-    headers: axum::http::HeaderMap,
+    _headers: axum::http::HeaderMap,
     Json(request): Json<serde_json::Value>,
 ) -> impl IntoResponse {
     use crate::db::stores::Store;
