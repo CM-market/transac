@@ -187,14 +187,28 @@ jobs:
           # Verify the creation of docker-compose.yml
           ls -la docker-compose.yml
 
+      - name: Test server connectivity
+        run: |
+          echo "Testing connectivity to deployment server..."
+          # Test if server is reachable on port 22
+          timeout 30 bash -c "until nc -z ${{ secrets.EC2_HOST }} 22; do echo 'Waiting for SSH port...'; sleep 2; done" || {
+            echo "❌ Cannot reach ${{ secrets.EC2_HOST }}:22"
+            echo "Server might be down or unreachable"
+            exit 1
+          }
+          echo "✅ Server is reachable on port 22"
+
       - name: Validate deployment environment
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER || 'ubuntu' }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
           timeout: 300s
           command_timeout: 300s
+          use_insecure_cipher: false
+          cipher: aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com
           script: |
             # Set application directory
             APP_DIR="${EC2_APP_DIR:-transac}"
@@ -260,8 +274,11 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER || 'ubuntu' }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
           timeout: 300s
           command_timeout: 300s
+          use_insecure_cipher: false
+          cipher: aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com
           script: |
             APP_DIR="${EC2_APP_DIR:-transac}"
             
@@ -295,8 +312,11 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER || 'ubuntu' }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
           timeout: 600s
           command_timeout: 600s
+          use_insecure_cipher: false
+          cipher: aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com
           script: |
             APP_DIR="${EC2_APP_DIR:-transac}"
             HEALTH_CHECK_URL="https://transac.site/api"
