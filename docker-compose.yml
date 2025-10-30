@@ -10,7 +10,12 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d transac_db"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-transac_db}",
+        ]
+
       interval: 5s
       timeout: 5s
       retries: 10
@@ -101,7 +106,7 @@ services:
       - SERVER_NAME=${SERVER_NAME:-transac.site}
     volumes:
       # Mount your HTTPS-enabled nginx config
-      - ./nginx_conf:/etc/nginx/conf.d:ro
+      - ./nginx_conf:/etc/nginx/conf.d
 
       # Mount the SSL certificate and challenge volumes
       - letsencrypt:/etc/letsencrypt

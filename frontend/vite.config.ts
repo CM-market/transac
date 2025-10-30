@@ -55,24 +55,25 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      manifest: {
-        name: "ReportHub",
-        short_name: "ReportHub",
-        start_url: "/",
-        scope: "/",
-        display: "standalone",
-        background_color: "#ffffff",
-        theme_color: "#007bff",
-        icons: [
+      includeAssets: ["favicon.ico", "apple-touch-icon.png", "mask-icon.svg"],
+      strategies: "generateSW",
+      devOptions: {
+        enabled: true,
+      },
+      useCredentials: true,
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        runtimeCaching: [
           {
-            src: "/download1.png",
-            sizes: "225x225",
-            type: "image/png",
-          },
-          {
-            src: "/download2.png",
-            sizes: "225x225",
-            type: "image/png",
+            urlPattern: /^https:\/\/api\./i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "api-cache",
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
+            },
           },
         ],
       },
