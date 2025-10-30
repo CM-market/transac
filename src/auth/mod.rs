@@ -1,3 +1,3 @@
 pub mod jwt_service;
 
-pub use jwt_service::JwtService;
+pub use jwt_service::{Claims, JwtService};
