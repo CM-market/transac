@@ -10,6 +10,8 @@ pub struct ImageAnalysisResult {
     pub width: Option<u32>,
     pub height: Option<u32>,
     pub violations: Vec<String>,
+    pub file_name: Option<String>,
+    pub file_data: Option<Vec<u8>>,
 }
 
 /// Image analysis service
@@ -41,6 +43,7 @@ impl ImageAnalysisService {
     ) -> Result<ImageAnalysisResult, String> {
         let mut file_data = Vec::new();
         let mut content_type = String::new();
+        let mut file_name = None;
 
         // Extract file from multipart
         while let Some(mut field) = multipart
@@ -53,6 +56,8 @@ impl ImageAnalysisService {
                     .content_type()
                     .unwrap_or("application/octet-stream")
                     .to_string();
+
+                file_name = field.file_name().map(|s| s.to_string());
 
                 while let Some(chunk) = field
                     .chunk()
@@ -73,6 +78,8 @@ impl ImageAnalysisService {
                 width: None,
                 height: None,
                 violations: vec!["No file data found".to_string()],
+                file_name: None,
+                file_data: None,
             });
         }
 
@@ -121,6 +128,8 @@ impl ImageAnalysisService {
             width,
             height,
             violations,
+            file_name,
+            file_data: Some(file_data),
         })
     }
 
@@ -196,6 +205,8 @@ impl StubImageAnalysisService {
             width: Some(800),
             height: Some(600),
             violations: vec![],
+            file_name: Some("stub_image.jpg".to_string()),
+            file_data: Some(vec![0; 1024]), // Dummy data
         })
     }
 }

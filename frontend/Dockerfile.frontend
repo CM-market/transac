@@ -3,13 +3,17 @@
 FROM node:20-bullseye AS builder
 WORKDIR /app
 
-# Copy manifest files and OpenAPI spec needed by postinstall codegen
+# Install dependencies without running lifecycle scripts (postinstall)
 COPY package*.json ./
-COPY openapi.json ./
-RUN --mount=type=cache,target=/root/.npm sh -c "if [ -f package-lock.json ]; then npm ci; else npm install; fi"
+RUN --mount=type=cache,target=/root/.npm sh -c "if [ -f package-lock.json ]; then npm ci --legacy-peer-deps --no-audit --no-fund --ignore-scripts; else npm install --legacy-peer-deps --no-audit --no-fund --ignore-scripts; fi"
 
+# Copy full source (includes scripts/ and openapi.json)
 COPY . .
-RUN npm run build
+
+# Fetch OpenAPI spec if script exists (otherwise use committed openapi.json) and generate client
+RUN sh -c 'if [ -f scripts/fetch_openapi.js ]; then node scripts/fetch_openapi.js || echo "fetch_openapi failed, using existing openapi.json"; else echo "No fetch_openapi.js, using existing openapi.json"; fi' \
+    && npm run codegen \
+    && npm run build
 
 FROM nginx:1.27-alpine AS runtime
 WORKDIR /usr/share/nginx/html

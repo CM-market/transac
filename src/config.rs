@@ -7,6 +7,7 @@ pub struct Config {
     pub database_url: String,
     pub pow_difficulty: u32,
     pub pow_timeout_minutes: i64,
+    pub run_migrations_on_start: bool,
 }
 
 impl Config {
@@ -24,10 +25,16 @@ impl Config {
             .unwrap_or_else(|_| "10".to_string())
             .parse::<i64>()?;
 
+        let run_migrations_on_start = env::var("RUN_MIGRATIONS_ON_START")
+            .unwrap_or_else(|_| "false".to_string())
+            .parse::<bool>()
+            .unwrap_or(true);
+
         Ok(Config {
             database_url,
             pow_difficulty,
             pow_timeout_minutes,
+            run_migrations_on_start,
         })
     }
 }
