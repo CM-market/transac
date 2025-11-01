@@ -1,7 +1,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { MainLayout } from "../layouts";
-import { ErrorPage, LoadingPage } from "../pages";
+import { ErrorPage, LoadingPage, ProductDetailPage } from "../pages";
 import PowScreen from "../components/PowScreen";
 import MarketplaceWelcome from "../components/MarketplaceWelcome";
 import SellerDashboard from "../components/SellerDashboard";
@@ -49,6 +49,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           index
           element={<MarketplaceWelcome onBuy={onBuy} onSell={onSell} />}
         />
+        <Route path="/product/:id" element={<ProductDetailPage />} />
         <Route
           path="/seller-dashboard"
           element={<SellerDashboard onBack={() => window.history.back()} />}
