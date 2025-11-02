@@ -1,0 +1,301 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Icon Converter</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .icon-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+      }
+      .icon-item {
+        text-align: center;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+      canvas {
+        border: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>PWA Icon Generator</h1>
+    <p>Right-click on each canvas and "Save image as" to download PNG files.</p>
+    <div class="icon-grid">
+      <div class="icon-item">
+        <h3>72x72</h3>
+        <canvas id="canvas-72" width="72" height="72"></canvas>
+        <br /><br />
+        <button onclick="downloadIcon(72)">Download PNG</button>
+      </div>
+
+      <div class="icon-item">
+        <h3>96x96</h3>
+        <canvas id="canvas-96" width="96" height="96"></canvas>
+        <br /><br />
+        <button onclick="downloadIcon(96)">Download PNG</button>
+      </div>
+
+      <div class="icon-item">
+        <h3>128x128</h3>
+        <canvas id="canvas-128" width="128" height="128"></canvas>
+        <br /><br />
+        <button onclick="downloadIcon(128)">Download PNG</button>
+      </div>
+
+      <div class="icon-item">
+        <h3>144x144</h3>
+        <canvas id="canvas-144" width="144" height="144"></canvas>
+        <br /><br />
+        <button onclick="downloadIcon(144)">Download PNG</button>
+      </div>
+
+      <div class="icon-item">
+        <h3>152x152</h3>
+        <canvas id="canvas-152" width="152" height="152"></canvas>
+        <br /><br />
+        <button onclick="downloadIcon(152)">Download PNG</button>
+      </div>
+
+      <div class="icon-item">
+        <h3>192x192</h3>
+        <canvas id="canvas-192" width="192" height="192"></canvas>
+        <br /><br />
+        <button onclick="downloadIcon(192)">Download PNG</button>
+      </div>
+
+      <div class="icon-item">
+        <h3>384x384</h3>
+        <canvas id="canvas-384" width="384" height="384"></canvas>
+        <br /><br />
+        <button onclick="downloadIcon(384)">Download PNG</button>
+      </div>
+
+      <div class="icon-item">
+        <h3>512x512</h3>
+        <canvas id="canvas-512" width="512" height="512"></canvas>
+        <br /><br />
+        <button onclick="downloadIcon(512)">Download PNG</button>
+      </div>
+    </div>
+
+    <script>
+      // Generate 72x72 icon
+      const canvas72 = document.getElementById("canvas-72");
+      const ctx72 = canvas72.getContext("2d");
+
+      // Create gradient
+      const gradient72 = ctx72.createLinearGradient(0, 0, 72, 72);
+      gradient72.addColorStop(0, "#10B981");
+      gradient72.addColorStop(1, "#059669");
+
+      // Draw background with rounded corners
+      ctx72.fillStyle = gradient72;
+      ctx72.beginPath();
+      ctx72.roundRect(0, 0, 72, 72, 10.799999999999999);
+      ctx72.fill();
+
+      // Draw text
+      ctx72.fillStyle = "white";
+      ctx72.font = "bold 28.8px Arial";
+      ctx72.textAlign = "center";
+      ctx72.textBaseline = "middle";
+      ctx72.fillText("T", 36, 36);
+
+      // Generate 96x96 icon
+      const canvas96 = document.getElementById("canvas-96");
+      const ctx96 = canvas96.getContext("2d");
+
+      // Create gradient
+      const gradient96 = ctx96.createLinearGradient(0, 0, 96, 96);
+      gradient96.addColorStop(0, "#10B981");
+      gradient96.addColorStop(1, "#059669");
+
+      // Draw background with rounded corners
+      ctx96.fillStyle = gradient96;
+      ctx96.beginPath();
+      ctx96.roundRect(0, 0, 96, 96, 14.399999999999999);
+      ctx96.fill();
+
+      // Draw text
+      ctx96.fillStyle = "white";
+      ctx96.font = "bold 38.400000000000006px Arial";
+      ctx96.textAlign = "center";
+      ctx96.textBaseline = "middle";
+      ctx96.fillText("T", 48, 48);
+
+      // Generate 128x128 icon
+      const canvas128 = document.getElementById("canvas-128");
+      const ctx128 = canvas128.getContext("2d");
+
+      // Create gradient
+      const gradient128 = ctx128.createLinearGradient(0, 0, 128, 128);
+      gradient128.addColorStop(0, "#10B981");
+      gradient128.addColorStop(1, "#059669");
+
+      // Draw background with rounded corners
+      ctx128.fillStyle = gradient128;
+      ctx128.beginPath();
+      ctx128.roundRect(0, 0, 128, 128, 19.2);
+      ctx128.fill();
+
+      // Draw text
+      ctx128.fillStyle = "white";
+      ctx128.font = "bold 51.2px Arial";
+      ctx128.textAlign = "center";
+      ctx128.textBaseline = "middle";
+      ctx128.fillText("T", 64, 64);
+
+      // Generate 144x144 icon
+      const canvas144 = document.getElementById("canvas-144");
+      const ctx144 = canvas144.getContext("2d");
+
+      // Create gradient
+      const gradient144 = ctx144.createLinearGradient(0, 0, 144, 144);
+      gradient144.addColorStop(0, "#10B981");
+      gradient144.addColorStop(1, "#059669");
+
+      // Draw background with rounded corners
+      ctx144.fillStyle = gradient144;
+      ctx144.beginPath();
+      ctx144.roundRect(0, 0, 144, 144, 21.599999999999998);
+      ctx144.fill();
+
+      // Draw text
+      ctx144.fillStyle = "white";
+      ctx144.font = "bold 57.6px Arial";
+      ctx144.textAlign = "center";
+      ctx144.textBaseline = "middle";
+      ctx144.fillText("T", 72, 72);
+
+      // Generate 152x152 icon
+      const canvas152 = document.getElementById("canvas-152");
+      const ctx152 = canvas152.getContext("2d");
+
+      // Create gradient
+      const gradient152 = ctx152.createLinearGradient(0, 0, 152, 152);
+      gradient152.addColorStop(0, "#10B981");
+      gradient152.addColorStop(1, "#059669");
+
+      // Draw background with rounded corners
+      ctx152.fillStyle = gradient152;
+      ctx152.beginPath();
+      ctx152.roundRect(0, 0, 152, 152, 22.8);
+      ctx152.fill();
+
+      // Draw text
+      ctx152.fillStyle = "white";
+      ctx152.font = "bold 60.800000000000004px Arial";
+      ctx152.textAlign = "center";
+      ctx152.textBaseline = "middle";
+      ctx152.fillText("T", 76, 76);
+
+      // Generate 192x192 icon
+      const canvas192 = document.getElementById("canvas-192");
+      const ctx192 = canvas192.getContext("2d");
+
+      // Create gradient
+      const gradient192 = ctx192.createLinearGradient(0, 0, 192, 192);
+      gradient192.addColorStop(0, "#10B981");
+      gradient192.addColorStop(1, "#059669");
+
+      // Draw background with rounded corners
+      ctx192.fillStyle = gradient192;
+      ctx192.beginPath();
+      ctx192.roundRect(0, 0, 192, 192, 28.799999999999997);
+      ctx192.fill();
+
+      // Draw text
+      ctx192.fillStyle = "white";
+      ctx192.font = "bold 76.80000000000001px Arial";
+      ctx192.textAlign = "center";
+      ctx192.textBaseline = "middle";
+      ctx192.fillText("T", 96, 96);
+
+      // Generate 384x384 icon
+      const canvas384 = document.getElementById("canvas-384");
+      const ctx384 = canvas384.getContext("2d");
+
+      // Create gradient
+      const gradient384 = ctx384.createLinearGradient(0, 0, 384, 384);
+      gradient384.addColorStop(0, "#10B981");
+      gradient384.addColorStop(1, "#059669");
+
+      // Draw background with rounded corners
+      ctx384.fillStyle = gradient384;
+      ctx384.beginPath();
+      ctx384.roundRect(0, 0, 384, 384, 57.599999999999994);
+      ctx384.fill();
+
+      // Draw text
+      ctx384.fillStyle = "white";
+      ctx384.font = "bold 153.60000000000002px Arial";
+      ctx384.textAlign = "center";
+      ctx384.textBaseline = "middle";
+      ctx384.fillText("T", 192, 192);
+
+      // Generate 512x512 icon
+      const canvas512 = document.getElementById("canvas-512");
+      const ctx512 = canvas512.getContext("2d");
+
+      // Create gradient
+      const gradient512 = ctx512.createLinearGradient(0, 0, 512, 512);
+      gradient512.addColorStop(0, "#10B981");
+      gradient512.addColorStop(1, "#059669");
+
+      // Draw background with rounded corners
+      ctx512.fillStyle = gradient512;
+      ctx512.beginPath();
+      ctx512.roundRect(0, 0, 512, 512, 76.8);
+      ctx512.fill();
+
+      // Draw text
+      ctx512.fillStyle = "white";
+      ctx512.font = "bold 204.8px Arial";
+      ctx512.textAlign = "center";
+      ctx512.textBaseline = "middle";
+      ctx512.fillText("T", 256, 256);
+
+      function downloadIcon(size) {
+        const canvas = document.getElementById("canvas-" + size);
+        const link = document.createElement("a");
+        link.download = "icon-" + size + "x" + size + ".png";
+        link.href = canvas.toDataURL();
+        link.click();
+      }
+
+      // Add roundRect polyfill for older browsers
+      if (!CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function (
+          x,
+          y,
+          width,
+          height,
+          radius,
+        ) {
+          this.beginPath();
+          this.moveTo(x + radius, y);
+          this.lineTo(x + width - radius, y);
+          this.quadraticCurveTo(x + width, y, x + width, y + radius);
+          this.lineTo(x + width, y + height - radius);
+          this.quadraticCurveTo(
+            x + width,
+            y + height,
+            x + width - radius,
+            y + height,
+          );
+          this.lineTo(x + radius, y + height);
+          this.quadraticCurveTo(x, y + height, x, y + height - radius);
+          this.lineTo(x, y + radius);
+          this.quadraticCurveTo(x, y, x + radius, y);
+          this.closePath();
+        };
+      }
+    </script>
+  </body>
+</html>

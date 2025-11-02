@@ -1,0 +1,27 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="url(#gradient)"/>
+  
+  <!-- Main icon - Shopping/Business symbol -->
+  <g transform="translate(128, 128)">
+    <!-- Shopping bag -->
+    <path d="M64 96L384 96L368 416L80 416L64 96Z" fill="white" opacity="0.9"/>
+    <path d="M112 96V80C112 35.8 147.8 0 192 0H256C300.2 0 336 35.8 336 80V96" 
+          stroke="white" stroke-width="16" fill="none" stroke-linecap="round"/>
+    
+    <!-- Handle -->
+    <circle cx="160" cy="192" r="12" fill="white"/>
+    <circle cx="288" cy="192" r="12" fill="white"/>
+    
+    <!-- Transac text -->
+    <text x="224" y="320" text-anchor="middle" fill="white" font-family="Arial, sans-serif" 
+          font-size="32" font-weight="bold">T</text>
+  </g>
+</svg>
