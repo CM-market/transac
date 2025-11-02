@@ -31,7 +31,7 @@
 **Non-functional constraints**
 
 * GDPR / local data protection compliance.
-* Target latency: page loads < 300ms (cached pages); API p95 < 200ms.
+* Target latency: page loads < 100ms (initial load), < 80s (cached pages); API p95 < 50ms for simple queries, < 1s for complex operations.
 
 ---
 
@@ -257,7 +257,7 @@ erDiagram
         UUID store_id FK
         VARCHAR name
         TEXT description
-        NUMERIC price
+        DOUBLE_PRECISION price
         INT quantity_available
         UUID image_id
         TIMESTAMP created_at
@@ -337,6 +337,11 @@ erDiagram
 * Caching: CDN + server-side caching for product lists (Redis or HTTP cache).
 * Read replicas for Postgres for high read traffic.
 * Batch/async non-critical work via MQ.
+* Image optimization and lazy loading for product galleries.
+* Database query optimization with proper indexing.
+* Connection pooling for database connections.
+* Progressive image loading and WebP format support.
+* API response compression (gzip/brotli).
 
 ---
 
@@ -392,8 +397,8 @@ For each, include acceptance criteria and mitigations.
 3. **Traffic spike (High)**
 
     * Scenario: Flash sale causes 10x traffic.
-    * Requirement: System stays functional for read paths.
-    * Solution: Read replicas, CDN, rate-limiting for checkout, queue backpressure for non-critical tasks.
+    * Requirement: System stays functional for read paths, graceful degradation for write paths.
+    * Solution: Read replicas, CDN, rate-limiting for checkout, queue backpressure for non-critical tasks, circuit breakers for external services.
 
 4. **Data loss / backup (Critical)**
 
@@ -453,7 +458,7 @@ CREATE TABLE products (
   sku TEXT,
   name TEXT NOT NULL,
   description TEXT,
-  price NUMERIC(12,2) NOT NULL,
+  price DOUBLE PRECISION NOT NULL,
   quantity_available INT NOT NULL DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
@@ -478,7 +483,7 @@ CREATE TABLE cart_items (
   cart_id UUID REFERENCES carts(id) ON DELETE CASCADE,
   product_id UUID REFERENCES products(id),
   quantity INT NOT NULL,
-  unit_price NUMERIC(12,2) NOT NULL
+  unit_price DOUBLE PRECISION NOT NULL
 );
 
 CREATE TABLE orders (
@@ -486,7 +491,7 @@ CREATE TABLE orders (
   user_id UUID REFERENCES users(id),
   cart_id UUID REFERENCES carts(id),
   status TEXT NOT NULL,
-  total_amount NUMERIC(12,2) NOT NULL,
+  total_amount DOUBLE PRECISION NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
@@ -495,7 +500,7 @@ CREATE TABLE order_items (
   order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
   product_id UUID REFERENCES products(id),
   quantity INT NOT NULL,
-  unit_price NUMERIC(12,2) NOT NULL
+  unit_price DOUBLE PRECISION NOT NULL
 );
 
 CREATE TABLE payments (
@@ -503,7 +508,7 @@ CREATE TABLE payments (
   order_id UUID REFERENCES orders(id),
   provider_ref TEXT UNIQUE,
   status TEXT,
-  amount NUMERIC(12,2),
+  amount DOUBLE PRECISION,
   processed_at TIMESTAMP WITH TIME ZONE
 );
 ```
@@ -541,9 +546,12 @@ CREATE TABLE payments (
 
 * SLO examples:
 
-    * API availability 99.9% monthly.
-    * Order creation latency p95 < 500ms.
-    * Payment success rate > 99% (excluding payment provider failures).
+  * API availability 99.9% monthly.
+  * Order creation latency p95 < 2s (includes payment processing).
+  * Product listing latency p95 < 800ms.
+  * Search queries latency p95 < 1.5s.
+  * Image loading latency p95 < 3s.
+  * Payment success rate > 99% (excluding payment provider failures).
 * Alerts for: 5xx spikes, DB replication lag, payment webhook failures.
 
 ---
@@ -553,6 +561,7 @@ CREATE TABLE payments (
 1. **MVP scope**
 
     * Catalog browse, cart, checkout with Stripe Checkout, order history, merchant product CRUD.
+    * Performance baseline: < 3s page loads, < 1s API responses for 95% of requests.
 2. **Sprint 1**
 
     * Scaffolding: repo, CI, Dockerfiles, k8s manifests, DB migrations.
@@ -566,6 +575,7 @@ CREATE TABLE payments (
 5. **Sprint 4**
 
     * Monitoring, logging, backups, hardening security.
+    * Performance optimization: caching, database indexing, image optimization.
 6. **Later**
 
     * Inventory alerts, search, merchant dashboard, analytics, shipping integrations.
