@@ -19,7 +19,7 @@ impl JwtService {
         let decoding_key = DecodingKey::from_secret(secret.as_ref());
 
         let mut validation = Validation::new(Algorithm::HS256);
-        validation.set_required_spec_claims(&["sub", "exp", "iat"]);
+        validation.set_required_spec_claims(&["sub", "exp"]);
 
         Ok(Self {
             encoding_key,
@@ -40,6 +40,24 @@ impl JwtService {
             .map_err(|e| format!("Failed to generate token: {e}"))
     }
 
+    #[allow(dead_code)]
+    pub fn generate_token_with_role(
+        &self,
+        relay_id: String,
+        public_key: String,
+        _role: String,
+    ) -> Result<String, String> {
+        let now = Utc::now();
+        let claims = Claims {
+            sub: relay_id.clone(),
+            pub_key: public_key,
+            exp: (now + Duration::hours(24)).timestamp() as usize,
+        };
+        encode(&Header::default(), &claims, &self.encoding_key)
+            .map_err(|e| format!("Failed to generate token: {e}"))
+    }
+
+    #[allow(dead_code)]
     pub fn validate_token(&self, token: &str) -> Result<Claims, String> {
         let token_data = decode::<Claims>(token, &self.decoding_key, &self.validation)
             .map_err(|e| format!("Invalid token: {e}"))?;

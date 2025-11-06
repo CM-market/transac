@@ -1,13 +1,12 @@
-import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Star } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  useReviewsServicePostProductsByIdReviews,
   useReviewsServiceGetProductsByIdReviews,
+  useReviewsServicePostProductsByIdReviews,
 } from "@/openapi-rq/queries";
+import { Star } from "lucide-react";
+import React, { useState } from "react";
 
 const Reviews: React.FC<{ productId: string }> = ({ productId }) => {
   const [rating, setRating] = useState(0);
@@ -21,7 +20,8 @@ const Reviews: React.FC<{ productId: string }> = ({ productId }) => {
   const totalReviews = reviews?.length || 0;
   const averageRating =
     totalReviews > 0 && reviews
-      ? reviews.reduce((acc, review) => acc + review.rating, 0) / totalReviews
+      ? reviews.reduce((acc, review) => acc + (review.rating || 0), 0) /
+        totalReviews
       : 0;
 
   const handleRatingChange = (newRating: number) => {
@@ -132,7 +132,7 @@ const Reviews: React.FC<{ productId: string }> = ({ productId }) => {
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-4 w-4 ${i < review.rating ? "text-primary" : "text-muted-foreground"}`}
+                    className={`h-4 w-4 ${i < (review.rating || 0) ? "text-primary" : "text-muted-foreground"}`}
                     fill="currentColor"
                   />
                 ))}

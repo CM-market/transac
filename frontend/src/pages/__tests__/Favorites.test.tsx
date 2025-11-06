@@ -4,7 +4,7 @@ import Favorites from "../Favorites";
 import { useFavorites } from "@/contexts/FavoritesContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { useTranslation } from "react-i18next";
-import { vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/contexts/FavoritesContext");
 vi.mock("react-i18next", () => ({

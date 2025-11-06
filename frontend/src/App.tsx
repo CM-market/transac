@@ -3,10 +3,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter as Router } from "react-router-dom";
 
+import useSimplifiedAuthFlow from "./hooks/useSimplifiedAuthFlow";
 import useAuthenticationFlow from "./hooks/useAuthenticationFlow";
 import AppRoutes from "./routes/AppRoutes";
 import { CartProvider } from "./contexts/CartContext";
 import { FavoritesProvider } from "./contexts/FavoritesContext";
+import { ToastProvider } from "./components/ToastContainer";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -18,8 +20,13 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  // Use the comprehensive authentication flow
-  const authStatus = useAuthenticationFlow();
+  // Use the simplified authentication flow (without registration)
+  const authStatus = useSimplifiedAuthFlow();
+
+  // Handle POW completion
+  const handlePowComplete = useCallback(() => {
+    // No-op: AppRoutes handles transitions based on authStatus
+  }, []);
 
   // Handle marketplace actions
   const handleBuy = useCallback(() => {
@@ -31,7 +38,7 @@ function App() {
     window.location.reload();
   }, []);
 
-  // Delegate to AppRoutes for all routing and authentication handling
+  // Delegate to AppRoutes for handling loading, error states and routing
   return (
     <AppRoutes
       authStatus={authStatus}
@@ -45,14 +52,16 @@ function App() {
 function AppWithRouter() {
   return (
     <QueryClientProvider client={queryClient}>
-      <CartProvider>
-        <FavoritesProvider>
-          <Router>
-            <App />
-          </Router>
-        </FavoritesProvider>
-      </CartProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
+      <ToastProvider>
+        <Router>
+          <FavoritesProvider>
+            <CartProvider>
+              <App />
+            </CartProvider>
+          </FavoritesProvider>
+        </Router>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

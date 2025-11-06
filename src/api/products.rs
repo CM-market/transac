@@ -1,6 +1,9 @@
 use crate::api::media_storage::{MediaStorage, S3MediaStorage, StubMediaStorage};
+use crate::context::ApiContext;
 use crate::db::products::Product;
+use crate::db::reviews::Review;
 use crate::entity::product::Model as ProductModel;
+use crate::entity::review::Model as ReviewModel;
 use crate::events::{create_event, EventType};
 use axum::{
     extract::{Multipart, Path, Query, State},
@@ -56,22 +59,12 @@ pub struct UpdateProductRequest {
 pub struct ListProductsQuery {
     pub store_id: Option<i32>,
 }
-use crate::ApiContext;
 
-pub fn router() -> Router<ApiContext> {
-    Router::new()
-        .route("/", post(create_product).get(list_products))
-        .route(
-            "/:id",
-            get(get_product).put(update_product).delete(delete_product),
-        )
-        .route(
-            "/:id/media",
-            post(upload_product_media)
-                .put(edit_product_media)
-                .delete(delete_product_media),
-        )
-        .route("/:id/reviews", post(create_review).get(list_reviews))
+#[derive(Serialize, ToSchema)]
+pub struct MediaUploadResponse {
+    #[schema(value_type = String, format = "uuid")]
+    image_id: Uuid,
+    s3_key: String,
 }
 
 /// Create a new product
@@ -80,7 +73,7 @@ pub fn router() -> Router<ApiContext> {
     path = "/products",
     request_body = CreateProductRequest,
     responses(
-        (status = 201, description = "Product created successfully", body = Model),
+        (status = 201, description = "Product created successfully", body = ProductModel),
         (status = 400, description = "Bad request - invalid data")
     ),
     tag = "Products"
@@ -89,8 +82,11 @@ async fn create_product(
     State(state): State<ApiContext>,
     Json(payload): Json<CreateProductRequest>,
 ) -> impl IntoResponse {
+    // This is a placeholder. In a real application, you'd get the store_id from the authenticated user.
+    let store_id = Uuid::new_v4();
     match Product::create(
         &state.pool,
+        store_id,
         payload.sku.as_deref(),
         &payload.name,
         payload.description.as_deref(),
@@ -116,7 +112,7 @@ async fn create_product(
 
             (axum::http::StatusCode::CREATED, Json(product)).into_response()
         }
-        Err(e) => (axum::http::StatusCode::BAD_REQUEST, e).into_response(),
+        Err(e) => (axum::http::StatusCode::BAD_REQUEST, e.to_string()).into_response(),
     }
 }
 
@@ -125,10 +121,10 @@ async fn create_product(
     get,
     path = "/products/{id}",
     params(
-        ("id" = UuidSchema, Path, description = "Product ID")
+        ("id" = Uuid, Path, description = "Product ID")
     ),
     responses(
-        (status = 200, description = "Product found", body = Model),
+        (status = 200, description = "Product found", body = ProductModel),
         (status = 404, description = "Product not found")
     ),
     tag = "Products"
@@ -136,7 +132,7 @@ async fn create_product(
 async fn get_product(State(state): State<ApiContext>, Path(id): Path<Uuid>) -> impl IntoResponse {
     match Product::get(&state.pool, id).await {
         Ok(product) => Json::<ProductModel>(product).into_response(),
-        Err(e) => (axum::http::StatusCode::NOT_FOUND, e).into_response(),
+        Err(e) => (axum::http::StatusCode::NOT_FOUND, e.to_string()).into_response(),
     }
 }
 
@@ -145,10 +141,10 @@ async fn get_product(State(state): State<ApiContext>, Path(id): Path<Uuid>) -> i
     get,
     path = "/products",
     params(
-        ("store_id" = UuidSchema, Query, description = "Store ID to filter products")
+        ("store_id" = Option<i32>, Query, description = "Store ID to filter products")
     ),
     responses(
-        (status = 200, description = "Products found", body = Vec<Model>),
+        (status = 200, description = "Products found", body = Vec<ProductModel>),
         (status = 400, description = "Bad request - invalid store ID")
     ),
     tag = "Products"
@@ -171,7 +167,7 @@ async fn list_products(
         }
         Err(e) => {
             tracing::error!("Failed to list products: {}", e);
-            (StatusCode::BAD_REQUEST, e).into_response()
+            (StatusCode::BAD_REQUEST, e.to_string()).into_response()
         }
     }
 }
@@ -181,11 +177,11 @@ async fn list_products(
     put,
     path = "/products/{id}",
     params(
-        ("id" = UuidSchema, Path, description = "Product ID")
+        ("id" = Uuid, Path, description = "Product ID")
     ),
     request_body = UpdateProductRequest,
     responses(
-        (status = 200, description = "Product updated successfully", body = Model),
+        (status = 200, description = "Product updated successfully", body = ProductModel),
         (status = 400, description = "Bad request - invalid data"),
         (status = 404, description = "Product not found")
     ),
@@ -224,7 +220,7 @@ async fn update_product(
 
             Json(product).into_response()
         }
-        Err(e) => (axum::http::StatusCode::BAD_REQUEST, e).into_response(),
+        Err(e) => (axum::http::StatusCode::BAD_REQUEST, e.to_string()).into_response(),
     }
 }
 
@@ -233,7 +229,7 @@ async fn update_product(
     delete,
     path = "/products/{id}",
     params(
-        ("id" = UuidSchema, Path, description = "Product ID")
+        ("id" = Uuid, Path, description = "Product ID")
     ),
     responses(
         (status = 204, description = "Product deleted successfully"),
@@ -260,24 +256,17 @@ async fn delete_product(
 
             axum::http::StatusCode::NO_CONTENT.into_response()
         }
-        Err(e) => (axum::http::StatusCode::BAD_REQUEST, e).into_response(),
+        Err(e) => (axum::http::StatusCode::BAD_REQUEST, e.to_string()).into_response(),
     }
 }
 // --- Media upload/edit/delete endpoints for products ---
-
-#[derive(Serialize, ToSchema)]
-pub struct MediaUploadResponse {
-    #[schema(value_type = String, format = "uuid")]
-    image_id: Uuid,
-    s3_key: String,
-}
 
 /// Upload media for a product
 #[utoipa::path(
     post,
     path = "/products/{id}/media",
     params(
-        ("id" = UuidSchema, Path, description = "Product ID")
+        ("id" = Uuid, Path, description = "Product ID")
     ),
     request_body = String,
     responses(
@@ -320,15 +309,38 @@ pub async fn upload_product_media(
         Err(_) => {
             // Fallback to stub implementation if S3 initialization fails
             let stub = StubMediaStorage;
-            let s3_key = match stub.upload_media(id, &mut multipart).await {
-                Ok(key) => key,
-                Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+
+            // Use the file data from analysis result
+            let file_name = analysis_result
+                .file_name
+                .as_deref()
+                .unwrap_or("unknown.jpg");
+            let content_type = analysis_result
+                .file_type
+                .as_deref()
+                .unwrap_or("application/octet-stream");
+
+            // If we have file data, use it, otherwise fall back to the old method
+            let s3_key = if let Some(file_data) = &analysis_result.file_data {
+                match stub
+                    .upload_media_data(id, file_name, file_data, content_type, Some(image_id))
+                    .await
+                {
+                    Ok(key) => key,
+                    Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+                }
+            } else {
+                match stub.upload_media(id, &mut multipart).await {
+                    Ok(key) => key,
+                    Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+                }
             };
+
             // Continue with stub result
             let mut product = Product::get(&state.pool, id).await.unwrap();
             product.image_ids.push(image_id);
             if let Err(e) = Product::update_image_ids(&state.pool, id, product.image_ids).await {
-                return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
+                return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
             }
             return (
                 StatusCode::OK,
@@ -337,18 +349,40 @@ pub async fn upload_product_media(
                 .into_response();
         }
     };
-    let s3_key = match s3.upload_media(id, &mut multipart).await {
-        Ok(key) => key,
-        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+
+    // Use the file data from analysis result
+    let file_name = analysis_result
+        .file_name
+        .as_deref()
+        .unwrap_or("unknown.jpg");
+    let content_type = analysis_result
+        .file_type
+        .as_deref()
+        .unwrap_or("application/octet-stream");
+
+    // If we have file data, use it, otherwise fall back to the old method
+    let s3_key = if let Some(file_data) = &analysis_result.file_data {
+        match s3
+            .upload_media_data(id, file_name, file_data, content_type, Some(image_id))
+            .await
+        {
+            Ok(key) => key,
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        }
+    } else {
+        match s3.upload_media(id, &mut multipart).await {
+            Ok(key) => key,
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        }
     };
     // 5. Update product's image_id in DB
     let mut product = Product::get(&state.pool, id).await.unwrap();
     product.image_ids.push(image_id);
     if let Err(e) = Product::update_image_ids(&state.pool, id, product.image_ids).await {
-        return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
+        return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
     }
 
-    // 6. Trigger real-time events
+    // 7. Trigger real-time events
     let event = create_event(
         EventType::ProductMediaUploaded,
         id,
@@ -374,7 +408,7 @@ pub async fn upload_product_media(
     put,
     path = "/products/{id}/media",
     params(
-        ("id" = UuidSchema, Path, description = "Product ID")
+        ("id" = Uuid, Path, description = "Product ID")
     ),
     request_body = String,
     responses(
@@ -416,14 +450,36 @@ pub async fn edit_product_media(
         Err(_) => {
             // Fallback to stub implementation if S3 initialization fails
             let stub = StubMediaStorage;
-            let s3_key = match stub.upload_media(id, &mut multipart).await {
-                Ok(key) => key,
-                Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+
+            // Use the file data from analysis result
+            let file_name = analysis_result
+                .file_name
+                .as_deref()
+                .unwrap_or("unknown.jpg");
+            let content_type = analysis_result
+                .file_type
+                .as_deref()
+                .unwrap_or("application/octet-stream");
+
+            // If we have file data, use it, otherwise fall back to the old method
+            let s3_key = if let Some(file_data) = &analysis_result.file_data {
+                match stub
+                    .upload_media_data(id, file_name, file_data, content_type, Some(image_id))
+                    .await
+                {
+                    Ok(key) => key,
+                    Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+                }
+            } else {
+                match stub.upload_media(id, &mut multipart).await {
+                    Ok(key) => key,
+                    Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+                }
             };
             let mut product = Product::get(&state.pool, id).await.unwrap();
             product.image_ids.push(image_id);
             if let Err(e) = Product::update_image_ids(&state.pool, id, product.image_ids).await {
-                return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
+                return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
             }
 
             // Trigger event for media replacement
@@ -447,14 +503,36 @@ pub async fn edit_product_media(
                 .into_response();
         }
     };
-    let s3_key = match s3.upload_media(id, &mut multipart).await {
-        Ok(key) => key,
-        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+
+    // Use the file data from analysis result
+    let file_name = analysis_result
+        .file_name
+        .as_deref()
+        .unwrap_or("unknown.jpg");
+    let content_type = analysis_result
+        .file_type
+        .as_deref()
+        .unwrap_or("application/octet-stream");
+
+    // If we have file data, use it, otherwise fall back to the old method
+    let s3_key = if let Some(file_data) = &analysis_result.file_data {
+        match s3
+            .upload_media_data(id, file_name, file_data, content_type, Some(image_id))
+            .await
+        {
+            Ok(key) => key,
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        }
+    } else {
+        match s3.upload_media(id, &mut multipart).await {
+            Ok(key) => key,
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        }
     };
     let mut product = Product::get(&state.pool, id).await.unwrap();
     product.image_ids.push(image_id);
     if let Err(e) = Product::update_image_ids(&state.pool, id, product.image_ids).await {
-        return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
+        return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
     }
 
     // Trigger event for media replacement
@@ -483,7 +561,7 @@ pub async fn edit_product_media(
     delete,
     path = "/products/{id}/media",
     params(
-        ("id" = UuidSchema, Path, description = "Product ID")
+        ("id" = Uuid, Path, description = "Product ID")
     ),
     responses(
         (status = 200, description = "Media deleted successfully"),
@@ -509,11 +587,11 @@ pub async fn delete_product_media(
             // Fallback to stub implementation
             let stub = StubMediaStorage;
             if let Err(e) = stub.delete_media(&format!("products/{id}/media")).await {
-                return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
+                return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
             }
             // Update product's image_id to null
             if let Err(e) = Product::update_image_ids(&state.pool, id, vec![]).await {
-                return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
+                return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
             }
 
             // Trigger event for media deletion
@@ -535,12 +613,12 @@ pub async fn delete_product_media(
     // For now, we'll use a placeholder key
     let s3_key = format!("products/{id}/media");
     if let Err(e) = s3.delete_media(&s3_key).await {
-        return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
+        return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
     }
 
     // 3. Update product's image_id to null
     if let Err(e) = Product::update_image_ids(&state.pool, id, vec![]).await {
-        return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response();
+        return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
     }
 
     // Trigger event for media deletion
@@ -563,7 +641,7 @@ pub async fn delete_product_media(
     path = "/products/{id}/reviews",
     request_body = CreateReviewRequest,
     responses(
-        (status = 201, description = "Review created successfully", body = Model),
+        (status = 201, description = "Review created successfully", body = ReviewModel),
         (status = 400, description = "Bad request - invalid data")
     ),
     tag = "Reviews"
@@ -573,7 +651,7 @@ async fn create_review(
     Path(product_id): Path<Uuid>,
     Json(payload): Json<CreateReviewRequest>,
 ) -> impl IntoResponse {
-    match crate::db::reviews::Review::create(
+    match Review::create(
         &state.pool,
         product_id,
         payload.user_id,
@@ -590,7 +668,7 @@ async fn create_review(
             }
             (axum::http::StatusCode::CREATED, Json(review)).into_response()
         }
-        Err(e) => (axum::http::StatusCode::BAD_REQUEST, e).into_response(),
+        Err(e) => (axum::http::StatusCode::BAD_REQUEST, e.to_string()).into_response(),
     }
 }
 
@@ -599,10 +677,10 @@ async fn create_review(
     get,
     path = "/products/{id}/reviews",
     params(
-        ("id" = UuidSchema, Path, description = "Product ID")
+        ("id" = Uuid, Path, description = "Product ID")
     ),
     responses(
-        (status = 200, description = "Reviews found", body = Vec<Model>),
+        (status = 200, description = "Reviews found", body = Vec<ReviewModel>),
         (status = 404, description = "Product not found")
     ),
     tag = "Reviews"
@@ -611,8 +689,24 @@ async fn list_reviews(
     State(state): State<ApiContext>,
     Path(product_id): Path<Uuid>,
 ) -> impl IntoResponse {
-    match crate::db::reviews::Review::get_by_product_id(&state.pool, product_id).await {
-        Ok(reviews) => Json(reviews).into_response(),
-        Err(e) => (axum::http::StatusCode::NOT_FOUND, e).into_response(),
+    match Review::get_by_product_id(&state.pool, product_id).await {
+        Ok(reviews) => Json::<Vec<ReviewModel>>(reviews).into_response(),
+        Err(e) => (axum::http::StatusCode::NOT_FOUND, e.to_string()).into_response(),
     }
+}
+
+pub fn router() -> Router<ApiContext> {
+    Router::new()
+        .route("/", post(create_product).get(list_products))
+        .route(
+            "/:id",
+            get(get_product).put(update_product).delete(delete_product),
+        )
+        .route(
+            "/:id/media",
+            post(upload_product_media)
+                .put(edit_product_media)
+                .delete(delete_product_media),
+        )
+        .route("/:id/reviews", post(create_review).get(list_reviews))
 }

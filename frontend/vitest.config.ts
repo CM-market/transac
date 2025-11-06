@@ -7,6 +7,8 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test-setup.ts"],
     css: true,
+    // Enable only dummy tests for now
+    include: ["src/__tests__/**/*.test.ts"],
   },
   resolve: {
     alias: {

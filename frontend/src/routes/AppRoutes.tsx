@@ -14,7 +14,8 @@ import {
 } from "../pages";
 import PowScreen from "../components/PowScreen";
 import MarketplaceWelcome from "../components/MarketplaceWelcome";
-import type { AuthenticationStatus } from "../hooks/useAuthenticationFlow";
+import SellerDashboard from "../components/SellerDashboard";
+import type { AuthenticationStatus } from "../hooks/useSimplifiedAuthFlow";
 
 interface AppRoutesProps {
   authStatus: AuthenticationStatus;
@@ -59,6 +60,13 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
         <Route path="product/:id" element={<ProductDetails />} />
         <Route path="search" element={<Search />} />
         <Route path="favorites" element={<Favorites />} />
+        <Route
+          path="/seller-dashboard"
+          element={<SellerDashboard onBack={() => window.history.back()} />}
+        />
+
+        {/* Default redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
       {/* Default redirect */}
       <Route path="*" element={<NotFound />} />

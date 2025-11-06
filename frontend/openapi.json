@@ -3,14 +3,38 @@
   "info": {
     "title": "transac",
     "description": "",
-    "license": { "name": "" },
+    "license": {
+      "name": ""
+    },
     "version": "0.1.0"
   },
-  "servers": [{ "url": "http://localhost:3001" }],
   "paths": {
-    "/api/v1/pow/challenge": {
+    "/healthz": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Health check endpoint",
+        "operationId": "healthz",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pow/challenge": {
       "post": {
-        "tags": ["crate"],
+        "tags": [
+          "POW"
+        ],
         "operationId": "get_pow_challenge",
         "responses": {
           "200": {
@@ -26,14 +50,18 @@
         }
       }
     },
-    "/api/v1/pow/verify": {
+    "/pow/verify": {
       "post": {
-        "tags": ["crate"],
+        "tags": [
+          "POW"
+        ],
         "operationId": "verify_pow_solution",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/VerificationRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/VerificationRequest"
+              }
             }
           },
           "required": true
@@ -43,34 +71,23 @@
             "description": "POW solution verified",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/TokenResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
               }
             }
           },
-          "422": { "description": "Invalid solution" }
-        }
-      }
-    },
-    "/healthz": {
-      "get": {
-        "tags": ["System"],
-        "summary": "Health check endpoint",
-        "operationId": "healthz",
-        "responses": {
-          "200": {
-            "description": "Service is healthy",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/HealthResponse" }
-              }
-            }
+          "422": {
+            "description": "Invalid solution"
           }
         }
       }
     },
     "/products": {
       "get": {
-        "tags": ["Products"],
+        "tags": [
+          "Products"
+        ],
         "summary": "List products by store ID",
         "operationId": "list_products",
         "parameters": [
@@ -78,8 +95,12 @@
             "name": "store_id",
             "in": "query",
             "description": "Store ID to filter products",
-            "required": true,
-            "schema": { "$ref": "#/components/schemas/UuidSchema" }
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            }
           }
         ],
         "responses": {
@@ -89,22 +110,30 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Model" }
+                  "items": {
+                    "$ref": "#/components/schemas/ProductModel"
+                  }
                 }
               }
             }
           },
-          "400": { "description": "Bad request - invalid store ID" }
+          "400": {
+            "description": "Bad request - invalid store ID"
+          }
         }
       },
       "post": {
-        "tags": ["Products"],
+        "tags": [
+          "Products"
+        ],
         "summary": "Create a new product",
         "operationId": "create_product",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateProductRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductRequest"
+              }
             }
           },
           "required": true
@@ -114,17 +143,23 @@
             "description": "Product created successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Model" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProductModel"
+                }
               }
             }
           },
-          "400": { "description": "Bad request - invalid data" }
+          "400": {
+            "description": "Bad request - invalid data"
+          }
         }
       }
     },
     "/products/{id}": {
       "get": {
-        "tags": ["Products"],
+        "tags": [
+          "Products"
+        ],
         "summary": "Get a product by ID",
         "operationId": "get_product",
         "parameters": [
@@ -133,7 +168,9 @@
             "in": "path",
             "description": "Product ID",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/UuidSchema" }
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
           }
         ],
         "responses": {
@@ -141,15 +178,21 @@
             "description": "Product found",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Model" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProductModel"
+                }
               }
             }
           },
-          "404": { "description": "Product not found" }
+          "404": {
+            "description": "Product not found"
+          }
         }
       },
       "put": {
-        "tags": ["Products"],
+        "tags": [
+          "Products"
+        ],
         "summary": "Update a product by ID",
         "operationId": "update_product",
         "parameters": [
@@ -158,13 +201,17 @@
             "in": "path",
             "description": "Product ID",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/UuidSchema" }
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
           }
         ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UpdateProductRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductRequest"
+              }
             }
           },
           "required": true
@@ -174,16 +221,24 @@
             "description": "Product updated successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Model" }
+                "schema": {
+                  "$ref": "#/components/schemas/ProductModel"
+                }
               }
             }
           },
-          "400": { "description": "Bad request - invalid data" },
-          "404": { "description": "Product not found" }
+          "400": {
+            "description": "Bad request - invalid data"
+          },
+          "404": {
+            "description": "Product not found"
+          }
         }
       },
       "delete": {
-        "tags": ["Products"],
+        "tags": [
+          "Products"
+        ],
         "summary": "Delete a product by ID",
         "operationId": "delete_product",
         "parameters": [
@@ -192,19 +247,29 @@
             "in": "path",
             "description": "Product ID",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/UuidSchema" }
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
           }
         ],
         "responses": {
-          "204": { "description": "Product deleted successfully" },
-          "400": { "description": "Bad request - invalid data" },
-          "404": { "description": "Product not found" }
+          "204": {
+            "description": "Product deleted successfully"
+          },
+          "400": {
+            "description": "Bad request - invalid data"
+          },
+          "404": {
+            "description": "Product not found"
+          }
         }
       }
     },
     "/products/{id}/media": {
       "post": {
-        "tags": ["Products"],
+        "tags": [
+          "Products"
+        ],
         "summary": "Upload media for a product",
         "operationId": "upload_product_media",
         "parameters": [
@@ -213,11 +278,19 @@
             "in": "path",
             "description": "Product ID",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/UuidSchema" }
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
           }
         ],
         "requestBody": {
-          "content": { "text/plain": { "schema": { "type": "string" } } },
+          "content": {
+            "text/plain": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
           "required": true
         },
         "responses": {
@@ -225,19 +298,27 @@
             "description": "Media uploaded successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/MediaUploadResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/MediaUploadResponse"
+                }
               }
             }
           },
           "400": {
             "description": "Bad request - invalid image or analysis failed"
           },
-          "404": { "description": "Product not found" },
-          "500": { "description": "Internal server error - upload failed" }
+          "404": {
+            "description": "Product not found"
+          },
+          "500": {
+            "description": "Internal server error - upload failed"
+          }
         }
       },
       "put": {
-        "tags": ["Products"],
+        "tags": [
+          "Products"
+        ],
         "summary": "Replace media for a product",
         "operationId": "edit_product_media",
         "parameters": [
@@ -246,11 +327,19 @@
             "in": "path",
             "description": "Product ID",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/UuidSchema" }
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
           }
         ],
         "requestBody": {
-          "content": { "text/plain": { "schema": { "type": "string" } } },
+          "content": {
+            "text/plain": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
           "required": true
         },
         "responses": {
@@ -258,19 +347,27 @@
             "description": "Media replaced successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/MediaUploadResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/MediaUploadResponse"
+                }
               }
             }
           },
           "400": {
             "description": "Bad request - invalid image or analysis failed"
           },
-          "404": { "description": "Product not found" },
-          "500": { "description": "Internal server error - upload failed" }
+          "404": {
+            "description": "Product not found"
+          },
+          "500": {
+            "description": "Internal server error - upload failed"
+          }
         }
       },
       "delete": {
-        "tags": ["Products"],
+        "tags": [
+          "Products"
+        ],
         "summary": "Delete media for a product",
         "operationId": "delete_product_media",
         "parameters": [
@@ -279,19 +376,29 @@
             "in": "path",
             "description": "Product ID",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/UuidSchema" }
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
           }
         ],
         "responses": {
-          "200": { "description": "Media deleted successfully" },
-          "404": { "description": "Product not found" },
-          "500": { "description": "Internal server error - deletion failed" }
+          "200": {
+            "description": "Media deleted successfully"
+          },
+          "404": {
+            "description": "Product not found"
+          },
+          "500": {
+            "description": "Internal server error - deletion failed"
+          }
         }
       }
     },
     "/products/{id}/reviews": {
       "get": {
-        "tags": ["Reviews"],
+        "tags": [
+          "Reviews"
+        ],
         "summary": "List reviews for a product",
         "operationId": "list_reviews",
         "parameters": [
@@ -300,7 +407,9 @@
             "in": "path",
             "description": "Product ID",
             "required": true,
-            "schema": { "$ref": "#/components/schemas/UuidSchema" }
+            "schema": {
+              "$ref": "#/components/schemas/Uuid"
+            }
           }
         ],
         "responses": {
@@ -310,22 +419,30 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Model" }
+                  "items": {
+                    "$ref": "#/components/schemas/ReviewModel"
+                  }
                 }
               }
             }
           },
-          "404": { "description": "Product not found" }
+          "404": {
+            "description": "Product not found"
+          }
         }
       },
       "post": {
-        "tags": ["Reviews"],
+        "tags": [
+          "Reviews"
+        ],
         "summary": "Create a new review for a product",
         "operationId": "create_review",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateReviewRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateReviewRequest"
+              }
             }
           },
           "required": true
@@ -335,18 +452,238 @@
             "description": "Review created successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Model" }
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewModel"
+                }
               }
             }
           },
-          "400": { "description": "Bad request - invalid data" }
+          "400": {
+            "description": "Bad request - invalid data"
+          }
+        }
+      }
+    },
+    "/stores": {
+      "get": {
+        "tags": [
+          "Stores"
+        ],
+        "summary": "List all stores",
+        "operationId": "list_stores",
+        "responses": {
+          "200": {
+            "description": "List of stores",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoresListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Stores"
+        ],
+        "summary": "Create a new store",
+        "operationId": "create_store",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStoreRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Store created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/stores/{id}": {
+      "get": {
+        "tags": [
+          "Stores"
+        ],
+        "summary": "Get a store by ID",
+        "operationId": "get_store",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Store ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Store not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Stores"
+        ],
+        "summary": "Update a store",
+        "operationId": "update_store",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Store ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStoreRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Store updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "404": {
+            "description": "Store not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Stores"
+        ],
+        "summary": "Delete a store",
+        "operationId": "delete_store",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Store ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Store deleted successfully"
+          },
+          "404": {
+            "description": "Store not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/stores/{id}/share": {
+      "get": {
+        "tags": [
+          "Stores"
+        ],
+        "summary": "Generate store sharing links",
+        "operationId": "get_store_share_links",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Store ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store sharing links generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreShareResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Store not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
         }
       }
     }
   },
   "components": {
     "schemas": {
-      "UuidSchema": { "type": "string", "format": "uuid" },
       "CreateProductRequest": {
         "type": "object",
         "required": [
@@ -358,45 +695,118 @@
           "return_policy"
         ],
         "properties": {
-          "category": { "type": "string" },
-          "description": { "type": "string", "nullable": true },
+          "category": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
           "image_ids": {
             "type": "array",
-            "items": { "type": "string", "format": "uuid" }
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           },
-          "name": { "type": "string" },
-          "price": { "type": "number", "format": "double" },
-          "quantity_available": { "type": "integer", "format": "int32" },
-          "return_policy": { "type": "string" },
-          "sku": { "type": "string", "nullable": true }
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "quantity_available": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "return_policy": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string",
+            "nullable": true
+          }
         }
       },
       "CreateReviewRequest": {
         "type": "object",
-        "required": ["user_id", "rating", "comment"],
+        "required": [
+          "user_id",
+          "rating",
+          "comment"
+        ],
         "properties": {
-          "comment": { "type": "string" },
-          "rating": { "type": "integer", "format": "int32" },
-          "user_id": { "$ref": "#/components/schemas/UuidSchema" }
+          "comment": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "user_id": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        }
+      },
+      "CreateStoreRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "contact_phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          }
         }
       },
       "HealthResponse": {
         "type": "object",
-        "required": ["message"],
-        "properties": { "message": { "type": "string" } }
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
       },
       "ListProductsQuery": {
         "type": "object",
         "properties": {
-          "store_id": { "type": "integer", "format": "int32", "nullable": true }
+          "store_id": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
         }
       },
       "MediaUploadResponse": {
         "type": "object",
-        "required": ["image_id", "s3_key"],
+        "required": [
+          "image_id",
+          "s3_key"
+        ],
         "properties": {
-          "image_id": { "type": "string", "format": "uuid" },
-          "s3_key": { "type": "string" }
+          "image_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "s3_key": {
+            "type": "string"
+          }
         }
       },
       "Model": {
@@ -410,22 +820,49 @@
           "created_at"
         ],
         "properties": {
-          "comment": { "type": "string" },
-          "created_at": { "type": "string", "format": "date-time" },
-          "id": { "type": "string", "format": "uuid" },
-          "product_id": { "type": "string", "format": "uuid" },
-          "rating": { "type": "integer", "format": "int32" },
-          "user_id": { "type": "string", "format": "uuid" }
+          "comment": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "product_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          }
         }
       },
       "PowCertificateRequest": {
         "type": "object",
         "description": "Proof of Work request for certificate issuance",
-        "required": ["solution", "public_key", "client_id"],
+        "required": [
+          "solution",
+          "public_key",
+          "client_id"
+        ],
         "properties": {
-          "client_id": { "type": "string" },
-          "public_key": { "type": "string" },
-          "solution": { "$ref": "#/components/schemas/PowSolution" }
+          "client_id": {
+            "type": "string"
+          },
+          "public_key": {
+            "type": "string"
+          },
+          "solution": {
+            "$ref": "#/components/schemas/PowSolution"
+          }
         }
       },
       "PowChallenge": {
@@ -439,11 +876,25 @@
           "created_at"
         ],
         "properties": {
-          "challenge_data": { "type": "string" },
-          "challenge_id": { "type": "string" },
-          "created_at": { "type": "string", "format": "date-time" },
-          "difficulty": { "type": "integer", "format": "int32", "minimum": 0 },
-          "expires_at": { "type": "string", "format": "date-time" }
+          "challenge_data": {
+            "type": "string"
+          },
+          "challenge_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "difficulty": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "PowChallengeResponse": {
@@ -456,27 +907,103 @@
           "expires_at"
         ],
         "properties": {
-          "challenge_data": { "type": "string" },
-          "challenge_id": { "type": "string" },
-          "difficulty": { "type": "integer", "format": "int32", "minimum": 0 },
-          "expires_at": { "type": "string", "format": "date-time" }
+          "challenge_data": {
+            "type": "string"
+          },
+          "challenge_id": {
+            "type": "string"
+          },
+          "difficulty": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "PowSolution": {
         "type": "object",
         "description": "Proof of Work solution",
-        "required": ["challenge_id", "nonce", "hash"],
+        "required": [
+          "challenge_id",
+          "nonce",
+          "hash"
+        ],
         "properties": {
-          "challenge_id": { "type": "string" },
-          "hash": { "type": "string" },
-          "nonce": { "type": "integer", "format": "int64", "minimum": 0 }
+          "challenge_id": {
+            "type": "string"
+          },
+          "hash": {
+            "type": "string"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "Store": {
+        "$ref": "#/components/schemas/crate.entity.store.Model"
+      },
+      "StoreResponse": {
+        "type": "object",
+        "required": [
+          "store"
+        ],
+        "properties": {
+          "store": {
+            "$ref": "#/components/schemas/Store"
+          }
+        }
+      },
+      "StoreShareResponse": {
+        "type": "object",
+        "required": [
+          "store_id",
+          "share_url",
+          "whatsapp_share_url"
+        ],
+        "properties": {
+          "share_url": {
+            "type": "string"
+          },
+          "store_id": {
+            "type": "string"
+          },
+          "whatsapp_share_url": {
+            "type": "string"
+          }
+        }
+      },
+      "StoresListResponse": {
+        "type": "object",
+        "required": [
+          "stores"
+        ],
+        "properties": {
+          "stores": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Store"
+            }
+          }
         }
       },
       "TokenResponse": {
         "type": "object",
         "description": "Response for PoW verification (token only)",
-        "required": ["token"],
-        "properties": { "token": { "type": "string" } }
+        "required": [
+          "token"
+        ],
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
       },
       "UpdateProductRequest": {
         "type": "object",
@@ -489,34 +1016,101 @@
           "return_policy"
         ],
         "properties": {
-          "category": { "type": "string" },
-          "description": { "type": "string", "nullable": true },
+          "category": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
           "image_ids": {
             "type": "array",
-            "items": { "type": "string", "format": "uuid" }
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           },
-          "name": { "type": "string" },
-          "price": { "type": "number", "format": "double" },
-          "quantity_available": { "type": "integer", "format": "int32" },
-          "return_policy": { "type": "string" },
-          "sku": { "type": "string", "nullable": true }
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "quantity_available": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "return_policy": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateStoreRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "contact_phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          }
         }
       },
       "VerificationRequest": {
         "type": "object",
         "description": "Request for PoW verification",
-        "required": ["solution", "public_key", "relay_id"],
+        "required": [
+          "solution",
+          "public_key",
+          "relay_id"
+        ],
         "properties": {
-          "public_key": { "type": "string" },
-          "relay_id": { "type": "string" },
-          "solution": { "$ref": "#/components/schemas/PowSolution" }
+          "public_key": {
+            "type": "string"
+          },
+          "relay_id": {
+            "type": "string"
+          },
+          "solution": {
+            "$ref": "#/components/schemas/PowSolution"
+          }
         }
       }
     }
   },
   "tags": [
-    { "name": "System", "description": "System health and status endpoints" },
-    { "name": "POW", "description": "Proof of Work authentication endpoints" },
-    { "name": "Products", "description": "Product management endpoints" }
+    {
+      "name": "System",
+      "description": "System health and status endpoints"
+    },
+    {
+      "name": "POW",
+      "description": "Proof of Work authentication endpoints"
+    },
+    {
+      "name": "Products",
+      "description": "Product management endpoints"
+    },
+    {
+      "name": "Stores",
+      "description": "Store management endpoints"
+    }
   ]
 }

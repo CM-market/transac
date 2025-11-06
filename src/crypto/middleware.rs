@@ -1,10 +1,11 @@
+use crate::auth::JwtService;
 use axum::{
     extract::Request,
     http::{HeaderMap, StatusCode},
     middleware::Next,
     response::Response,
 };
-use tracing::{info, warn};
+use tracing::{debug, info, warn};
 
 /// Determine if cryptographic validation should be skipped for a given path
 pub fn should_skip_validation(path: &str) -> bool {
@@ -38,39 +39,42 @@ fn extract_token(headers: &HeaderMap) -> Option<String> {
 
 /// Cryptographic validation middleware
 /// This middleware ensures all incoming requests are properly authenticated
-use crate::ApiContext;
+use crate::context::ApiContext;
 use axum::extract::State;
 
 pub async fn crypto_validation_middleware(
-    State(ctx): State<ApiContext>,
-    mut request: Request,
+    State(_ctx): State<ApiContext>,
+    request: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
     let path = request.uri().path();
 
     // Skip validation for public endpoints
     if should_skip_validation(path) {
-        info!(path = %path, "Skipping crypto validation for public endpoint");
+        debug!(path = %path, "Skipping crypto validation for public endpoint");
         return Ok(next.run(request).await);
     }
 
-    info!(path = %path, "Applying cryptographic validation");
+    debug!(path = %path, "Applying cryptographic validation");
 
     // Extract headers for token check
     let headers = request.headers().clone();
 
     // Check for token authentication
     if let Some(token) = extract_token(&headers) {
-        info!(path = %path, "Detected token, validating authentication");
+        debug!(path = %path, "Detected bearer token, validating");
 
-        match ctx.jwt_service.validate_token(&token) {
+        // Validate JWT using JwtService (env-based secret)
+        let jwt = JwtService::new()
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+            .unwrap();
+        match jwt.validate_token(&token) {
             Ok(claims) => {
-                info!(path = %path, "Token validation successful");
-                request.extensions_mut().insert(claims);
+                info!(path = %path, relay_id = %claims.sub, "Authenticated request");
                 return Ok(next.run(request).await);
             }
-            Err(_) => {
-                warn!(path = %path, "Token validation failed");
+            Err(e) => {
+                warn!(path = %path, error = %e, "Invalid JWT token");
                 return Err(StatusCode::UNAUTHORIZED);
             }
         }
@@ -105,7 +109,7 @@ mod tests {
         // No authorization header
         assert_eq!(extract_token(&headers), None);
 
-        // Valid bearer token
+        // Valid bearer token format
         headers.insert("Authorization", "Bearer test_token".parse().unwrap());
         assert_eq!(extract_token(&headers), Some("test_token".to_string()));
 

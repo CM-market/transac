@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { I18nextProvider } from "react-i18next";
 import i18n from "@/i18n";
 import About from "../About";
+import { describe, it, expect } from "vitest";
 
 describe("About page", () => {
   it("renders the main title and subtitle", () => {

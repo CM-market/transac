@@ -1,21 +1,20 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
 import Badge from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Product } from "@/types/product";
 import {
-  Star,
-  ShoppingCart,
+  Check,
+  Heart,
   Minus,
   Plus,
-  Check,
-  ShieldCheck,
-  Truck,
   Share2,
-  Heart,
+  ShieldCheck,
+  ShoppingCart,
+  Star,
+  Truck,
 } from "lucide-react";
-import { Product } from "@/types/product";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import React from "react";
+import { useTranslation } from "react-i18next";
 
 interface ProductInfoProps {
   product: Product;

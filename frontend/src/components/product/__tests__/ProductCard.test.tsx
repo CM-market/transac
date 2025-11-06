@@ -4,7 +4,7 @@ import ProductCard from "../ProductCard";
 import { useCart } from "@/contexts/CartContext";
 import { useFavorites } from "@/contexts/FavoritesContext";
 import { useTranslation } from "react-i18next";
-import { vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Product } from "@/types/product";
 
 vi.mock("@/contexts/CartContext");

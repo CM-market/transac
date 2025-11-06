@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.6
 
 # --- Build stage ---
-FROM rust:1.86-bullseye AS builder
+FROM rust:1.90-bullseye AS builder
 
 WORKDIR /app
 
@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Cache dependencies
 COPY Cargo.toml Cargo.lock ./
 COPY src ./src
+COPY migration ./migration
 
  # Build and install binary to a deterministic path
 RUN --mount=type=cache,target=/usr/local/cargo/registry \

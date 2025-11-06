@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { ShoppingCart, TrendingUp, Store, Building2 } from "lucide-react";
 
 interface MarketplaceWelcomeProps {
@@ -12,6 +13,11 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
   onBack,
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const handleSellClick = () => {
+    navigate("/seller-dashboard");
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 flex items-center justify-center p-4">
@@ -38,9 +44,15 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
             className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-5 px-6 rounded-xl transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             <ShoppingCart className="w-6 h-6" />
-            <span className="text-lg">
-              {t("marketplaceWelcome.buyProducts")}
-            </span>
+            <span className="text-lg">{t("buyButton", "Buy Products")}</span>
+          </button>
+
+          <button
+            onClick={handleSellClick}
+            className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-5 px-6 rounded-xl transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
+            <TrendingUp className="w-6 h-6" />
+            <span className="text-lg">{t("sellButton", "Sell Products")}</span>
           </button>
         </div>
 

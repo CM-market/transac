@@ -1,45 +1,23 @@
-pub mod entity;
 use axum::{response::IntoResponse, routing::get, Json, Router};
+use migration::Migrator;
+use migration::MigratorTrait;
 use serde::Serialize;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use utoipa::ToSchema;
-
-mod api;
-mod auth;
-mod config;
-mod crypto;
-mod db;
-mod error;
-mod events;
-use crate::db::users::User;
-mod request_middleware;
-
-use crate::auth::JwtService;
-use crate::crypto::PowService;
-use crate::error::AppError;
-use axum::extract::State;
-use axum::middleware;
-use crypto::middleware::crypto_validation_middleware;
 use std::sync::Arc;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing::info;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use transac::{
+    api::{api_router, image_analysis::ImageAnalysisService},
+    auth::JwtService,
+    config::Config,
+    context::ApiContext,
+    crypto::PowService,
+    db::create_connection,
+    events::{EventDispatcher, LoggingEventHandler, WebSocketEventHandler},
+};
+use utoipa::ToSchema;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
-
-use config::Config;
-
-use crate::api::image_analysis::ImageAnalysisService;
-use crate::events::{EventDispatcher, LoggingEventHandler, WebSocketEventHandler};
-
-#[derive(Clone)]
-pub struct ApiContext {
-    pool: sea_orm::DatabaseConnection,
-    pow_service: Arc<PowService>,
-    jwt_service: Arc<JwtService>,
-    event_dispatcher: Arc<EventDispatcher>,
-    image_analysis: Arc<ImageAnalysisService>,
-}
-use db::create_connection;
 
 #[derive(Serialize, ToSchema)]
 struct HealthResponse {
@@ -56,81 +34,66 @@ struct HealthResponse {
     tag = "System"
 )]
 async fn healthz() -> impl IntoResponse {
-    tracing::info!("Health check requested");
+    tracing::debug!("Health check requested");
     Json(HealthResponse { message: "ok" })
 }
 
-fn pow_routes() -> Router<ApiContext> {
-    Router::new()
-        .route("/challenge", axum::routing::post(get_pow_challenge))
-        .route("/verify", axum::routing::post(verify_pow_solution))
-}
-
-#[utoipa::path(
-    post,
-    path = "/api/v1/pow/challenge",
-    responses(
-        (status = 200, description = "POW challenge", body = PowChallengeResponse),
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        healthz,
+        transac::api::pow::get_pow_challenge,
+        transac::api::pow::verify_pow_solution,
+        transac::api::products::create_product,
+        transac::api::products::get_product,
+        transac::api::products::list_products,
+        transac::api::products::update_product,
+        transac::api::products::delete_product,
+        transac::api::products::upload_product_media,
+        transac::api::products::edit_product_media,
+        transac::api::products::delete_product_media,
+        transac::api::products::create_review,
+        transac::api::products::list_reviews,
+        transac::api::stores::create_store,
+        transac::api::stores::get_store,
+        transac::api::stores::list_stores,
+        transac::api::stores::update_store,
+        transac::api::stores::delete_store,
+        transac::api::stores::get_store_share_links,
+    ),
+    components(
+        schemas(
+            HealthResponse,
+            transac::crypto::types::PowChallenge,
+            transac::crypto::types::PowSolution,
+            transac::crypto::types::PowCertificateRequest,
+            transac::crypto::types::PowChallengeResponse,
+            transac::crypto::types::TokenResponse,
+            transac::crypto::types::VerificationRequest,
+            transac::api::products::CreateProductRequest,
+            transac::api::products::UpdateProductRequest,
+            transac::api::products::ListProductsQuery,
+            transac::api::products::MediaUploadResponse,
+            transac::entity::product::Model,
+            transac::api::products::CreateReviewRequest,
+            transac::entity::review::Model,
+            transac::api::stores::CreateStoreRequest,
+            transac::api::stores::UpdateStoreRequest,
+            transac::api::stores::StoreResponse,
+            transac::api::stores::StoresListResponse,
+            transac::api::stores::StoreShareResponse,
+        )
+    ),
+    tags(
+        (name = "System", description = "System health and status endpoints"),
+        (name = "POW", description = "Proof of Work authentication endpoints"),
+        (name = "Products", description = "Product management endpoints"),
+        (name = "Stores", description = "Store management endpoints")
+    ),
+    servers(
     )
 )]
-async fn get_pow_challenge(
-    State(ctx): State<ApiContext>,
-) -> Result<Json<crypto::types::PowChallengeResponse>, AppError> {
-    tracing::info!("POW challenge generation requested");
-    let challenge = ctx.pow_service.generate_challenge()?;
-    tracing::debug!(
-        challenge_id = %challenge.challenge_id,
-        difficulty = challenge.difficulty,
-        "Generated POW challenge"
-    );
-    Ok(Json(crypto::types::PowChallengeResponse {
-        challenge_id: challenge.challenge_id,
-        challenge_data: challenge.challenge_data,
-        difficulty: challenge.difficulty,
-        expires_at: challenge.expires_at,
-    }))
-}
-
-#[utoipa::path(
-    post,
-    path = "/api/v1/pow/verify",
-    request_body = VerificationRequest,
-    responses(
-        (status = 200, description = "POW solution verified", body = TokenResponse),
-        (status = 422, description = "Invalid solution")
-    )
-)]
-async fn verify_pow_solution(
-    State(ctx): State<ApiContext>,
-    Json(request): Json<crypto::types::VerificationRequest>,
-) -> Result<Json<crypto::types::TokenResponse>, AppError> {
-    tracing::info!(
-        relay_id = %request.relay_id,
-        "POW solution verification requested"
-    );
-
-    ctx.pow_service.verify_solution(&request.solution)?;
-    tracing::debug!("POW solution verified successfully");
-
-    // Generate a real JWT token
-    // Check if user exists, if not create one
-    let user = User::get_by_relay_id(&ctx.pool, &request.relay_id).await?;
-    if user.is_none() {
-        User::create(&ctx.pool, &request.relay_id).await?;
-    }
-
-    let token = ctx
-        .jwt_service
-        .generate_token(request.relay_id.clone(), request.public_key.clone())
-        .map_err(|e| AppError::Internal(anyhow::anyhow!(e)))?;
-
-    tracing::info!(
-        relay_id = %request.relay_id,
-        "JWT token generated successfully"
-    );
-
-    Ok(Json(crypto::types::TokenResponse { token }))
-}
+struct ApiDoc;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -138,12 +101,11 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "transac=debug,tower_http=debug,axum::routing=debug".into()),
+                .unwrap_or_else(|_| "transac=info,tower_http=info,axum::routing=info".into()),
         )
         .with(
             tracing_subscriber::fmt::layer()
                 .with_target(true)
-                .with_thread_ids(true)
                 .with_line_number(true)
                 .with_file(true),
         )
@@ -156,6 +118,17 @@ async fn main() -> anyhow::Result<()> {
 
     // Initialize database pool
     let pool = create_connection(&config).await?;
+
+    if config.run_migrations_on_start {
+        info!("Running database migrations at startup");
+        if let Err(e) = Migrator::up(&pool, None).await {
+            tracing::error!(error = %e, "Database migrations failed");
+            return Err(e.into());
+        }
+        info!("Database migrations completed");
+    } else {
+        tracing::info!("RUN_MIGRATIONS_ON_START is false; skipping migrations");
+    }
 
     // Initialize event dispatcher
     let mut event_dispatcher = EventDispatcher::new();
@@ -176,22 +149,11 @@ async fn main() -> anyhow::Result<()> {
         image_analysis,
     };
 
-    let api_routes = Router::new().nest("/api/v1/pow", pow_routes());
-
-    let mut openapi = ApiDoc::openapi();
-    openapi.servers = Some(vec![utoipa::openapi::Server::new(config.server_url)]);
-
     let app = Router::new()
         .route("/healthz", get(healthz))
-        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi))
-        .merge(api_routes)
-        .merge(api::api_router().layer(middleware::from_fn_with_state(
-            api_context.clone(),
-            crypto_validation_middleware,
-        )))
-        .layer(middleware::from_fn(
-            request_middleware::request_logging_middleware,
-        ))
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
+        .nest("/api/v1", api_router())
+        .with_state(api_context)
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(|request: &axum::http::Request<_>| {
@@ -200,37 +162,10 @@ async fn main() -> anyhow::Result<()> {
                         method = %request.method(),
                         uri = %request.uri(),
                         version = ?request.version(),
-                        headers = ?request.headers(),
                     )
                 })
-                .on_request(|_request: &axum::http::Request<_>, _span: &tracing::Span| {
-                    tracing::info!("Started processing request")
-                })
-                .on_response(
-                    |response: &axum::http::Response<_>,
-                     latency: std::time::Duration,
-                     _span: &tracing::Span| {
-                        tracing::info!(
-                            status = %response.status(),
-                            latency = ?latency,
-                            "Finished processing request"
-                        )
-                    },
-                )
-                .on_failure(
-                    |error: tower_http::classify::ServerErrorsFailureClass,
-                     latency: std::time::Duration,
-                     _span: &tracing::Span| {
-                        tracing::error!(
-                            error = %error,
-                            latency = ?latency,
-                            "Request failed"
-                        )
-                    },
-                ),
         )
-        .layer(CorsLayer::permissive())
-        .with_state(api_context);
+        .layer(CorsLayer::permissive());
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await?;
     info!("Server listening on http://0.0.0.0:3001");
@@ -240,47 +175,19 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[derive(OpenApi)]
-#[openapi(
-    paths(
-        healthz,
-        get_pow_challenge,
-        verify_pow_solution,
-        api::products::create_product,
-        api::products::get_product,
-        api::products::list_products,
-        api::products::update_product,
-        api::products::delete_product,
-        api::products::upload_product_media,
-        api::products::edit_product_media,
-        api::products::delete_product_media,
-        api::products::create_review,
-        api::products::list_reviews,
-    ),
-    components(
-        schemas(
-            HealthResponse,
-            crypto::types::PowChallenge,
-            crypto::types::PowSolution,
-            crypto::types::PowCertificateRequest,
-            crypto::types::PowChallengeResponse,
-            crypto::types::TokenResponse,
-            crypto::types::VerificationRequest,
-            api::products::CreateProductRequest,
-            api::products::UpdateProductRequest,
-            api::products::ListProductsQuery,
-            api::products::MediaUploadResponse,
-            entity::product::Model,
-            api::products::CreateReviewRequest,
-            entity::review::Model,
-        )
-    ),
-    tags(
-        (name = "System", description = "System health and status endpoints"),
-        (name = "POW", description = "Proof of Work authentication endpoints"),
-        (name = "Products", description = "Product management endpoints"),
-    ),
-    servers(
-    )
-)]
-struct ApiDoc;
+
+
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn generate_openapi_spec() {
+        let openapi = ApiDoc::openapi();
+        let json_spec = serde_json::to_string_pretty(&openapi).unwrap();
+        std::fs::write("frontend/openapi.json", json_spec).unwrap();
+    }
+}

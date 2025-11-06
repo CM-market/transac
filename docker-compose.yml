@@ -3,6 +3,8 @@ services:
     image: postgres:16
     container_name: transac_postgres
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: transac_db
       POSTGRES_USER: user
@@ -12,8 +14,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    ports:
+      - "5432:5432"
     volumes:
       - transac_db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
     networks:
       - transac_net
 
@@ -21,9 +27,11 @@ services:
     image: minio/minio:latest
     container_name: transac_minio
     command: server /data --console-address ":9001"
+    env_file:
+      - .env
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -45,7 +53,7 @@ services:
         condition: service_healthy
     entrypoint: ["/bin/sh", "-c"]
     command: >-
-      "mc alias set local http://minio:9000 minioadmin minioadmin &&
+      "mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin} &&
       mc mb --ignore-existing local/transac-media &&
       mc anonymous set download local/transac-media &&
       echo 'MinIO bucket ensured' && sleep 2 && exit 0"
@@ -58,12 +66,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgres://user:password@db:5432/transac_db
-      POW_DIFFICULTY: 4
-      POW_TIMEOUT_MINUTES: 10
-      S3_BUCKET_NAME: transac-media
-      JWT_SECRET: your-secret-key-change-in-production
+      DATABASE_URL: ${DATABASE_URL:-postgres://user:password@db:5432/transac_db}
+      POW_DIFFICULTY: ${POW_DIFFICULTY:-4}
+      RUN_MIGRATIONS_ON_START: ${RUN_MIGRATIONS_ON_START:-true}
+      POW_TIMEOUT_MINUTES: ${POW_TIMEOUT_MINUTES:-10}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-transac-media}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
     ports:
       - "3001:3001"
     healthcheck:
@@ -84,10 +95,12 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    env_file:
+      - .env
     environment:
-      - VITE_TRANSAC_WEBAUTH_RP_ID=dev-id
-      - VITE_TRANSAC_WEBAUTH_RP_NAME=dev-name
-      - SERVER_NAME=transac.site
+      - VITE_TRANSAC_WEBAUTH_RP_ID=${VITE_TRANSAC_WEBAUTH_RP_ID:-transac.site}
+      - VITE_TRANSAC_WEBAUTH_RP_NAME=${VITE_TRANSAC_WEBAUTH_RP_NAME:-Transac}
+      - SERVER_NAME=${SERVER_NAME:-transac.site}
     volumes:
       # Mount your HTTPS-enabled nginx config
       - ./nginx_conf:/etc/nginx/conf.d:ro
