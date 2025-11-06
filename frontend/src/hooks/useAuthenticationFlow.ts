@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  useCrateServicePostApiV1PowChallenge,
-  useCrateServicePostApiV1PowVerify,
+  usePowServicePostPowChallenge,
+  usePowServicePostPowVerify,
 } from "../openapi-rq/queries/queries";
 import type { PowChallengeResponse } from "../openapi-rq/requests/types.gen";
 import { performProofOfWork } from "../services/computation/proofOfWork";
@@ -57,10 +57,8 @@ const useAuthenticationFlow = () => {
   const isInitializedRef = useRef(false);
 
   // Use TanStack Query mutations for Proof of Work
-  const { mutateAsync: getPowChallenge } =
-    useCrateServicePostApiV1PowChallenge();
-  const { mutateAsync: verifyPowSolution } =
-    useCrateServicePostApiV1PowVerify();
+  const { mutateAsync: getPowChallenge } = usePowServicePostPowChallenge();
+  const { mutateAsync: verifyPowSolution } = usePowServicePostPowVerify();
 
   // Step 1: Key Generation
   const generateKeys = useCallback(async () => {

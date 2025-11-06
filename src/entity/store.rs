@@ -5,8 +5,10 @@ use utoipa::ToSchema;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, ToSchema)]
 #[sea_orm(table_name = "stores")]
+#[schema(as = StoreModel)]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
+    #[schema(value_type = String, format = "uuid")]
     pub id: Uuid,
     pub name: String,
     #[sea_orm(nullable)]
@@ -17,8 +19,11 @@ pub struct Model {
     pub contact_phone: Option<String>,
     pub is_verified: bool,
     #[sea_orm(nullable)]
+    #[schema(value_type = String, format = "uuid")]
     pub user_id: Uuid,
+    #[schema(value_type = String, format = "date-time")]
     pub created_at: ChronoDateTime,
+    #[schema(value_type = String, format = "date-time")]
     pub updated_at: ChronoDateTime,
 }
 

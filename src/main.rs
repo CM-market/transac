@@ -1,7 +1,6 @@
-use axum::{response::IntoResponse, routing::get, Json, Router};
+use axum::{routing::get, Router};
 use migration::Migrator;
 use migration::MigratorTrait;
-use serde::Serialize;
 use std::sync::Arc;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing::info;
@@ -14,86 +13,11 @@ use transac::{
     crypto::PowService,
     db::create_connection,
     events::{EventDispatcher, LoggingEventHandler, WebSocketEventHandler},
+    healthz,
+    openapi::ApiDoc,
 };
-use utoipa::ToSchema;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
-
-#[derive(Serialize, ToSchema)]
-struct HealthResponse {
-    message: &'static str,
-}
-
-/// Health check endpoint
-#[utoipa::path(
-    get,
-    path = "/healthz",
-    responses(
-        (status = 200, description = "Service is healthy", body = HealthResponse)
-    ),
-    tag = "System"
-)]
-async fn healthz() -> impl IntoResponse {
-    tracing::debug!("Health check requested");
-    Json(HealthResponse { message: "ok" })
-}
-
-#[derive(OpenApi)]
-#[openapi(
-    paths(
-        healthz,
-        transac::api::pow::get_pow_challenge,
-        transac::api::pow::verify_pow_solution,
-        transac::api::products::create_product,
-        transac::api::products::get_product,
-        transac::api::products::list_products,
-        transac::api::products::update_product,
-        transac::api::products::delete_product,
-        transac::api::products::upload_product_media,
-        transac::api::products::edit_product_media,
-        transac::api::products::delete_product_media,
-        transac::api::products::create_review,
-        transac::api::products::list_reviews,
-        transac::api::stores::create_store,
-        transac::api::stores::get_store,
-        transac::api::stores::list_stores,
-        transac::api::stores::update_store,
-        transac::api::stores::delete_store,
-        transac::api::stores::get_store_share_links,
-    ),
-    components(
-        schemas(
-            HealthResponse,
-            transac::crypto::types::PowChallenge,
-            transac::crypto::types::PowSolution,
-            transac::crypto::types::PowCertificateRequest,
-            transac::crypto::types::PowChallengeResponse,
-            transac::crypto::types::TokenResponse,
-            transac::crypto::types::VerificationRequest,
-            transac::api::products::CreateProductRequest,
-            transac::api::products::UpdateProductRequest,
-            transac::api::products::ListProductsQuery,
-            transac::api::products::MediaUploadResponse,
-            transac::entity::product::Model,
-            transac::api::products::CreateReviewRequest,
-            transac::entity::review::Model,
-            transac::api::stores::CreateStoreRequest,
-            transac::api::stores::UpdateStoreRequest,
-            transac::api::stores::StoreResponse,
-            transac::api::stores::StoresListResponse,
-            transac::api::stores::StoreShareResponse,
-        )
-    ),
-    tags(
-        (name = "System", description = "System health and status endpoints"),
-        (name = "POW", description = "Proof of Work authentication endpoints"),
-        (name = "Products", description = "Product management endpoints"),
-        (name = "Stores", description = "Store management endpoints")
-    ),
-    servers(
-    )
-)]
-struct ApiDoc;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

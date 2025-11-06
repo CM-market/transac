@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, ToSchema)]
 #[sea_orm(table_name = "products")]
+#[schema(as = ProductModel)]
 pub struct Model {
     #[sea_orm(primary_key)]
     #[schema(value_type = String, format = "uuid")]
@@ -21,7 +22,9 @@ pub struct Model {
     pub image_ids: Vec<Uuid>,
     pub category: String,
     pub return_policy: String,
+    #[schema(value_type = String, format = "date-time")]
     pub created_at: DateTime<Utc>,
+    #[schema(value_type = String, format = "date-time")]
     pub updated_at: DateTime<Utc>,
 }
 

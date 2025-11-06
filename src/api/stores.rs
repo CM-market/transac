@@ -11,6 +11,8 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+pub type StoreModel = crate::entity::store::Model;
+
 #[allow(dead_code)]
 #[derive(Deserialize, ToSchema)]
 pub struct CreateStoreRequest {
@@ -27,25 +29,6 @@ pub struct UpdateStoreRequest {
     pub description: Option<String>,
     pub location: Option<String>,
     pub contact_phone: Option<String>,
-}
-
-#[allow(dead_code)]
-#[derive(ToSchema)]
-pub struct StoreModel(pub crate::entity::store::Model);
-
-impl serde::Serialize for StoreModel {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        self.0.serialize(serializer)
-    }
-}
-
-impl From<crate::entity::store::Model> for StoreModel {
-    fn from(model: crate::entity::store::Model) -> Self {
-        Self(model)
-    }
 }
 
 #[derive(Serialize, ToSchema)]

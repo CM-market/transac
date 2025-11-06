@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, ToSchema)]
 #[sea_orm(table_name = "reviews")]
+#[schema(as = ReviewModel)]
 pub struct Model {
     #[sea_orm(primary_key)]
     #[schema(value_type = String, format = "uuid")]
@@ -17,6 +18,7 @@ pub struct Model {
     pub rating: i32, // 1-5 stars
     #[sea_orm(column_type = "Text")]
     pub comment: String,
+    #[schema(value_type = String, format = "date-time")]
     pub created_at: DateTime<Utc>,
 }
 

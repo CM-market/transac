@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  useCrateServicePostApiV1PowChallenge,
-  useCrateServicePostApiV1PowVerify,
+  usePowServicePostPowChallenge,
+  usePowServicePostPowVerify,
 } from "../openapi-rq/queries/queries";
 import type { PowChallengeResponse } from "../openapi-rq/requests/types.gen";
 import { performProofOfWork } from "../services/computation/proofOfWork";
@@ -22,8 +22,8 @@ const useInitialization = ({
   const [powStatus, setPowStatus] = useState("Waiting for key generation...");
 
   // Use TanStack Query mutations for Proof of Work
-  const challengeMutation = useCrateServicePostApiV1PowChallenge();
-  const verifyMutation = useCrateServicePostApiV1PowVerify();
+  const challengeMutation = usePowServicePostPowChallenge();
+  const verifyMutation = usePowServicePostPowVerify();
 
   // I intentionally do NOT add challengeMutation/verifyMutation to the dependency array
   // because they are stable (from TanStack Query) and adding them would cause infinite loops.

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  useCrateServicePostApiV1PowChallenge,
-  useCrateServicePostApiV1PowVerify,
+  usePowServicePostPowChallenge,
+  usePowServicePostPowVerify,
 } from "../openapi-rq/queries/queries";
 import { performProofOfWork } from "../services/computation/proofOfWork";
 import { apiAuthService } from "../services/keyManagement/apiAuthService";
@@ -39,10 +39,8 @@ const useSimplifiedAuthFlow = () => {
   const isInitializedRef = useRef(false);
 
   // Use TanStack Query mutations for Proof of Work
-  const { mutateAsync: getPowChallenge } =
-    useCrateServicePostApiV1PowChallenge();
-  const { mutateAsync: verifyPowSolution } =
-    useCrateServicePostApiV1PowVerify();
+  const { mutateAsync: getPowChallenge } = usePowServicePostPowChallenge();
+  const { mutateAsync: verifyPowSolution } = usePowServicePostPowVerify();
 
   // Check for existing auth token
   const checkExistingAuth = useCallback(async () => {
