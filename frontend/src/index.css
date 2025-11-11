@@ -1,6 +1,6 @@
+/* PWA Mobile App Enhancements */
+@import "./styles/pwa-enhancements.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* PWA Mobile App Enhancements */
-@import "./styles/pwa-enhancements.css";

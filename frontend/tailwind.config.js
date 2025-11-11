@@ -3,6 +3,21 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   darkMode: "class",
   theme: {
+    screens: {
+      'xs': '375px',
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1536px',
+      // Custom breakpoints for mobile-first design
+      'mobile': {'max': '639px'},
+      'tablet': {'min': '640px', 'max': '1023px'},
+      'desktop': {'min': '1024px'},
+      // Touch device breakpoints
+      'touch': {'raw': '(hover: none) and (pointer: coarse)'},
+      'no-touch': {'raw': '(hover: hover) and (pointer: fine)'},
+    },
     extend: {
       colors: {
         primary: {
@@ -73,6 +88,14 @@ export default {
         18: "4.5rem",
         88: "22rem",
         128: "32rem",
+        // Mobile-specific spacing
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
+        // Touch-friendly sizes
+        'touch-44': '44px', // iOS minimum touch target
+        'touch-48': '48px', // Android minimum touch target
       },
       borderRadius: {
         xl: "12px",
