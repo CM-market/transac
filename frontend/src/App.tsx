@@ -8,7 +8,7 @@ import useAuthenticationFlow from "./hooks/useAuthenticationFlow";
 import AppRoutes from "./routes/AppRoutes";
 import { CartProvider } from "./contexts/CartContext";
 import { FavoritesProvider } from "./contexts/FavoritesContext";
-import { ToastProvider } from "./components/ToastContainer";
+import { Toaster } from "./components/ui/sonner";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -52,16 +52,15 @@ function App() {
 function AppWithRouter() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <Router>
-          <FavoritesProvider>
-            <CartProvider>
-              <App />
-            </CartProvider>
-          </FavoritesProvider>
-        </Router>
-        <ReactQueryDevtools initialIsOpen={false} />
-      </ToastProvider>
+      <Router>
+        <FavoritesProvider>
+          <CartProvider>
+            <App />
+            <Toaster />
+          </CartProvider>
+        </FavoritesProvider>
+      </Router>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }

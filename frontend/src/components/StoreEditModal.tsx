@@ -6,9 +6,8 @@ export interface StoreEditData {
   id: string;
   name: string;
   description: string;
-  logo_url?: string;
   location: string;
-  contact_whatsapp: string;
+  contact_phone: string;
 }
 
 interface StoreEditModalProps {
@@ -29,9 +28,8 @@ const StoreEditModal: React.FC<StoreEditModalProps> = ({
     id: "",
     name: "",
     description: "",
-    logo_url: "",
     location: "",
-    contact_whatsapp: "",
+    contact_phone: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -41,9 +39,8 @@ const StoreEditModal: React.FC<StoreEditModalProps> = ({
         id: store.id,
         name: store.name || "",
         description: store.description || "",
-        logo_url: store.logo_url || "",
         location: store.location || "",
-        contact_whatsapp: store.contact_whatsapp || "",
+        contact_phone: store.contact_phone || "",
       });
     }
   }, [store]);
@@ -145,28 +142,6 @@ const StoreEditModal: React.FC<StoreEditModalProps> = ({
               />
             </div>
 
-            {/* Logo URL */}
-            <div>
-              <label
-                htmlFor="logo_url"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                {t("logoUrl", "Logo URL")}
-              </label>
-              <input
-                type="url"
-                id="logo_url"
-                name="logo_url"
-                value={formData.logo_url}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder={t(
-                  "logoUrlPlaceholder",
-                  "https://example.com/logo.png",
-                )}
-              />
-            </div>
-
             {/* Location */}
             <div>
               <label
@@ -198,21 +173,21 @@ const StoreEditModal: React.FC<StoreEditModalProps> = ({
             {/* WhatsApp */}
             <div>
               <label
-                htmlFor="contact_whatsapp"
+                htmlFor="contact_phone"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
                 <MessageCircle className="w-4 h-4 inline mr-1" />
-                {t("whatsappNumber", "WhatsApp Number")} *
+                {t("phoneNumber", "Phone Number")} *
               </label>
               <input
                 type="tel"
-                id="contact_whatsapp"
-                name="contact_whatsapp"
+                id="contact_phone"
+                name="contact_phone"
                 required
-                value={formData.contact_whatsapp}
+                value={formData.contact_phone}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder={t("whatsappPlaceholder", "+237 123 456 789")}
+                placeholder={t("phonePlaceholder", "+237 123 456 789")}
               />
             </div>
           </div>

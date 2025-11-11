@@ -11,17 +11,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { apiAuthService } from "../services/keyManagement/apiAuthService";
-
-interface StoreLite {
-  id: string;
-  name: string;
-  description?: string;
-  logo_url?: string;
-  location?: string;
-  contact_whatsapp?: string;
-  rating?: number;
-  created_at: string;
-}
+import { StoreModel } from "../openapi-rq/requests";
 
 interface ProductLite {
   id: string;
@@ -35,7 +25,7 @@ interface ProductLite {
 interface StoreViewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  store: StoreLite | null;
+  store: StoreModel | null;
   onAddProduct: (storeId: string) => void;
 }
 
@@ -130,20 +120,12 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
             )}
 
             {/* WhatsApp */}
-            {store.contact_whatsapp && (
+            {store.contact_phone && (
               <div className="flex items-center space-x-2">
                 <MessageCircle className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  {store.contact_whatsapp}
+                  {store.contact_phone}
                 </span>
-              </div>
-            )}
-
-            {/* Rating */}
-            {store.rating && (
-              <div className="flex items-center space-x-2">
-                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="text-sm text-gray-600">{store.rating}</span>
               </div>
             )}
 

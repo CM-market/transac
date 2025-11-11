@@ -16,22 +16,7 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:3001",
         changeOrigin: true,
-        secure: false,
-      },
-      "/healthz": {
-        target: "http://localhost:3001",
-        changeOrigin: true,
-        secure: false,
-      },
-      "/api-docs": {
-        target: "http://localhost:3001",
-        changeOrigin: true,
-        secure: false,
-      },
-      "/swagger-ui": {
-        target: "http://localhost:3001",
-        changeOrigin: true,
-        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
   },
