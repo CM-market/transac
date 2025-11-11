@@ -16,8 +16,11 @@ import {
   ExternalLink,
   Edit,
   Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import ConnectionStatus from "./ConnectionStatus";
+import { OfflineIndicator, useOfflineStatus } from "./OfflineIndicator";
+import { useOfflineData, useOfflineMutation } from "../hooks/useOfflineData";
 import StoreCreationModal, { StoreFormData } from "./StoreCreationModal";
 import StoreEditModal, { StoreEditData } from "./StoreEditModal";
 import StoreViewModal from "./StoreViewModal";
@@ -25,21 +28,7 @@ import ProductCreationModal, { ProductFormData } from "./ProductCreationModal";
 import { useToast } from "./ToastContainer";
 import { apiAuthService } from "../services/keyManagement/apiAuthService";
 
-// Simplified mock data
-const mockStores = [
-  {
-    id: "1",
-    name: "TechHub Cameroon",
-    description: "Electronics and gadgets for businesses",
-    location: "Douala, Cameroon",
-    contact_phone: "+237 123 456 789",
-    contact_email: "info@techhub.cm",
-    is_verified: true,
-    rating: 4.8,
-    total_products: 156,
-    created_at: "2024-01-15",
-  },
-];
+// Mock data removed - now using real API data
 
 // Define interfaces
 interface Product {
@@ -70,35 +59,7 @@ interface Store {
   color?: string;
 }
 
-const mockProducts = [
-  {
-    id: "1",
-    name: "Samsung Galaxy S24",
-    description: "Latest Samsung flagship smartphone",
-    price: 450000,
-    quantity_available: 25,
-    store_id: "1",
-    created_at: "2024-03-01",
-  },
-  {
-    id: "2",
-    name: "MacBook Pro M3",
-    description: "Professional laptop with M3 chip",
-    price: 850000,
-    quantity_available: 10,
-    store_id: "1",
-    created_at: "2024-03-05",
-  },
-  {
-    id: "3",
-    name: "iPhone 15 Pro",
-    description: "Premium iPhone with Pro features",
-    price: 650000,
-    quantity_available: 0,
-    store_id: "1",
-    created_at: "2024-03-10",
-  },
-];
+// Mock products removed - now using real API data
 
 interface SellerDashboardProps {
   onBack?: () => void;
@@ -107,6 +68,8 @@ interface SellerDashboardProps {
 const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
+  const { isOnline, isOffline } = useOfflineStatus();
+  
   const [activeTab, setActiveTab] = useState<
     "overview" | "stores" | "products" | "images"
   >("overview");
@@ -115,12 +78,34 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   const [showViewStore, setShowViewStore] = useState(false);
   const [showCreateProduct, setShowCreateProduct] = useState(false);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-  const [stores, setStores] = useState<Store[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [productsLoading, setProductsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [imageSearchTerm, setImageSearchTerm] = useState("");
+
+  // Use offline-aware data fetching
+  const {
+    data: storesData,
+    loading,
+    error,
+    fromCache: storesFromCache,
+    refetch: refetchStores
+  } = useOfflineData<{stores: Store[]}>('/api/v1/stores', {
+    cacheFirst: true,
+    staleWhileRevalidate: true,
+    refetchOnReconnect: true
+  });
+
+  const stores = storesData?.stores || [];
+
+  const {
+    data: productsData,
+    loading: productsLoading,
+    fromCache: productsFromCache,
+    refetch: refetchProducts
+  } = useOfflineData<Product[]>('/api/v1/products', {
+    cacheFirst: true,
+    staleWhileRevalidate: true
+  });
+
+  const products = productsData || [];
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-CM", {
@@ -133,6 +118,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("fr-CM");
   };
+
 
   // Fetch products for a specific store (seller flow)
   const fetchProducts = async (explicitStoreId?: string) => {
@@ -226,20 +212,26 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
     } finally {
       setLoading(false);
     }
-  };
+  });
 
-  // Initial load: fetch stores; products will be fetched once a store is known
-  useEffect(() => {
-    fetchStores();
-  }, []);
-
-  // Whenever stores or selected store change, and the Products tab is active, fetch products for the active store
-  useEffect(() => {
-    if (activeTab === "products") {
-      fetchProducts();
+  // Create product mutation
+  const createProductMutation = useOfflineMutation('/api/v1/products', 'POST', {
+    onSuccess: () => {
+      showToast({
+        type: "success",
+        title: "Product Created",
+        message: isOffline ? "Product will be created when you're back online" : "Product created successfully",
+      });
+      refetchProducts();
+    },
+    onError: (error) => {
+      showToast({
+        type: "error",
+        title: "Error",
+        message: error,
+      });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, stores, selectedStore]);
+  });
 
   // Helper function to generate image URL from image_id
   const getImageUrl = (imageId?: string) => {
@@ -359,7 +351,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         });
 
         // Refresh the stores list
-        await fetchStores();
+        await refetchStores();
       } catch (error) {
         console.error("Error deleting store:", error);
         showToast({
@@ -413,7 +405,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       });
 
       // Refresh the stores list to show the new store
-      await fetchStores();
+      await refetchStores();
     } catch (error) {
       console.error("Error creating store:", error);
       showToast({
@@ -459,7 +451,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       });
 
       // Refresh the stores list
-      await fetchStores();
+      await refetchStores();
       setShowEditStore(false);
       setSelectedStore(null);
     } catch (error) {
@@ -540,7 +532,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       setShowCreateProduct(false);
 
       // Refresh the products list for the product's store
-      await fetchProducts(productData.store_id);
+      await refetchProducts();
     } catch (error) {
       console.error("Error creating product:", error);
       showToast({
@@ -595,6 +587,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
+              <OfflineIndicator />
               <ConnectionStatus />
               {onBack && (
                 <button
@@ -795,9 +788,16 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         {activeTab === "stores" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {t("myStores", "My Stores")}
-              </h2>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {t("myStores", "My Stores")}
+                </h2>
+                {storesFromCache && (
+                  <p className="text-sm text-amber-600 mt-1">
+                    📱 {t("showingCachedData", "Showing cached data")}
+                  </p>
+                )}
+              </div>
               <button
                 onClick={() => setShowCreateStore(true)}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
@@ -813,6 +813,22 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                 <p className="text-gray-600">
                   {t("loadingStores", "Loading stores...")}
                 </p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {t("errorLoadingStores", "Error loading stores")}
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {error}
+                </p>
+                <button
+                  onClick={() => refetchStores()}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                >
+                  {t("tryAgain", "Try Again")}
+                </button>
               </div>
             ) : stores.length === 0 ? (
               <div className="text-center py-12">

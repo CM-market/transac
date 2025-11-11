@@ -144,6 +144,23 @@ jobs:
               depends_on:
                 - db
 
+            db:
+              image: postgres:16
+              restart: unless-stopped
+              environment:
+                - POSTGRES_DB=transac_db
+                - POSTGRES_USER=user
+                - POSTGRES_PASSWORD=password
+              volumes:
+                - postgres_data:/var/lib/postgresql/data
+              ports:
+                - "5432:5432"
+              healthcheck:
+                test: ["CMD-SHELL", "pg_isready -U user -d transac_db"]
+                interval: 30s
+                timeout: 10s
+                retries: 3
+
             minio:
               image: minio/minio:latest
               ports:
@@ -163,6 +180,7 @@ jobs:
                 retries: 3
 
           volumes:
+            postgres_data:
             minio_data:
           EOF
           
@@ -175,6 +193,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER || 'ubuntu' }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 300s
+          command_timeout: 300s
           script: |
             # Set application directory
             APP_DIR="${EC2_APP_DIR:-transac}"
@@ -240,6 +260,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER || 'ubuntu' }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 300s
+          command_timeout: 300s
           script: |
             APP_DIR="${EC2_APP_DIR:-transac}"
             
@@ -273,6 +295,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER || 'ubuntu' }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 600s
+          command_timeout: 600s
           script: |
             APP_DIR="${EC2_APP_DIR:-transac}"
             HEALTH_CHECK_URL="https://transac.site/api"
