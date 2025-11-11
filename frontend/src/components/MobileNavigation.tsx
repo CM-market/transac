@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Menu, X, Home, Store, Package, User, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface MobileNavigationProps {
   activeTab?: string;
@@ -119,8 +120,14 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
             })}
           </nav>
 
-          {/* Settings */}
-          <div className="mt-8 pt-8 border-t border-gray-200">
+          {/* Settings & Language */}
+          <div className="mt-8 pt-8 border-t border-gray-200 space-y-2">
+            <div className="px-4 py-2">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+                {t('settings', 'Settings')}
+              </p>
+              <LanguageSwitcher showLabel={true} />
+            </div>
             <button
               onClick={() => handleTabClick('settings')}
               className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors touch-target"

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { ShoppingCart, TrendingUp, Store, Building2 } from "lucide-react";
 import ConnectionStatus from "./ConnectionStatus";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 interface MarketplaceWelcomeProps {
   onBuy: () => void;
@@ -25,8 +26,9 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 pb-safe-bottom">
       <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl">
-        {/* Connection Status */}
-        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10">
+        {/* Header Controls */}
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 flex items-center space-x-2">
+          <LanguageSwitcher variant="compact" />
           <ConnectionStatus />
         </div>
 

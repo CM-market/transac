@@ -18,6 +18,7 @@ import {
   Trash2,
 } from "lucide-react";
 import ConnectionStatus from "./ConnectionStatus";
+import LanguageSwitcher from "./LanguageSwitcher";
 import StoreCreationModal, { StoreFormData } from "./StoreCreationModal";
 import StoreEditModal, { StoreEditData } from "./StoreEditModal";
 import StoreViewModal from "./StoreViewModal";
@@ -595,7 +596,8 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
               </h1>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <div className="hidden sm:block">
+              <LanguageSwitcher variant="compact" className="hidden sm:block" />
+              <div className="hidden md:block">
                 <ConnectionStatus />
               </div>
               {onBack && (
