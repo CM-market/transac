@@ -96,9 +96,9 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto mobile:max-w-full mobile:h-full mobile:rounded-none mobile:max-h-full">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-emerald-100 rounded-lg">
               <Store className="w-6 h-6 text-emerald-600" />
@@ -112,15 +112,15 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors min-h-touch-44 min-w-touch-44 flex items-center justify-center"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
         {/* Store Information */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-4 sm:p-6 border-b border-gray-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Location */}
             {store.location && (
               <div className="flex items-center space-x-2">
@@ -158,7 +158,7 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
         </div>
 
         {/* Products Section */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-gray-900">
               {t("products", "Products")} ({products.length})
@@ -196,7 +196,7 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {products.map((product) => (
                 <div
                   key={product.id}

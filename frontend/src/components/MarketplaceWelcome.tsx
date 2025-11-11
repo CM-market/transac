@@ -23,10 +23,10 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 pb-safe-bottom">
       <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl">
         {/* Connection Status */}
-        <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10">
           <ConnectionStatus />
         </div>
 
@@ -49,7 +49,7 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
         <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
           <button
             onClick={onBuy}
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:from-blue-800 active:to-blue-900 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl sm:rounded-2xl transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:from-blue-800 active:to-blue-900 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl sm:rounded-2xl transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation min-h-touch-48"
           >
             <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
             <span className="text-base sm:text-lg font-medium">
@@ -59,7 +59,7 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
 
           <button
             onClick={handleSellClick}
-            className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 active:from-emerald-800 active:to-emerald-900 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl sm:rounded-2xl transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
+            className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 active:from-emerald-800 active:to-emerald-900 text-white font-semibold py-4 sm:py-5 px-6 rounded-xl sm:rounded-2xl transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation min-h-touch-48"
           >
             <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
             <span className="text-base sm:text-lg font-medium">
@@ -108,7 +108,7 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
         {onBack && (
           <button
             onClick={onBack}
-            className="w-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-medium py-3 sm:py-4 px-6 rounded-xl sm:rounded-2xl transition-all duration-200 touch-manipulation"
+            className="w-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-medium py-3 sm:py-4 px-6 rounded-xl sm:rounded-2xl transition-all duration-200 touch-manipulation min-h-touch-44"
           >
             {t("backButton", "Back")}
           </button>

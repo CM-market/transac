@@ -583,23 +583,25 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-safe-bottom">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Store className="w-8 h-8 text-emerald-600" />
-              <h1 className="text-2xl font-bold text-gray-900">
+          <div className="flex items-center justify-between h-14 sm:h-16">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Store className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600" />
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">
                 {t("sellerDashboard", "Seller Dashboard")}
               </h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <ConnectionStatus />
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <div className="hidden sm:block">
+                <ConnectionStatus />
+              </div>
               {onBack && (
                 <button
                   onClick={onBack}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  className="px-3 py-2 sm:px-4 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors min-h-touch-44"
                 >
                   {t("back", "Back")}
                 </button>
@@ -609,66 +611,68 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Navigation Tabs */}
-        <div className="border-b border-gray-200 mb-8">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab("overview")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "overview"
-                  ? "border-emerald-500 text-emerald-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              <BarChart3 className="w-4 h-4 inline mr-2" />
-              {t("overview", "Overview")}
-            </button>
-            <button
-              onClick={() => setActiveTab("stores")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "stores"
-                  ? "border-emerald-500 text-emerald-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              <Store className="w-4 h-4 inline mr-2" />
-              {t("myStores", "My Stores")}
-            </button>
-            <button
-              onClick={() => setActiveTab("products")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "products"
-                  ? "border-emerald-500 text-emerald-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              <Package className="w-4 h-4 inline mr-2" />
-              {t("products", "Products")}
-            </button>
-            <button
-              onClick={() => setActiveTab("images")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "images"
-                  ? "border-emerald-500 text-emerald-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              <svg
-                className="w-4 h-4 inline mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+        <div className="border-b border-gray-200 mb-6 sm:mb-8">
+          <nav className="-mb-px flex overflow-x-auto scrollbar-hide">
+            <div className="flex space-x-1 sm:space-x-8 min-w-max px-2 sm:px-0">
+              <button
+                onClick={() => setActiveTab("overview")}
+                className={`py-3 px-3 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap min-h-touch-44 flex items-center ${
+                  activeTab === "overview"
+                    ? "border-emerald-500 text-emerald-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              {t("images", "Images")}
-            </button>
+                <BarChart3 className="w-4 h-4 sm:inline mr-1 sm:mr-2" />
+                <span className="hidden xs:inline">{t("overview", "Overview")}</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("stores")}
+                className={`py-3 px-3 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap min-h-touch-44 flex items-center ${
+                  activeTab === "stores"
+                    ? "border-emerald-500 text-emerald-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <Store className="w-4 h-4 sm:inline mr-1 sm:mr-2" />
+                <span className="hidden xs:inline">{t("myStores", "My Stores")}</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("products")}
+                className={`py-3 px-3 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap min-h-touch-44 flex items-center ${
+                  activeTab === "products"
+                    ? "border-emerald-500 text-emerald-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <Package className="w-4 h-4 sm:inline mr-1 sm:mr-2" />
+                <span className="hidden xs:inline">{t("products", "Products")}</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("images")}
+                className={`py-3 px-3 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap min-h-touch-44 flex items-center ${
+                  activeTab === "images"
+                    ? "border-emerald-500 text-emerald-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <svg
+                  className="w-4 h-4 sm:inline mr-1 sm:mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span className="hidden xs:inline">{t("images", "Images")}</span>
+              </button>
+            </div>
           </nav>
         </div>
 
@@ -676,44 +680,44 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         {activeTab === "overview" && (
           <div className="space-y-8">
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-              <div className="bg-white rounded-lg shadow p-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6">
+              <div className="bg-white rounded-lg shadow p-3 sm:p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-emerald-100 rounded-lg">
-                    <Store className="w-6 h-6 text-emerald-600" />
+                  <div className="p-1.5 sm:p-2 bg-emerald-100 rounded-lg">
+                    <Store className="w-4 h-4 sm:w-6 sm:h-6 text-emerald-600" />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
+                  <div className="ml-2 sm:ml-4">
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">
                       {t("totalStores", "Total Stores")}
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900">
                       {stores.length}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow p-3 sm:p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Package className="w-6 h-6 text-blue-600" />
+                  <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
+                    <Package className="w-4 h-4 sm:w-6 sm:h-6 text-blue-600" />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
+                  <div className="ml-2 sm:ml-4">
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">
                       {t("totalProducts", "Total Products")}
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900">
                       {products.length}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow p-3 sm:p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-purple-100 rounded-lg">
+                  <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg">
                     <svg
-                      className="w-6 h-6 text-purple-600"
+                      className="w-4 h-4 sm:w-6 sm:h-6 text-purple-600"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -726,41 +730,41 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                       />
                     </svg>
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
+                  <div className="ml-2 sm:ml-4">
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">
                       {t("totalImages", "Total Images")}
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900">
                       {products.filter((p) => p.image_id).length}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow p-3 sm:p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-yellow-100 rounded-lg">
-                    <Star className="w-6 h-6 text-yellow-600" />
+                  <div className="p-1.5 sm:p-2 bg-yellow-100 rounded-lg">
+                    <Star className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-600" />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
+                  <div className="ml-2 sm:ml-4">
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">
                       {t("avgRating", "Avg Rating")}
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">4.8</p>
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900">4.8</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow p-3 sm:p-6">
                 <div className="flex items-center">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Users className="w-6 h-6 text-purple-600" />
+                  <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg">
+                    <Users className="w-4 h-4 sm:w-6 sm:h-6 text-purple-600" />
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
+                  <div className="ml-2 sm:ml-4">
+                    <p className="text-xs sm:text-sm font-medium text-gray-600">
                       {t("totalViews", "Total Views")}
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">1,234</p>
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900">1,234</p>
                   </div>
                 </div>
               </div>
@@ -794,13 +798,13 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         {/* Stores Tab */}
         {activeTab === "stores" && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 {t("myStores", "My Stores")}
               </h2>
               <button
                 onClick={() => setShowCreateStore(true)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 min-h-touch-44 w-full sm:w-auto justify-center"
               >
                 <Plus className="w-4 h-4" />
                 <span>{t("createStore", "Create Store")}</span>
@@ -834,13 +838,13 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {stores.map((store) => (
                   <div
                     key={store.id}
                     className="bg-white rounded-lg shadow border border-gray-200"
                   >
-                    <div className="p-6">
+                    <div className="p-4 sm:p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center space-x-3">
                           <div
@@ -940,8 +944,8 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         {/* Products Tab */}
         {activeTab === "products" && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 {t("products", "Products")}
               </h2>
               <button
@@ -962,7 +966,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                     handleAddProduct(stores[0].id);
                   }
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 min-h-touch-44 w-full sm:w-auto justify-center"
               >
                 <Plus className="w-4 h-4" />
                 <span>{t("addProduct", "Add Product")}</span>
@@ -970,8 +974,8 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
             </div>
 
             <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">
+              <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">
                   {t("productList", "Product List")}
                 </h3>
               </div>
@@ -979,13 +983,13 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         {t("product", "Product")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         {t("store", "Store")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         {t("price", "Price")}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
