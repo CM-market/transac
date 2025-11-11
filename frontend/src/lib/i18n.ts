@@ -1,5 +1,5 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
 
 const resources = {
   en: {
@@ -15,7 +15,7 @@ const resources = {
       featureSecure: "Secure transactions and verification",
       featureLocal: "Local market focused on Cameroon businesses",
       marketplaceFooter: "Transac - Powering B2B commerce in Cameroon",
-      
+
       // Common
       loading: "Loading...",
       error: "Error",
@@ -26,19 +26,17 @@ const resources = {
       edit: "Edit",
       create: "Create",
       update: "Update",
-    }
-  }
+    },
+  },
 };
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources,
-    lng: 'en',
-    fallbackLng: 'en',
-    interpolation: {
-      escapeValue: false,
-    },
-  });
+i18n.use(initReactI18next).init({
+  resources,
+  lng: "en",
+  fallbackLng: "en",
+  interpolation: {
+    escapeValue: false,
+  },
+});
 
 export default i18n;

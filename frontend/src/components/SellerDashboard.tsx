@@ -26,6 +26,7 @@ import StoreEditModal, { StoreEditData } from "./StoreEditModal";
 import StoreViewModal from "./StoreViewModal";
 import ProductCreationModal, { ProductFormData } from "./ProductCreationModal";
 import { useToast } from "./ToastContainer";
+import { apiAuthService } from "../services/keyManagement/apiAuthService";
 
 // Mock data removed - now using real API data
 
@@ -118,22 +119,98 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
     return new Date(dateString).toLocaleDateString("fr-CM");
   };
 
-  // Use offline mutation for creating stores
-  const createStoreMutation = useOfflineMutation('/api/v1/stores', 'POST', {
-    onSuccess: () => {
-      showToast({
-        type: "success",
-        title: "Store Created",
-        message: isOffline ? "Store will be created when you're back online" : "Store created successfully",
+
+  // Fetch products for a specific store (seller flow)
+  const fetchProducts = async (explicitStoreId?: string) => {
+    try {
+      setProductsLoading(true);
+
+      // Determine the store id to query
+      let storeId: string | undefined = explicitStoreId;
+      if (!storeId && selectedStore) storeId = selectedStore.id;
+      if (!storeId && stores.length === 1) storeId = stores[0].id;
+
+      if (!storeId) {
+        // Ambiguous: multiple or zero stores and none selected
+        console.warn(
+          "Cannot fetch products: store_id is required in seller flow",
+        );
+        showToast({
+          type: "warning",
+          title: "Select a Store",
+          message: "Please select a store to view its products.",
+        });
+        setProducts([]);
+        return;
+      }
+
+      const token =
+        apiAuthService.getCurrentToken() || localStorage.getItem("authToken");
+      const response = await fetch(
+        `/api/v1/products?store_id=${encodeURIComponent(storeId)}`,
+        {
+          headers: token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : undefined,
+        },
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(data.products || []);
+      } else if (response.status === 401) {
+        console.log("User not authenticated for products, using mock data");
+        setProducts(mockProducts.filter((p) => p.store_id === storeId));
+      } else {
+        console.error("Failed to fetch products");
+        setProducts([]);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      setProducts([]);
+    } finally {
+      setProductsLoading(false);
+    }
+  };
+
+  const fetchStores = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const token =
+        apiAuthService.getCurrentToken() || localStorage.getItem("authToken");
+      const response = await fetch("/api/v1/stores", {
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : undefined,
       });
-      refetchStores();
-    },
-    onError: (error) => {
-      showToast({
-        type: "error",
-        title: "Error",
-        message: error,
-      });
+      if (!response.ok) {
+        // For 401 errors, silently fall back to mock data (user not authenticated)
+        if (response.status === 401) {
+          console.log("User not authenticated, using mock data");
+          setStores(mockStores);
+          return;
+        }
+        throw new Error(`Failed to fetch stores: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Fetched stores:", data);
+
+      // The API might return { stores: [...] } or just [...]
+      const storesList = data.stores || data || [];
+      setStores(storesList);
+    } catch (error) {
+      console.error("Error fetching stores:", error);
+      // Silently fall back to mock data instead of showing error
+      console.log("Falling back to mock data");
+      setStores(mockStores);
+    } finally {
+      setLoading(false);
     }
   });
 
@@ -252,8 +329,15 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       )
     ) {
       try {
+        const token =
+          apiAuthService.getCurrentToken() || localStorage.getItem("authToken");
         const response = await fetch(`/api/v1/stores/${storeId}`, {
           method: "DELETE",
+          headers: token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : undefined,
         });
 
         if (!response.ok) {
@@ -285,10 +369,13 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       console.log("Creating store:", storeData);
 
       // Make API call to create store
+      const token =
+        apiAuthService.getCurrentToken() || localStorage.getItem("authToken");
       const response = await fetch("/api/v1/stores", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           name: storeData.name,
@@ -333,10 +420,13 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
 
   const handleUpdateStore = async (storeData: StoreEditData) => {
     try {
+      const token =
+        apiAuthService.getCurrentToken() || localStorage.getItem("authToken");
       const response = await fetch(`/api/v1/stores/${storeData.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           name: storeData.name,
@@ -460,9 +550,16 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       const formData = new FormData();
       formData.append("file", images[i]);
 
+      const token =
+        apiAuthService.getCurrentToken() || localStorage.getItem("authToken");
       const response = await fetch(`/api/v1/products/${productId}/media`, {
         method: "POST",
         body: formData,
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : undefined,
       });
 
       if (!response.ok) {

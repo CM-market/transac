@@ -3,4 +3,4 @@
 @tailwind utilities;
 
 /* PWA Mobile App Enhancements */
-@import './styles/pwa-enhancements.css';
+@import "./styles/pwa-enhancements.css";

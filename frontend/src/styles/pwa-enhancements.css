@@ -5,7 +5,7 @@
   /* iOS Safari PWA status bar styling */
   .pwa-status-bar-spacer {
     height: env(safe-area-inset-top);
-    background: var(--primary-color, #10B981);
+    background: var(--primary-color, #10b981);
   }
 }
 
@@ -19,7 +19,7 @@
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
   }
-  
+
   /* Add native app-like spacing */
   .app-container {
     padding-top: env(safe-area-inset-top);
@@ -31,7 +31,7 @@
 
 /* Professional mobile app styling */
 .mobile-app-header {
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   padding: 1rem;
   position: sticky;
@@ -75,7 +75,7 @@
 }
 
 .bottom-nav-item.active {
-  color: #10B981;
+  color: #10b981;
 }
 
 .bottom-nav-item:hover {
@@ -137,7 +137,7 @@
 }
 
 .mobile-btn-primary {
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
 }
@@ -165,12 +165,14 @@
   height: 20px;
   border: 2px solid #f3f4f6;
   border-radius: 50%;
-  border-top-color: #10B981;
+  border-top-color: #10b981;
   animation: spin 1s ease-in-out infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Pull-to-refresh indicator */
@@ -179,7 +181,7 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  background: #10B981;
+  background: #10b981;
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 0 0 8px 8px;
@@ -200,7 +202,10 @@ html {
 }
 
 /* Touch-friendly form elements */
-input, textarea, select, button {
+input,
+textarea,
+select,
+button {
   font-size: 16px; /* Prevents zoom on iOS */
   border-radius: 8px;
   padding: 0.75rem;
@@ -208,9 +213,11 @@ input, textarea, select, button {
   transition: border-color 0.2s ease;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   outline: none;
-  border-color: #10B981;
+  border-color: #10b981;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
@@ -281,7 +288,7 @@ input:focus, textarea:focus, select:focus {
 .mobile-product-price {
   font-size: 1rem;
   font-weight: 700;
-  color: #10B981;
+  color: #10b981;
   margin: 0;
 }
 
@@ -291,13 +298,13 @@ input:focus, textarea:focus, select:focus {
     margin: 0.25rem;
     border-radius: 8px;
   }
-  
+
   .mobile-product-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
     padding: 0.5rem;
   }
-  
+
   .bottom-navigation {
     padding-bottom: env(safe-area-inset-bottom);
   }
@@ -310,34 +317,34 @@ input:focus, textarea:focus, select:focus {
     border-color: #374151;
     color: #f9fafb;
   }
-  
+
   .mobile-card-title {
     color: #f9fafb;
   }
-  
+
   .bottom-navigation {
     background: #1f2937;
     border-top-color: #374151;
   }
-  
+
   .bottom-nav-item {
     color: #9ca3af;
   }
-  
+
   .bottom-nav-item.active {
-    color: #10B981;
+    color: #10b981;
   }
-  
+
   .mobile-search input {
     background: #374151;
     border-color: #4b5563;
     color: #f9fafb;
   }
-  
+
   .mobile-product-card {
     background: #1f2937;
   }
-  
+
   .mobile-product-title {
     color: #f9fafb;
   }
@@ -358,7 +365,7 @@ input:focus, textarea:focus, select:focus {
     background: #000;
     border: 2px solid #000;
   }
-  
+
   .mobile-card {
     border: 2px solid #000;
   }
