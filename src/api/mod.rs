@@ -1,6 +1,7 @@
 pub mod image_analysis;
 pub mod media_storage;
 pub mod products;
+pub mod pwa;
 pub mod stores;
 
 use axum::Router;
@@ -12,4 +13,5 @@ pub fn _api_router(db: DatabaseConnection) -> Router<()> {
     Router::new()
         .merge(products::router(db.clone()))
         .merge(stores::router(db))
+        .merge(pwa::router())
 }

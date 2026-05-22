@@ -60,7 +60,7 @@ pub struct StoreShareResponse {
 /// Create a new store
 #[utoipa::path(
     post,
-    path = "/stores",
+    path = "/api/v1/stores",
     tag = "Stores",
     request_body = CreateStoreRequest,
     responses(
@@ -95,7 +95,7 @@ pub async fn create_store(
 /// Get a store by ID
 #[utoipa::path(
     get,
-    path = "/stores/{id}",
+    path = "/api/v1/stores/{id}",
     tag = "Stores",
     params(
         ("id" = String, Path, description = "Store ID", format = "uuid")
@@ -120,7 +120,7 @@ pub async fn get_store(
 /// List all stores
 #[utoipa::path(
     get,
-    path = "/stores",
+    path = "/api/v1/stores",
     tag = "Stores",
     responses(
         (status = 200, description = "List of stores", body = StoresListResponse),
@@ -138,7 +138,7 @@ pub async fn list_stores(State(db): State<DatabaseConnection>) -> impl IntoRespo
 /// Update a store
 #[utoipa::path(
     put,
-    path = "/stores/{id}",
+    path = "/api/v1/stores/{id}",
     tag = "Stores",
     params(
         ("id" = String, Path, description = "Store ID", format = "uuid")
@@ -178,7 +178,7 @@ pub async fn update_store(
 /// Delete a store
 #[utoipa::path(
     delete,
-    path = "/stores/{id}",
+    path = "/api/v1/stores/{id}",
     tag = "Stores",
     params(
         ("id" = String, Path, description = "Store ID", format = "uuid")
@@ -203,7 +203,7 @@ pub async fn delete_store(
 /// Generate store sharing links
 #[utoipa::path(
     get,
-    path = "/stores/{id}/share",
+    path = "/api/v1/stores/{id}/share",
     tag = "Stores",
     params(
         ("id" = String, Path, description = "Store ID", format = "uuid")
@@ -251,11 +251,11 @@ pub async fn get_store_share_links(
 #[allow(dead_code)]
 pub fn router(db: DatabaseConnection) -> Router<()> {
     Router::new()
-        .route("/stores", post(create_store))
-        .route("/stores", get(list_stores))
-        .route("/stores/:id", get(get_store))
-        .route("/stores/:id", put(update_store))
-        .route("/stores/:id", delete(delete_store))
-        .route("/stores/:id/share", get(get_store_share_links))
+        .route("/api/v1/stores", post(create_store))
+        .route("/api/v1/stores", get(list_stores))
+        .route("/api/v1/stores/:id", get(get_store))
+        .route("/api/v1/stores/:id", put(update_store))
+        .route("/api/v1/stores/:id", delete(delete_store))
+        .route("/api/v1/stores/:id/share", get(get_store_share_links))
         .with_state(db)
 }

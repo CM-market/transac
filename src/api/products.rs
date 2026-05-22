@@ -66,13 +66,13 @@ pub fn router(db: DatabaseConnection) -> Router<()> {
     let image_analysis = Arc::new(ImageAnalysisService::new());
 
     Router::new()
-        .route("/products", post(create_product).get(list_products))
+        .route("/api/v1/products", post(create_product).get(list_products))
         .route(
-            "/products/:id",
+            "/api/v1/products/:id",
             get(get_product).put(update_product).delete(delete_product),
         )
         .route(
-            "/products/:id/media",
+            "/api/v1/products/:id/media",
             post(upload_product_media)
                 .put(edit_product_media)
                 .delete(delete_product_media),
@@ -97,7 +97,7 @@ pub struct ProductApiState {
 /// Create a new product
 #[utoipa::path(
     post,
-    path = "/products",
+    path = "/api/v1/products",
     request_body = CreateProductRequest,
     responses(
         (status = 201, description = "Product created successfully", body = Model),
@@ -143,7 +143,7 @@ async fn create_product(
 /// Get a product by ID
 #[utoipa::path(
     get,
-    path = "/products/{id}",
+    path = "/api/v1/products/{id}",
     params(
         ("id" = UuidSchema, Path, description = "Product ID")
     ),
@@ -166,7 +166,7 @@ async fn get_product(
 /// List products by store ID
 #[utoipa::path(
     get,
-    path = "/products",
+    path = "/api/v1/products",
     params(
         ("store_id" = UuidSchema, Query, description = "Store ID to filter products")
     ),
@@ -189,7 +189,7 @@ async fn list_products(
 /// Update a product by ID
 #[utoipa::path(
     put,
-    path = "/products/{id}",
+    path = "/api/v1/products/{id}",
     params(
         ("id" = UuidSchema, Path, description = "Product ID")
     ),
@@ -240,7 +240,7 @@ async fn update_product(
 /// Delete a product by ID
 #[utoipa::path(
     delete,
-    path = "/products/{id}",
+    path = "/api/v1/products/{id}",
     params(
         ("id" = UuidSchema, Path, description = "Product ID")
     ),
@@ -284,7 +284,7 @@ pub struct MediaUploadResponse {
 /// Upload media for a product
 #[utoipa::path(
     post,
-    path = "/products/{id}/media",
+    path = "/api/v1/products/{id}/media",
     params(
         ("id" = UuidSchema, Path, description = "Product ID")
     ),
@@ -422,7 +422,7 @@ pub async fn upload_product_media(
 /// Replace media for a product
 #[utoipa::path(
     put,
-    path = "/products/{id}/media",
+    path = "/api/v1/products/{id}/media",
     params(
         ("id" = UuidSchema, Path, description = "Product ID")
     ),
@@ -574,7 +574,7 @@ pub async fn edit_product_media(
 /// Delete media for a product
 #[utoipa::path(
     delete,
-    path = "/products/{id}/media",
+    path = "/api/v1/products/{id}/media",
     params(
         ("id" = UuidSchema, Path, description = "Product ID")
     ),
