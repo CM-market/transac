@@ -48,3 +48,4 @@ SOLUTION.md
 *.bak
 *.tmp
 .claude/
+.env.local
