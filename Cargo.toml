@@ -31,3 +31,5 @@ async-trait = "0.1"
 urlencoding = "2.1"
 
 [dev-dependencies]
+tower = "0.5"
+http-body-util = "0.1"

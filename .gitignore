@@ -47,3 +47,5 @@ SOLUTION.md
 # Misc
 *.bak
 *.tmp
+.claude/
+.env.local
