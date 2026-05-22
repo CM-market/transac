@@ -1,10 +1,5 @@
 pub mod entity;
-use axum::{
-    http::StatusCode,
-    response::IntoResponse,
-    routing::get,
-    Json, Router,
-};
+use axum::{http::StatusCode, response::IntoResponse, routing::get, Json, Router};
 use serde::Serialize;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use utoipa::ToSchema;
@@ -190,7 +185,10 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .route("/healthz", get(healthz))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
-        .nest("/api/v1/pow", pow_routes().layer(middleware::from_fn(crypto_validation_middleware)))
+        .nest(
+            "/api/v1/pow",
+            pow_routes().layer(middleware::from_fn(crypto_validation_middleware)),
+        )
         .nest_service("/api/v1", api::stores::router(pool.clone()))
         .nest_service("/api/v1", api::products::router(pool))
         .nest_service("/api/v1", api::pwa::router())
