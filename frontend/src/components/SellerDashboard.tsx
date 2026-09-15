@@ -387,9 +387,6 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         },
         body: JSON.stringify({
           name: storeData.name,
-          description: storeData.description || null,
-          logo_url: storeData.logo_url || null,
-          location: storeData.location,
           contact_whatsapp: storeData.contact_whatsapp,
           owner_device_id: null, // Will be set by backend based on authentication
         }),
