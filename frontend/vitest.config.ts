@@ -6,7 +6,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test-setup.ts"],
     css: true,
-    // Enable only dummy tests for now
-    include: ["src/__tests__/**/*.test.ts"],
+    // Enable unit tests for both TS and TSX test files
+    include: ["src/__tests__/**/*.test.{ts,tsx}"],
   },
 });
