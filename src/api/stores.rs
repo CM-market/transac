@@ -16,11 +16,6 @@ use uuid::Uuid;
 #[derive(Deserialize, ToSchema)]
 pub struct CreateStoreRequest {
     pub name: String,
-    pub description: Option<String>,
-    pub logo_url: Option<String>,
-    pub location: Option<String>,
-    pub contact_phone: Option<String>,
-    pub contact_email: Option<String>,
     pub contact_whatsapp: Option<String>,
     pub owner_device_id: Option<String>,
 }
@@ -77,11 +72,11 @@ pub async fn create_store(
     match Store::create(
         &db,
         &request.name,
-        request.description.as_deref(),
-        request.logo_url.as_deref(),
-        request.location.as_deref(),
-        request.contact_phone.as_deref(),
-        request.contact_email.as_deref(),
+        None, // description: bare-minimum creation form only captures name + whatsapp
+        None, // logo_url
+        None, // location
+        None, // contact_phone
+        None, // contact_email
         request.contact_whatsapp.as_deref(),
         request.owner_device_id.as_deref(),
     )
