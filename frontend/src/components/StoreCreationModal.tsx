@@ -1,14 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  X,
-  Store,
-  MapPin,
-  Phone,
-  Mail,
-  MessageCircle,
-  Upload,
-} from "lucide-react";
+import { X, Store, MessageCircle } from "lucide-react";
 
 interface StoreCreationModalProps {
   isOpen: boolean;
@@ -18,9 +10,6 @@ interface StoreCreationModalProps {
 
 export interface StoreFormData {
   name: string;
-  description: string;
-  logo_url?: string;
-  location: string;
   contact_whatsapp: string;
 }
 
@@ -32,16 +21,11 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
   const { t } = useTranslation();
   const [formData, setFormData] = useState<StoreFormData>({
     name: "",
-    description: "",
-    logo_url: "",
-    location: "",
     contact_whatsapp: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -58,9 +42,6 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
       // Reset form on success
       setFormData({
         name: "",
-        description: "",
-        logo_url: "",
-        location: "",
         contact_whatsapp: "",
       });
       onClose();
@@ -75,7 +56,7 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
@@ -116,118 +97,31 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
             />
           </div>
 
-          {/* Description */}
+          {/* WhatsApp */}
           <div>
             <label
-              htmlFor="description"
+              htmlFor="contact_whatsapp"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              {t("storeDescription", "Store Description")}
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              rows={3}
-              value={formData.description}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              placeholder={t(
-                "storeDescriptionPlaceholder",
-                "Describe what your store sells",
-              )}
-            />
-          </div>
-
-          {/* Logo Upload */}
-          <div>
-            <label
-              htmlFor="logo_url"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              {t("storeLogo", "Store Logo")}
-            </label>
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-                {formData.logo_url ? (
-                  <img
-                    src={formData.logo_url}
-                    alt="Store logo"
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                ) : (
-                  <Upload className="w-6 h-6 text-gray-400" />
-                )}
-              </div>
-              <div className="flex-1">
-                <input
-                  type="url"
-                  id="logo_url"
-                  name="logo_url"
-                  value={formData.logo_url}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder={t("logoUrlPlaceholder", "Enter logo URL")}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {t("logoUrlHint", "Paste a URL to your logo image")}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Location */}
-          <div>
-            <label
-              htmlFor="location"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              <MapPin className="w-4 h-4 inline mr-1" />
-              {t("location", "Location")} *
+              <MessageCircle className="w-4 h-4 inline mr-1" />
+              {t("whatsappNumber", "WhatsApp Number")} *
             </label>
             <input
-              type="text"
-              id="location"
-              name="location"
+              type="tel"
+              id="contact_whatsapp"
+              name="contact_whatsapp"
               required
-              value={formData.location}
+              value={formData.contact_whatsapp}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              placeholder={t("locationPlaceholder", "e.g., Douala, Cameroon")}
+              placeholder={t("whatsappPlaceholder", "+237 123 456 789")}
             />
-          </div>
-
-          {/* Contact Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              {t("contactInformation", "Contact Information")}
-            </h3>
-
-            {/* WhatsApp */}
-            <div>
-              <label
-                htmlFor="contact_whatsapp"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                <MessageCircle className="w-4 h-4 inline mr-1" />
-                {t("whatsappNumber", "WhatsApp Number")} *
-              </label>
-              <input
-                type="tel"
-                id="contact_whatsapp"
-                name="contact_whatsapp"
-                required
-                value={formData.contact_whatsapp}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder={t("whatsappPlaceholder", "+237 123 456 789")}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {t(
-                  "whatsappHint",
-                  "Customers will contact you via WhatsApp for orders",
-                )}
-              </p>
-            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              {t(
+                "whatsappHint",
+                "Customers will contact you via WhatsApp for orders",
+              )}
+            </p>
           </div>
 
           {/* Submit Buttons */}
