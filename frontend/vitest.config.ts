@@ -1,12 +1,17 @@
 import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react-swc";
 
 export default defineConfig({
+  plugins: [react()],
   test: {
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/test-setup.ts"],
     css: true,
-    // Enable only dummy tests for now
-    include: ["src/__tests__/**/*.test.ts"],
+    // Dummy tests plus the store creation modal suite
+    include: [
+      "src/__tests__/**/*.test.ts",
+      "src/components/StoreCreationModal.test.tsx",
+    ],
   },
 });
