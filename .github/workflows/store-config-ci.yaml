@@ -1,0 +1,89 @@
+name: Store Config CI
+
+# Validates the committed app-store publishing configuration for T-026.
+# Ensures the TWA (Bubblewrap) manifest and Capacitor config satisfy the field contract
+# required for Google Play / Apple App Store submission, and that they stay consistent
+# with the repo's source-of-truth host (https://transac.site).
+
+on:
+  pull_request:
+
+jobs:
+  store_config_validation:
+    name: Store Config Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Run Store Config vitest suite
+        working-directory: frontend
+        run: npx vitest run src/__tests__/storeConfig.test.ts
+
+      # Independent, toolchain-free check of the TWA manifest so the contract holds even
+      # if the frontend toolchain changes.
+      - name: Validate twa-manifest.json (independent Node check)
+        working-directory: mobile/android
+        run: |
+          node -e '
+            const fs = require("fs");
+            const m = JSON.parse(fs.readFileSync("twa-manifest.json", "utf8"));
+            const required = {
+              packageId: "cm.market.transac",
+              host: "transac.site",
+              name: "Transac - B2B Marketplace",
+              shortName: "Transac",
+              launcherName: "Transac",
+              display: "standalone",
+              themeColor: "#10B981",
+              backgroundColor: "#ffffff",
+              startUrl: "/",
+            };
+            const missing = [];
+            for (const [k, v] of Object.entries(required)) {
+              if (m[k] !== v) missing.push(`${k}=${JSON.stringify(m[k])} (expected ${JSON.stringify(v)})`);
+            }
+            if (!Array.isArray(m.icons) || m.icons.length === 0) missing.push("icons (expected non-empty array)");
+            if (typeof m.appVersionCode !== "number" || m.appVersionCode < 1) missing.push("appVersionCode (expected positive integer)");
+            if (missing.length) {
+              console.error("TWA manifest validation FAILED:");
+              missing.forEach((x) => console.error("  - " + x));
+              process.exit(1);
+            }
+            console.log("TWA manifest validation OK");
+          '
+
+      # Independent check of the Capacitor JSON mirror.
+      - name: Validate capacitor.config.json (independent Node check)
+        working-directory: mobile/ios
+        run: |
+          node -e '
+            const fs = require("fs");
+            const c = JSON.parse(fs.readFileSync("capacitor.config.json", "utf8"));
+            const required = {
+              appId: "cm.market.transac",
+              appName: "Transac",
+              webDir: "../../frontend/dist",
+              backgroundColor: "#10B981",
+            };
+            const missing = [];
+            for (const [k, v] of Object.entries(required)) {
+              if (c[k] !== v) missing.push(`${k}=${JSON.stringify(c[k])} (expected ${JSON.stringify(v)})`);
+            }
+            if (!c.server || c.server.url !== "https://transac.site") missing.push("server.url=https://transac.site (expected)");
+            if (!c.server || c.server.cleartext !== false) missing.push("server.cleartext=false (expected)");
+            if (missing.length) {
+              console.error("Capacitor config validation FAILED:");
+              missing.forEach((x) => console.error("  - " + x));
+              process.exit(1);
+            }
+            console.log("Capacitor config validation OK");
+          '
