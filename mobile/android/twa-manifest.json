@@ -1,0 +1,32 @@
+{
+  "packageId": "cm.market.transac",
+  "host": "transac.site",
+  "name": "Transac - B2B Marketplace",
+  "shortName": "Transac",
+  "launcherName": "Transac",
+  "display": "standalone",
+  "themeColor": "#10B981",
+  "navigationColor": "#10B981",
+  "navigationColorDark": "#059669",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "manifestUrl": "https://transac.site/manifest.json",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "signing": {
+    "enabled": false
+  },
+  "icons": [
+    {
+      "src": "res/mipmap-xxxhdpi/ic_launcher.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "res/mipmap-xxxhdpi/ic_launcher_round.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
