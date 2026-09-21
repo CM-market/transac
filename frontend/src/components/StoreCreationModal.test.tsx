@@ -66,4 +66,21 @@ describe("StoreCreationModal", () => {
     const { container } = renderModal({ isOpen: false });
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("applies mobile-responsive, bottom-sheet classes to the dialog", () => {
+    const { container } = renderModal();
+
+    // Backdrop aligns the modal to the bottom on phones and centers on sm:+
+    expect(container.firstChild).toHaveClass("items-end");
+    expect(container.firstChild).toHaveClass("sm:items-center");
+
+    // Dialog panel uses dynamic viewport height, scrolls when long, and has
+    // mobile rounded top corners
+    const panel = container.querySelector(".bg-white");
+    expect(panel).not.toBeNull();
+    expect(panel).toHaveClass("max-h-[90dvh]");
+    expect(panel).toHaveClass("overflow-y-auto");
+    expect(panel).toHaveClass("rounded-t-2xl");
+    expect(panel).toHaveClass("sm:rounded-xl");
+  });
 });
