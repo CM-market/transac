@@ -584,19 +584,19 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Store className="w-8 h-8 text-emerald-600" />
-              <h1 className="text-2xl font-bold text-gray-900">
+          <div className="flex flex-wrap items-center justify-between gap-3 min-h-16 py-3">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <Store className="w-8 h-8 shrink-0 text-emerald-600" />
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 leading-tight">
                 {t("sellerDashboard", "Seller Dashboard")}
               </h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <ConnectionStatus />
               {onBack && (
                 <button
                   onClick={onBack}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  className="px-4 min-h-11 flex items-center text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                 >
                   {t("back", "Back")}
                 </button>
@@ -609,10 +609,10 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Navigation Tabs */}
         <div className="border-b border-gray-200 mb-8">
-          <nav className="-mb-px flex space-x-8">
+          <nav className="-mb-px flex gap-6 sm:gap-8 overflow-x-auto">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap shrink-0 ${
                 activeTab === "overview"
                   ? "border-emerald-500 text-emerald-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -623,7 +623,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
             </button>
             <button
               onClick={() => setActiveTab("stores")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap shrink-0 ${
                 activeTab === "stores"
                   ? "border-emerald-500 text-emerald-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -634,7 +634,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
             </button>
             <button
               onClick={() => setActiveTab("products")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap shrink-0 ${
                 activeTab === "products"
                   ? "border-emerald-500 text-emerald-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -645,7 +645,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
             </button>
             <button
               onClick={() => setActiveTab("images")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap shrink-0 ${
                 activeTab === "images"
                   ? "border-emerald-500 text-emerald-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"

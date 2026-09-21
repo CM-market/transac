@@ -95,10 +95,10 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
   if (!isOpen || !store) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-xl max-w-4xl w-full max-h-[90dvh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-start sm:items-center justify-between gap-3 p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-emerald-100 rounded-lg">
               <Store className="w-6 h-6 text-emerald-600" />
@@ -112,7 +112,7 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 min-h-11 min-w-11 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
@@ -159,7 +159,7 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
 
         {/* Products Section */}
         <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
             <h3 className="text-lg font-medium text-gray-900">
               {t("products", "Products")} ({products.length})
             </h3>
