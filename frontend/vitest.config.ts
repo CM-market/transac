@@ -12,6 +12,7 @@ export default defineConfig({
     include: [
       "src/__tests__/**/*.test.ts",
       "src/components/StoreCreationModal.test.tsx",
+      "src/components/SellerDashboard.test.tsx",
     ],
   },
 });
