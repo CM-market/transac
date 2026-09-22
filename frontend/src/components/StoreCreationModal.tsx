@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { X, Store, MessageCircle } from "lucide-react";
+import { X, Store, MapPin, MessageCircle, Phone } from "lucide-react";
 
 interface StoreCreationModalProps {
   isOpen: boolean;
@@ -10,6 +10,10 @@ interface StoreCreationModalProps {
 
 export interface StoreFormData {
   name: string;
+  description: string;
+  logo_url: string;
+  location: string;
+  contact_phone: string;
   contact_whatsapp: string;
 }
 
@@ -21,11 +25,17 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
   const { t } = useTranslation();
   const [formData, setFormData] = useState<StoreFormData>({
     name: "",
+    description: "",
+    logo_url: "",
+    location: "",
+    contact_phone: "",
     contact_whatsapp: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -42,6 +52,10 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
       // Reset form on success
       setFormData({
         name: "",
+        description: "",
+        logo_url: "",
+        location: "",
+        contact_phone: "",
         contact_whatsapp: "",
       });
       onClose();
@@ -77,51 +91,150 @@ const StoreCreationModal: React.FC<StoreCreationModalProps> = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Store Name */}
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              {t("storeName", "Store Name")} *
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              required
-              value={formData.name}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              placeholder={t("storeNamePlaceholder", "Enter your store name")}
-            />
+          {/* Basic Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900">
+              {t("basicInformation", "Basic Information")}
+            </h3>
+
+            {/* Store Name */}
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                {t("storeName", "Store Name")} *
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                value={formData.name}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                placeholder={t("storeNamePlaceholder", "Enter your store name")}
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                {t("description", "Description")}
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                rows={3}
+                value={formData.description}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                placeholder={t(
+                  "descriptionPlaceholder",
+                  "Describe your store and products",
+                )}
+              />
+            </div>
+
+            {/* Logo URL */}
+            <div>
+              <label
+                htmlFor="logo_url"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                {t("logoUrl", "Logo URL")}
+              </label>
+              <input
+                type="url"
+                id="logo_url"
+                name="logo_url"
+                value={formData.logo_url}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                placeholder={t(
+                  "logoUrlPlaceholder",
+                  "https://example.com/logo.png",
+                )}
+              />
+            </div>
+
+            {/* Location */}
+            <div>
+              <label
+                htmlFor="location"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                <MapPin className="w-4 h-4 inline mr-1" />
+                {t("location", "Location")} *
+              </label>
+              <input
+                type="text"
+                id="location"
+                name="location"
+                required
+                value={formData.location}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                placeholder={t("locationPlaceholder", "e.g., Douala, Cameroon")}
+              />
+            </div>
           </div>
 
-          {/* WhatsApp */}
-          <div>
-            <label
-              htmlFor="contact_whatsapp"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              <MessageCircle className="w-4 h-4 inline mr-1" />
-              {t("whatsappNumber", "WhatsApp Number")} *
-            </label>
-            <input
-              type="tel"
-              id="contact_whatsapp"
-              name="contact_whatsapp"
-              required
-              value={formData.contact_whatsapp}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              placeholder={t("whatsappPlaceholder", "+237 123 456 789")}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {t(
-                "whatsappHint",
-                "Customers will contact you via WhatsApp for orders",
-              )}
-            </p>
+          {/* Contact Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900">
+              {t("contactInformation", "Contact Information")}
+            </h3>
+
+            {/* Phone */}
+            <div>
+              <label
+                htmlFor="contact_phone"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                <Phone className="w-4 h-4 inline mr-1" />
+                {t("phoneNumber", "Phone Number")}
+              </label>
+              <input
+                type="tel"
+                id="contact_phone"
+                name="contact_phone"
+                value={formData.contact_phone}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                placeholder={t("phonePlaceholder", "+237 123 456 789")}
+              />
+            </div>
+
+            {/* WhatsApp */}
+            <div>
+              <label
+                htmlFor="contact_whatsapp"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                <MessageCircle className="w-4 h-4 inline mr-1" />
+                {t("whatsappNumber", "WhatsApp Number")} *
+              </label>
+              <input
+                type="tel"
+                id="contact_whatsapp"
+                name="contact_whatsapp"
+                required
+                value={formData.contact_whatsapp}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                placeholder={t("whatsappPlaceholder", "+237 123 456 789")}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {t(
+                  "whatsappHint",
+                  "Customers will contact you via WhatsApp for orders",
+                )}
+              </p>
+            </div>
           </div>
 
           {/* Submit Buttons */}
