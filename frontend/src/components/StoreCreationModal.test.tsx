@@ -21,36 +21,49 @@ describe("StoreCreationModal", () => {
     onSubmit.mockClear();
   });
 
-  it("renders only the name and whatsapp fields", () => {
+  it("renders all store creation fields", () => {
     renderModal();
 
     expect(screen.getByLabelText(/Store Name/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Description/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Logo URL/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Location/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Phone Number/)).toBeInTheDocument();
     expect(screen.getByLabelText(/WhatsApp Number/)).toBeInTheDocument();
-
-    // Bare-minimum form: no description, logo, or location fields
-    expect(
-      screen.queryByLabelText(/Store Description/),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByLabelText(/Store Logo/)).not.toBeInTheDocument();
-    expect(screen.queryByLabelText(/Location/)).not.toBeInTheDocument();
   });
 
-  it("submits only name and whatsapp number", async () => {
+  it("submits all store fields", async () => {
     renderModal();
 
     fireEvent.change(screen.getByLabelText(/Store Name/), {
-      target: { value: "My Store" },
+      target: { value: "TechHub Cameroon" },
+    });
+    fireEvent.change(screen.getByLabelText(/Description/), {
+      target: { value: "Electronics and gadgets" },
+    });
+    fireEvent.change(screen.getByLabelText(/Logo URL/), {
+      target: { value: "https://example.com/logo.png" },
+    });
+    fireEvent.change(screen.getByLabelText(/Location/), {
+      target: { value: "Douala, Cameroon" },
+    });
+    fireEvent.change(screen.getByLabelText(/Phone Number/), {
+      target: { value: "+237 123 456 789" },
     });
     fireEvent.change(screen.getByLabelText(/WhatsApp Number/), {
-      target: { value: "+237 123 456 789" },
+      target: { value: "+237 987 654 321" },
     });
 
     fireEvent.click(screen.getByRole("button", { name: /Create Store/i }));
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
     expect(onSubmit).toHaveBeenCalledWith({
-      name: "My Store",
-      contact_whatsapp: "+237 123 456 789",
+      name: "TechHub Cameroon",
+      description: "Electronics and gadgets",
+      logo_url: "https://example.com/logo.png",
+      location: "Douala, Cameroon",
+      contact_phone: "+237 123 456 789",
+      contact_whatsapp: "+237 987 654 321",
     });
   });
 

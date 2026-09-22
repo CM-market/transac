@@ -16,6 +16,7 @@ import {
   ExternalLink,
   Edit,
   Trash2,
+  Copy,
 } from "lucide-react";
 import ConnectionStatus from "./ConnectionStatus";
 import StoreCreationModal, { StoreFormData } from "./StoreCreationModal";
@@ -312,6 +313,33 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
     }
   };
 
+  const handleCopyStoreLink = async (storeId: string) => {
+    const store = stores.find((s) => s.id === storeId);
+    if (!store) return;
+    const shareUrl = `https://transac.site/store/${storeId}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      showToast({
+        type: "success",
+        title: t("linkCopied", "Link Copied"),
+        message: t(
+          "linkCopiedMessage",
+          "Your store link has been copied to the clipboard.",
+        ),
+      });
+    } catch (error) {
+      console.error("Failed to copy store link:", error);
+      showToast({
+        type: "error",
+        title: t("copyFailed", "Copy Failed"),
+        message: t(
+          "copyFailedMessage",
+          "Could not copy the link. Please try again.",
+        ),
+      });
+    }
+  };
+
   const handleViewStore = (storeId: string) => {
     const store = stores.find((s) => s.id === storeId);
     if (store) {
@@ -387,6 +415,10 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         },
         body: JSON.stringify({
           name: storeData.name,
+          description: storeData.description || null,
+          logo_url: storeData.logo_url || null,
+          location: storeData.location || null,
+          contact_phone: storeData.contact_phone || null,
           contact_whatsapp: storeData.contact_whatsapp,
           owner_device_id: null, // Will be set by backend based on authentication
         }),
@@ -917,6 +949,14 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                         >
                           <Share2 className="w-4 h-4" />
                           <span>{t("share", "Share")}</span>
+                        </button>
+                        <button
+                          onClick={() => handleCopyStoreLink(store.id)}
+                          className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+                          title={t("copyLink", "Copy Link")}
+                        >
+                          <Copy className="w-4 h-4" />
+                          <span>{t("copyLink", "Copy Link")}</span>
                         </button>
                         <button
                           onClick={() => handleViewStore(store.id)}
