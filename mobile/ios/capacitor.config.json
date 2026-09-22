@@ -1,0 +1,18 @@
+{
+  "appId": "cm.market.transac",
+  "appName": "Transac",
+  "webDir": "../../frontend/dist",
+  "backgroundColor": "#10B981",
+  "server": {
+    "url": "https://transac.site",
+    "cleartext": false
+  },
+  "ios": {
+    "scheme": "Transac",
+    "minimumVersion": "14.0",
+    "contentInset": "always"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
