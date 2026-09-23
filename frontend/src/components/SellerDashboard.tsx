@@ -1015,7 +1015,6 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
             </div>
           </div>
         )}
-
       </div>
 
       {/* Store Creation Modal */}
