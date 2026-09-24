@@ -7,7 +7,6 @@ import {
   Share2,
   Settings,
   BarChart3,
-  Users,
   Star,
   MapPin,
   Phone,
@@ -109,7 +108,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<
-    "overview" | "stores" | "products" | "images"
+    "overview" | "stores" | "products"
   >("overview");
   const [showCreateStore, setShowCreateStore] = useState(false);
   const [showEditStore, setShowEditStore] = useState(false);
@@ -121,7 +120,6 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [productsLoading, setProductsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [imageSearchTerm, setImageSearchTerm] = useState("");
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-CM", {
@@ -675,29 +673,6 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
               <Package className="w-4 h-4 inline mr-2" />
               {t("products", "Products")}
             </button>
-            <button
-              onClick={() => setActiveTab("images")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap shrink-0 ${
-                activeTab === "images"
-                  ? "border-emerald-500 text-emerald-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              <svg
-                className="w-4 h-4 inline mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              {t("images", "Images")}
-            </button>
           </nav>
         </div>
 
@@ -705,7 +680,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
         {activeTab === "overview" && (
           <div className="space-y-8">
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="p-2 bg-emerald-100 rounded-lg">
@@ -736,85 +711,6 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                     </p>
                   </div>
                 </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <svg
-                      className="w-6 h-6 text-purple-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
-                      {t("totalImages", "Total Images")}
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {products.filter((p) => p.image_id).length}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="p-2 bg-yellow-100 rounded-lg">
-                    <Star className="w-6 h-6 text-yellow-600" />
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
-                      {t("avgRating", "Avg Rating")}
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900">4.8</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Users className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
-                      {t("totalViews", "Total Views")}
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900">1,234</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {t("quickActions", "Quick Actions")}
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <button
-                  onClick={() => setShowCreateStore(true)}
-                  className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <Plus className="w-6 h-6 text-emerald-600 mr-3" />
-                  <div className="text-left">
-                    <p className="font-medium text-gray-900">
-                      {t("createStore", "Create Store")}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {t("createStoreDesc", "Set up a new store")}
-                    </p>
-                  </div>
-                </button>
               </div>
             </div>
           </div>
@@ -1117,164 +1013,6 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
                 </table>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Images Tab */}
-        {activeTab === "images" && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {t("allImages", "All Images")}
-              </h2>
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder={t("searchImages", "Search images...")}
-                    value={imageSearchTerm}
-                    onChange={(e) => setImageSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
-                  />
-                  <svg
-                    className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </div>
-                <div className="text-sm text-gray-500">
-                  {
-                    products.filter(
-                      (p) =>
-                        p.image_id &&
-                        (imageSearchTerm === "" ||
-                          p.name
-                            .toLowerCase()
-                            .includes(imageSearchTerm.toLowerCase()) ||
-                          (p.description &&
-                            p.description
-                              .toLowerCase()
-                              .includes(imageSearchTerm.toLowerCase()))),
-                    ).length
-                  }{" "}
-                  {t("imagesFound", "images found")}
-                </div>
-              </div>
-            </div>
-
-            {productsLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="text-gray-500">
-                  {t("loadingImages", "Loading images...")}
-                </div>
-              </div>
-            ) : products.filter((p) => p.image_id).length === 0 ? (
-              <div className="text-center py-12">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
-                  {t("noImages", "No images uploaded")}
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  {t(
-                    "noImagesDesc",
-                    "Upload some product images to see them here.",
-                  )}
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {products
-                  .filter(
-                    (product) =>
-                      product.image_id &&
-                      (imageSearchTerm === "" ||
-                        product.name
-                          .toLowerCase()
-                          .includes(imageSearchTerm.toLowerCase()) ||
-                        (product.description &&
-                          product.description
-                            .toLowerCase()
-                            .includes(imageSearchTerm.toLowerCase()))),
-                  )
-                  .map((product) => (
-                    <div
-                      key={product.id}
-                      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-                    >
-                      <div className="aspect-square relative">
-                        <img
-                          src={
-                            getImageUrl(product.image_id) ||
-                            "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNzVMMTI1IDEwMEgxMTJWMTI1SDg4VjEwMEg3NUwxMDAgNzVaIiBmaWxsPSIjOUI5QkEwIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkEwIiBmb250LXNpemU9IjEyIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+Cjwvc3ZnPg=="
-                          }
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src =
-                              "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNzVMMTI1IDEwMEgxMTJWMTI1SDg4VjEwMEg3NUwxMDAgNzVaIiBmaWxsPSIjOUI5QkEwIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkEwIiBmb250LXNpemU9IjEyIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+Cjwvc3ZnPg==";
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-opacity flex items-center justify-center">
-                          <button
-                            onClick={() => {
-                              const imageUrl = getImageUrl(product.image_id);
-                              if (imageUrl) window.open(imageUrl, "_blank");
-                            }}
-                            className="opacity-0 hover:opacity-100 transition-opacity bg-white rounded-full p-2 shadow-lg"
-                          >
-                            <ExternalLink className="w-4 h-4 text-gray-700" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-medium text-gray-900 text-sm truncate">
-                          {product.name}
-                        </h3>
-                        <p className="text-xs text-gray-500 mt-1 truncate">
-                          {product.description}
-                        </p>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-sm font-medium text-emerald-600">
-                            {formatPrice(product.price)}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {stores.find((s) => s.id === product.store_id)
-                              ?.name || "Unknown Store"}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
-                          <span>{formatDate(product.created_at)}</span>
-                          <span className="flex items-center">
-                            <Package className="w-3 h-3 mr-1" />
-                            {product.quantity_available}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
           </div>
         )}
       </div>
