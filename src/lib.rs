@@ -3,6 +3,7 @@ pub mod api {
     pub mod media_storage;
     pub mod products;
     pub mod pwa;
+    pub mod reviews;
     pub mod stores;
 }
 

@@ -2,6 +2,7 @@ pub mod image_analysis;
 pub mod media_storage;
 pub mod products;
 pub mod pwa;
+pub mod reviews;
 pub mod stores;
 
 use axum::Router;

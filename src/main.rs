@@ -210,6 +210,7 @@ async fn main() -> anyhow::Result<()> {
             pow_routes().layer(middleware::from_fn(crypto_validation_middleware)),
         )
         .nest_service("/api/v1", api::stores::router(pool.clone()))
+        .nest_service("/api/v1", api::reviews::router(pool.clone()))
         .nest_service("/api/v1", api::products::router(pool))
         .nest_service("/api/v1", api::pwa::router())
         .nest_service("/api/v1", metrics::router(api_context.active_users.clone()))
@@ -282,6 +283,8 @@ async fn main() -> anyhow::Result<()> {
         api::products::upload_product_media,
         api::products::edit_product_media,
         api::products::delete_product_media,
+        api::reviews::create_review,
+        api::reviews::list_reviews,
         api::pwa::manifest,
         api::pwa::service_worker,
         api::pwa::offline,
@@ -301,6 +304,9 @@ async fn main() -> anyhow::Result<()> {
             api::products::UpdateProductRequest,
             api::products::ListProductsQuery,
             api::products::MediaUploadResponse,
+            api::reviews::CreateReviewRequest,
+            api::reviews::ReviewResponse,
+            api::reviews::ReviewsListResponse,
             metrics::ActiveUsersResponse,
             entity::product::Model,
         )
@@ -309,6 +315,7 @@ async fn main() -> anyhow::Result<()> {
         (name = "System", description = "System health and status endpoints"),
         (name = "POW", description = "Proof of Work authentication endpoints"),
         (name = "Products", description = "Product management endpoints"),
+        (name = "Reviews", description = "Store rating and review endpoints"),
         (name = "Stores", description = "Store management endpoints"),
         (name = "PWA", description = "Progressive Web App endpoints"),
         (name = "Metrics", description = "System metrics and analytics endpoints")
