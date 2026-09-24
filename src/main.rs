@@ -11,6 +11,7 @@ mod crypto;
 mod db;
 mod error;
 mod events;
+mod metrics;
 mod migrator;
 mod request_middleware;
 
@@ -27,11 +28,13 @@ use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 use config::Config;
+use metrics::ActiveUsersTracker;
 
 #[derive(Clone)]
 pub struct ApiContext {
     pow_service: Arc<PowService>,
     jwt_service: Arc<JwtService>,
+    active_users: Arc<ActiveUsersTracker>,
 }
 
 use db::create_connection;
@@ -126,6 +129,22 @@ async fn verify_pow_solution(
     Ok(Json(crypto::types::TokenResponse { token }))
 }
 
+/// Records authenticated user activity into the shared active-user tracker.
+///
+/// Applied as an app-wide layer so that any request carrying a valid bearer
+/// JWT counts toward the active-users metric. It is purely observational: it
+/// never rejects or modifies the request.
+async fn request_user_activity_middleware(
+    State(ctx): State<ApiContext>,
+    request: axum::extract::Request,
+    next: middleware::Next,
+) -> axum::response::Response {
+    if let Some(relay_id) = metrics::extract_valid_relay_id(request.headers()) {
+        ctx.active_users.record(relay_id);
+    }
+    next.run(request).await
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Initialize tracing with structured logging
@@ -157,6 +176,7 @@ async fn main() -> anyhow::Result<()> {
             config.pow_timeout_minutes,
         )),
         jwt_service: Arc::new(JwtService::new().unwrap_or_default()),
+        active_users: Arc::new(ActiveUsersTracker::new()),
     };
 
     let pool = create_connection(&config).await?;
@@ -192,7 +212,12 @@ async fn main() -> anyhow::Result<()> {
         .nest_service("/api/v1", api::stores::router(pool.clone()))
         .nest_service("/api/v1", api::products::router(pool))
         .nest_service("/api/v1", api::pwa::router())
+        .nest_service("/api/v1", metrics::router(api_context.active_users.clone()))
         .nest("/api/v1/media", media_router)
+        .layer(middleware::from_fn_with_state(
+            api_context.clone(),
+            request_user_activity_middleware,
+        ))
         .layer(middleware::from_fn(
             request_middleware::request_logging_middleware,
         ))
@@ -260,6 +285,7 @@ async fn main() -> anyhow::Result<()> {
         api::pwa::manifest,
         api::pwa::service_worker,
         api::pwa::offline,
+        metrics::get_active_users,
     ),
     components(
         schemas(
@@ -275,6 +301,7 @@ async fn main() -> anyhow::Result<()> {
             api::products::UpdateProductRequest,
             api::products::ListProductsQuery,
             api::products::MediaUploadResponse,
+            metrics::ActiveUsersResponse,
             entity::product::Model,
         )
     ),
@@ -283,7 +310,8 @@ async fn main() -> anyhow::Result<()> {
         (name = "POW", description = "Proof of Work authentication endpoints"),
         (name = "Products", description = "Product management endpoints"),
         (name = "Stores", description = "Store management endpoints"),
-        (name = "PWA", description = "Progressive Web App endpoints")
+        (name = "PWA", description = "Progressive Web App endpoints"),
+        (name = "Metrics", description = "System metrics and analytics endpoints")
     ),
     servers(
         (url = "http://localhost:3001", description = "Local server")

@@ -14,4 +14,5 @@ pub mod entity {
 }
 pub mod config;
 pub mod events;
+pub mod metrics;
 pub mod migrator; // expose SeaORM migrator module // expose configuration loader
