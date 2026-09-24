@@ -37,6 +37,14 @@ pub struct UpdateStoreRequest {
     pub contact_whatsapp: Option<String>,
 }
 
+/// Admin approval to mark a store as verified or unverified.
+#[allow(dead_code)]
+#[derive(Deserialize, ToSchema)]
+pub struct VerificationRequest {
+    /// `true` approves (verified), `false` revokes verification.
+    pub approved: bool,
+}
+
 #[allow(dead_code)]
 #[derive(Serialize, ToSchema)]
 pub struct StoreResponse {
@@ -175,6 +183,33 @@ pub async fn update_store(
     }
 }
 
+/// Update a store's verification status (admin approval workflow)
+#[utoipa::path(
+    put,
+    path = "/api/v1/stores/{id}/verification",
+    tag = "Stores",
+    params(
+        ("id" = String, Path, description = "Store ID", format = "uuid")
+    ),
+    request_body = VerificationRequest,
+    responses(
+        (status = 200, description = "Store verification updated", body = StoreResponse),
+        (status = 404, description = "Store not found"),
+        (status = 500, description = "Internal server error")
+    )
+)]
+#[allow(dead_code)]
+pub async fn update_store_verification(
+    State(db): State<DatabaseConnection>,
+    Path(id): Path<Uuid>,
+    Json(request): Json<VerificationRequest>,
+) -> impl IntoResponse {
+    match Store::set_verified(&db, id, request.approved).await {
+        Ok(store) => (StatusCode::OK, Json(StoreResponse { store })).into_response(),
+        Err(err) => (StatusCode::NOT_FOUND, err).into_response(),
+    }
+}
+
 /// Delete a store
 #[utoipa::path(
     delete,
@@ -256,6 +291,10 @@ pub fn router(db: DatabaseConnection) -> Router<()> {
         .route("/api/v1/stores/:id", get(get_store))
         .route("/api/v1/stores/:id", put(update_store))
         .route("/api/v1/stores/:id", delete(delete_store))
+        .route(
+            "/api/v1/stores/:id/verification",
+            put(update_store_verification),
+        )
         .route("/api/v1/stores/:id/share", get(get_store_share_links))
         .with_state(db)
 }

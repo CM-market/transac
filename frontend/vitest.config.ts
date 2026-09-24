@@ -13,6 +13,7 @@ export default defineConfig({
       "src/__tests__/**/*.test.ts",
       "src/components/StoreCreationModal.test.tsx",
       "src/components/SellerDashboard.test.tsx",
+      "src/components/StoreViewModal.test.tsx",
     ],
   },
 });
