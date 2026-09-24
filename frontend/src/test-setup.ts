@@ -21,6 +21,8 @@ const indexedDB = {
 
 Object.defineProperty(window, "indexedDB", {
   value: indexedDB,
+  configurable: true, // allow tests to swap in fake-indexeddb
+  writable: true,
 });
 
 // Mock localStorage

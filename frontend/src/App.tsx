@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter as Router } from "react-router-dom";
 
@@ -7,15 +7,7 @@ import useSimplifiedAuthFlow from "./hooks/useSimplifiedAuthFlow";
 import AppRoutes from "./routes/AppRoutes";
 import { ToastProvider } from "./components/ToastContainer";
 import { PWAStatusIndicator } from "./components/PWAInstallPrompt";
-
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-    },
-  },
-});
+import { queryClient } from "./lib/queryClient";
 
 function App() {
   // Use the simplified authentication flow (without registration)
