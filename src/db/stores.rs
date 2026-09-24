@@ -133,6 +133,33 @@ impl Store {
         Ok(res)
     }
 
+    /// Set whether a store is verified (admin approval workflow).
+    pub async fn set_verified(
+        db: &DatabaseConnection,
+        id: Uuid,
+        verified: bool,
+    ) -> Result<StoreModel, String> {
+        let store = StoreEntity::find_by_id(id)
+            .one(db)
+            .await
+            .map_err(|e| {
+                error!("Failed to fetch store {}: {:?}", id, e);
+                "Failed to update store verification. Please try again later.".to_string()
+            })?
+            .ok_or_else(|| "Store not found.".to_string())?;
+
+        let mut active: StoreActiveModel = store.into();
+        active.is_verified = Set(verified);
+        active.updated_at = Set(Utc::now());
+
+        let res = active.update(db).await.map_err(|e| {
+            error!("Failed to set verification for store {}: {:?}", id, e);
+            "Failed to update store verification. Please try again later.".to_string()
+        })?;
+        debug!("Store {} verification set to {}", id, verified);
+        Ok(res)
+    }
+
     pub async fn delete(db: &DatabaseConnection, id: Uuid) -> Result<(), String> {
         let store = StoreEntity::find_by_id(id)
             .one(db)

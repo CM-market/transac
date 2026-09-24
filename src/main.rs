@@ -285,6 +285,7 @@ async fn main() -> anyhow::Result<()> {
         api::products::delete_product_media,
         api::reviews::create_review,
         api::reviews::list_reviews,
+        api::stores::update_store_verification,
         api::pwa::manifest,
         api::pwa::service_worker,
         api::pwa::offline,
@@ -307,6 +308,7 @@ async fn main() -> anyhow::Result<()> {
             api::reviews::CreateReviewRequest,
             api::reviews::ReviewResponse,
             api::reviews::ReviewsListResponse,
+            api::stores::VerificationRequest,
             metrics::ActiveUsersResponse,
             entity::product::Model,
         )
