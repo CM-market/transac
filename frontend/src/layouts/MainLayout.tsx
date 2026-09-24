@@ -1,6 +1,8 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import { Toaster } from "sonner";
+import ConnectionStatus from "../components/ConnectionStatus";
+import OfflineStatusBar from "../components/OfflineStatusBar";
 
 interface MainLayoutProps {
   children?: React.ReactNode;
@@ -9,6 +11,11 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      {/* Offline / queued-sync banner pinned to the top of the viewport. */}
+      <OfflineStatusBar />
+      <div className="flex justify-end px-4 pt-2">
+        <ConnectionStatus />
+      </div>
       <main className="container mx-auto px-4 py-8">
         {children ?? <Outlet />}
       </main>
