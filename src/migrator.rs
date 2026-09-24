@@ -10,7 +10,99 @@ impl MigratorTrait for Migrator {
             Box::new(m20251001_create_stores::Migration),
             Box::new(m20251002_create_products::Migration),
             Box::new(m20251003_fix_price_type::Migration),
+            Box::new(m20251004_create_reviews::Migration),
         ]
+    }
+}
+
+mod m20251004_create_reviews {
+    use super::*;
+
+    pub struct Migration;
+
+    impl MigrationName for Migration {
+        fn name(&self) -> &str {
+            "m20251004_create_reviews"
+        }
+    }
+
+    #[async_trait::async_trait]
+    impl MigrationTrait for Migration {
+        async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+            // Create reviews table
+            manager
+                .create_table(
+                    Table::create()
+                        .table(Reviews::Table)
+                        .if_not_exists()
+                        .col(ColumnDef::new(Reviews::Id).uuid().not_null().primary_key())
+                        .col(ColumnDef::new(Reviews::StoreId).uuid().not_null())
+                        .col(
+                            ColumnDef::new(Reviews::BuyerDeviceId)
+                                .string_len(255)
+                                .not_null(),
+                        )
+                        .col(
+                            ColumnDef::new(Reviews::Rating)
+                                .small_integer()
+                                .not_null()
+                                .check(Expr::col(Reviews::Rating).between(1, 5)),
+                        )
+                        .col(ColumnDef::new(Reviews::Comment).text())
+                        .col(
+                            ColumnDef::new(Reviews::CreatedAt)
+                                .timestamp_with_time_zone()
+                                .not_null()
+                                .default(Expr::cust("now()")),
+                        )
+                        .foreign_key(
+                            ForeignKey::create()
+                                .name("fk_reviews_store")
+                                .from(Reviews::Table, Reviews::StoreId)
+                                .to(Stores::Table, Stores::Id)
+                                .on_delete(ForeignKeyAction::Cascade),
+                        )
+                        .to_owned(),
+                )
+                .await?;
+
+            // Index on store_id for efficient lookups/aggregation
+            manager
+                .create_index(
+                    Index::create()
+                        .if_not_exists()
+                        .name("idx_reviews_store_id")
+                        .table(Reviews::Table)
+                        .col(Reviews::StoreId)
+                        .to_owned(),
+                )
+                .await?;
+
+            Ok(())
+        }
+
+        async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+            manager
+                .drop_table(Table::drop().table(Reviews::Table).if_exists().to_owned())
+                .await
+        }
+    }
+
+    #[derive(Iden)]
+    enum Stores {
+        Table,
+        Id,
+    }
+
+    #[derive(Iden)]
+    enum Reviews {
+        Table,
+        Id,
+        StoreId,
+        BuyerDeviceId,
+        Rating,
+        Comment,
+        CreatedAt,
     }
 }
 
