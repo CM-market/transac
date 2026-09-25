@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { ShoppingCart, TrendingUp, Store, Building2 } from "lucide-react";
+import { ShoppingCart, TrendingUp, Store, Building2, User } from "lucide-react";
 import ConnectionStatus from "./ConnectionStatus";
 
 interface MarketplaceWelcomeProps {
@@ -20,6 +20,10 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
 
   const handleSellClick = () => {
     navigate("/seller-dashboard");
+  };
+
+  const handleProfileClick = () => {
+    navigate("/profile");
   };
 
   return (
@@ -67,6 +71,15 @@ const MarketplaceWelcome: React.FC<MarketplaceWelcomeProps> = ({
             </span>
           </button>
         </div>
+
+        {/* Profile Link */}
+        <button
+          onClick={handleProfileClick}
+          className="w-full bg-white hover:bg-gray-50 active:bg-gray-100 text-blue-700 font-medium py-3 sm:py-3.5 px-6 rounded-xl sm:rounded-2xl transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm border border-blue-200 hover:border-blue-300 touch-manipulation mb-6 sm:mb-8"
+        >
+          <User className="w-5 h-5" />
+          <span>{t("profileButton", "My Profile")}</span>
+        </button>
 
         {/* Business Features */}
         <div className="bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-8 mb-6 shadow-sm">

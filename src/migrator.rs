@@ -11,6 +11,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20251002_create_products::Migration),
             Box::new(m20251003_fix_price_type::Migration),
             Box::new(m20251004_create_reviews::Migration),
+            Box::new(m20251005_create_profiles::Migration),
         ]
     }
 }
@@ -514,5 +515,115 @@ mod m20251002_create_products {
         Price,
         QuantityAvailable,
         CreatedAt,
+    }
+}
+
+mod m20251005_create_profiles {
+    use super::*;
+
+    pub struct Migration;
+
+    impl MigrationName for Migration {
+        fn name(&self) -> &str {
+            "m20251005_create_profiles"
+        }
+    }
+
+    #[async_trait::async_trait]
+    impl MigrationTrait for Migration {
+        async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+            // Create profiles table
+            manager
+                .create_table(
+                    Table::create()
+                        .table(Profiles::Table)
+                        .if_not_exists()
+                        .col(ColumnDef::new(Profiles::Id).uuid().not_null().primary_key())
+                        .col(
+                            ColumnDef::new(Profiles::DeviceId)
+                                .string_len(255)
+                                .not_null(),
+                        )
+                        .col(ColumnDef::new(Profiles::Name).string_len(255).not_null())
+                        .col(ColumnDef::new(Profiles::Phone).string_len(32))
+                        .col(ColumnDef::new(Profiles::Location).string_len(255))
+                        .col(
+                            ColumnDef::new(Profiles::CreatedAt)
+                                .timestamp_with_time_zone()
+                                .not_null()
+                                .default(Expr::cust("now()")),
+                        )
+                        .col(
+                            ColumnDef::new(Profiles::UpdatedAt)
+                                .timestamp_with_time_zone()
+                                .not_null()
+                                .default(Expr::cust("now()")),
+                        )
+                        .to_owned(),
+                )
+                .await?;
+
+            // Unique index on device_id: one profile per user.
+            manager
+                .create_index(
+                    Index::create()
+                        .if_not_exists()
+                        .name("idx_profiles_device_id")
+                        .unique()
+                        .table(Profiles::Table)
+                        .col(Profiles::DeviceId)
+                        .to_owned(),
+                )
+                .await?;
+
+            // Trigger to keep updated_at in sync on UPDATE.
+            let conn = manager.get_connection();
+            let func_sql = r#"
+                CREATE OR REPLACE FUNCTION update_profiles_updated_at()
+                RETURNS TRIGGER AS $$
+                BEGIN
+                    NEW.updated_at = NOW();
+                    RETURN NEW;
+                END;
+                $$ language 'plpgsql';
+            "#;
+            conn.execute(Statement::from_string(
+                DatabaseBackend::Postgres,
+                func_sql.to_string(),
+            ))
+            .await?;
+
+            let trigger_sql = r#"
+                CREATE TRIGGER update_profiles_updated_at
+                    BEFORE UPDATE ON profiles
+                    FOR EACH ROW
+                    EXECUTE FUNCTION update_profiles_updated_at();
+            "#;
+            conn.execute(Statement::from_string(
+                DatabaseBackend::Postgres,
+                trigger_sql.to_string(),
+            ))
+            .await?;
+
+            Ok(())
+        }
+
+        async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+            manager
+                .drop_table(Table::drop().table(Profiles::Table).if_exists().to_owned())
+                .await
+        }
+    }
+
+    #[derive(Iden)]
+    enum Profiles {
+        Table,
+        Id,
+        DeviceId,
+        Name,
+        Phone,
+        Location,
+        CreatedAt,
+        UpdatedAt,
     }
 }

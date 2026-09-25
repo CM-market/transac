@@ -1,4 +1,5 @@
 pub mod products;
+pub mod profiles;
 pub mod reviews;
 pub mod stores;
 
