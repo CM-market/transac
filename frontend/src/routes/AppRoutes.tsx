@@ -1,7 +1,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { MainLayout } from "../layouts";
-import { ErrorPage, LoadingPage } from "../pages";
+import { ErrorPage, LoadingPage, Profile } from "../pages";
 import PowScreen from "../components/PowScreen";
 import MarketplaceWelcome from "../components/MarketplaceWelcome";
 import SellerDashboard from "../components/SellerDashboard";
@@ -53,6 +53,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           path="/seller-dashboard"
           element={<SellerDashboard onBack={() => window.history.back()} />}
         />
+        <Route path="/profile" element={<Profile />} />
         {/* Default redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

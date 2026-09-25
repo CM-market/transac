@@ -14,6 +14,7 @@ export default defineConfig({
       "src/components/StoreCreationModal.test.tsx",
       "src/components/SellerDashboard.test.tsx",
       "src/components/StoreViewModal.test.tsx",
+      "src/components/Profile.test.tsx",
     ],
   },
 });

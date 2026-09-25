@@ -211,6 +211,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .nest_service("/api/v1", api::stores::router(pool.clone()))
         .nest_service("/api/v1", api::reviews::router(pool.clone()))
+        .nest_service("/api/v1", api::profiles::router(pool.clone()))
         .nest_service("/api/v1", api::products::router(pool))
         .nest_service("/api/v1", api::pwa::router())
         .nest_service("/api/v1", metrics::router(api_context.active_users.clone()))
@@ -286,6 +287,8 @@ async fn main() -> anyhow::Result<()> {
         api::reviews::create_review,
         api::reviews::list_reviews,
         api::stores::update_store_verification,
+        api::profiles::get_my_profile,
+        api::profiles::upsert_my_profile,
         api::pwa::manifest,
         api::pwa::service_worker,
         api::pwa::offline,
@@ -310,6 +313,9 @@ async fn main() -> anyhow::Result<()> {
             api::reviews::ReviewsListResponse,
             api::stores::VerificationRequest,
             metrics::ActiveUsersResponse,
+            api::profiles::ProfileResponse,
+            api::profiles::UpsertProfileRequest,
+            entity::profile::Model,
             entity::product::Model,
         )
     ),
@@ -319,6 +325,7 @@ async fn main() -> anyhow::Result<()> {
         (name = "Products", description = "Product management endpoints"),
         (name = "Reviews", description = "Store rating and review endpoints"),
         (name = "Stores", description = "Store management endpoints"),
+        (name = "Profiles", description = "User profile management endpoints"),
         (name = "PWA", description = "Progressive Web App endpoints"),
         (name = "Metrics", description = "System metrics and analytics endpoints")
     ),
