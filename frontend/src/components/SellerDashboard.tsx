@@ -18,6 +18,7 @@ import {
   Copy,
 } from "lucide-react";
 import ConnectionStatus from "./ConnectionStatus";
+import NotificationBell from "./NotificationBell";
 import StoreCreationModal, { StoreFormData } from "./StoreCreationModal";
 import StoreEditModal, { StoreEditData } from "./StoreEditModal";
 import StoreViewModal from "./StoreViewModal";
@@ -623,6 +624,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ onBack }) => {
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
               <ConnectionStatus />
+              <NotificationBell />
               {onBack && (
                 <button
                   onClick={onBack}

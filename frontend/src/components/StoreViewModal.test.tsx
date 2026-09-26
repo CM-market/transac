@@ -144,4 +144,86 @@ describe("StoreViewModal", () => {
     );
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("places an order for a product and confirms the seller is notified", async () => {
+    const product = {
+      id: "p1",
+      name: "Widget",
+      description: "A widget",
+      price: 1000,
+      quantity_available: 10,
+      created_at: "2024-01-15T00:00:00.000Z",
+    };
+    global.fetch = vi
+      .fn()
+      .mockImplementation((url: string, init?: RequestInit) => {
+        const method = (init?.method || "GET").toUpperCase();
+        if (url.endsWith("/reviews") && method === "POST") {
+          return Promise.resolve({
+            ok: true,
+            status: 201,
+            json: () => Promise.resolve({}),
+          });
+        }
+        if (url.includes("/stores/store-1")) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: () => Promise.resolve({ store: { ...baseStore } }),
+          });
+        }
+        if (url.includes("/orders") && method === "POST") {
+          return Promise.resolve({
+            ok: true,
+            status: 201,
+            json: () =>
+              Promise.resolve({
+                order_id: "o1",
+                product_id: "p1",
+                product_name: "Widget",
+                quantity: 2,
+                unit_price: 1000,
+                total: 2000,
+                store_id: "store-1",
+              }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ products: [product] }),
+        });
+      });
+
+    render(
+      <I18nextProvider i18n={i18n}>
+        <StoreViewModal
+          isOpen
+          onClose={onClose}
+          store={baseStore}
+          onAddProduct={onAddProduct}
+        />
+      </I18nextProvider>,
+    );
+
+    // Product appears; set quantity to 2 and place the order.
+    await screen.findByText("Widget");
+    const qty = screen.getByTestId("order-qty-p1") as HTMLInputElement;
+    fireEvent.change(qty, { target: { value: "2" } });
+    fireEvent.click(screen.getByTestId("place-order-p1"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("order-message")).toBeInTheDocument();
+    });
+
+    const fetchMock = global.fetch as unknown as ReturnType<typeof vi.fn>;
+    const orderCall = fetchMock.mock.calls.find((call: unknown[]) =>
+      String(call[0]).includes("/orders"),
+    );
+    expect(orderCall).toBeTruthy();
+    const [, init] = orderCall;
+    const body = JSON.parse(init.body);
+    expect(body.product_id).toBe("p1");
+    expect(body.quantity).toBe(2);
+  });
 });
