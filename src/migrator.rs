@@ -12,6 +12,8 @@ impl MigratorTrait for Migrator {
             Box::new(m20251003_fix_price_type::Migration),
             Box::new(m20251004_create_reviews::Migration),
             Box::new(m20251005_create_profiles::Migration),
+            Box::new(m20251006_create_notifications::Migration),
+            Box::new(m20251007_create_orders::Migration),
         ]
     }
 }
@@ -625,5 +627,228 @@ mod m20251005_create_profiles {
         Location,
         CreatedAt,
         UpdatedAt,
+    }
+}
+
+mod m20251006_create_notifications {
+    use super::*;
+
+    pub struct Migration;
+
+    impl MigrationName for Migration {
+        fn name(&self) -> &str {
+            "m20251006_create_notifications"
+        }
+    }
+
+    #[async_trait::async_trait]
+    impl MigrationTrait for Migration {
+        async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+            // Create notifications table
+            manager
+                .create_table(
+                    Table::create()
+                        .table(Notifications::Table)
+                        .if_not_exists()
+                        .col(
+                            ColumnDef::new(Notifications::Id)
+                                .uuid()
+                                .not_null()
+                                .primary_key(),
+                        )
+                        .col(
+                            ColumnDef::new(Notifications::SellerDeviceId)
+                                .string_len(255)
+                                .not_null(),
+                        )
+                        .col(
+                            ColumnDef::new(Notifications::Title)
+                                .string_len(255)
+                                .not_null(),
+                        )
+                        .col(ColumnDef::new(Notifications::Message).text().not_null())
+                        .col(
+                            ColumnDef::new(Notifications::Payload)
+                                .json_binary()
+                                .not_null(),
+                        )
+                        .col(
+                            ColumnDef::new(Notifications::IsRead)
+                                .boolean()
+                                .not_null()
+                                .default(false),
+                        )
+                        .col(
+                            ColumnDef::new(Notifications::CreatedAt)
+                                .timestamp_with_time_zone()
+                                .not_null()
+                                .default(Expr::cust("now()")),
+                        )
+                        .to_owned(),
+                )
+                .await?;
+
+            // Index on seller_device_id for efficient per-seller lookups.
+            manager
+                .create_index(
+                    Index::create()
+                        .if_not_exists()
+                        .name("idx_notifications_seller")
+                        .table(Notifications::Table)
+                        .col(Notifications::SellerDeviceId)
+                        .to_owned(),
+                )
+                .await?;
+
+            Ok(())
+        }
+
+        async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+            manager
+                .drop_table(
+                    Table::drop()
+                        .table(Notifications::Table)
+                        .if_exists()
+                        .to_owned(),
+                )
+                .await
+        }
+    }
+
+    #[derive(Iden)]
+    enum Notifications {
+        Table,
+        Id,
+        SellerDeviceId,
+        Title,
+        Message,
+        Payload,
+        IsRead,
+        CreatedAt,
+    }
+}
+
+mod m20251007_create_orders {
+    use super::*;
+
+    pub struct Migration;
+
+    impl MigrationName for Migration {
+        fn name(&self) -> &str {
+            "m20251007_create_orders"
+        }
+    }
+
+    #[async_trait::async_trait]
+    impl MigrationTrait for Migration {
+        async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+            // Create orders table
+            manager
+                .create_table(
+                    Table::create()
+                        .table(Orders::Table)
+                        .if_not_exists()
+                        .col(ColumnDef::new(Orders::Id).uuid().not_null().primary_key())
+                        .col(ColumnDef::new(Orders::ProductId).uuid().not_null())
+                        .col(ColumnDef::new(Orders::StoreId).uuid().not_null())
+                        .col(
+                            ColumnDef::new(Orders::BuyerDeviceId)
+                                .string_len(255)
+                                .not_null(),
+                        )
+                        .col(
+                            ColumnDef::new(Orders::SellerDeviceId)
+                                .string_len(255)
+                                .not_null(),
+                        )
+                        .col(ColumnDef::new(Orders::Quantity).integer().not_null())
+                        .col(
+                            ColumnDef::new(Orders::UnitPrice)
+                                .double()
+                                .not_null()
+                                .default(0.0),
+                        )
+                        .col(
+                            ColumnDef::new(Orders::Total)
+                                .double()
+                                .not_null()
+                                .default(0.0),
+                        )
+                        .col(
+                            ColumnDef::new(Orders::ProductName)
+                                .string_len(255)
+                                .not_null(),
+                        )
+                        .col(
+                            ColumnDef::new(Orders::CreatedAt)
+                                .timestamp_with_time_zone()
+                                .not_null()
+                                .default(Expr::cust("now()")),
+                        )
+                        .foreign_key(
+                            ForeignKey::create()
+                                .name("fk_orders_product")
+                                .from(Orders::Table, Orders::ProductId)
+                                .to(Products::Table, Products::Id)
+                                .on_delete(ForeignKeyAction::Cascade),
+                        )
+                        .foreign_key(
+                            ForeignKey::create()
+                                .name("fk_orders_store")
+                                .from(Orders::Table, Orders::StoreId)
+                                .to(Stores::Table, Stores::Id)
+                                .on_delete(ForeignKeyAction::Cascade),
+                        )
+                        .to_owned(),
+                )
+                .await?;
+
+            // Index on seller_device_id for listing a seller's orders.
+            manager
+                .create_index(
+                    Index::create()
+                        .if_not_exists()
+                        .name("idx_orders_seller")
+                        .table(Orders::Table)
+                        .col(Orders::SellerDeviceId)
+                        .to_owned(),
+                )
+                .await?;
+
+            Ok(())
+        }
+
+        async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+            manager
+                .drop_table(Table::drop().table(Orders::Table).if_exists().to_owned())
+                .await
+        }
+    }
+
+    #[derive(Iden)]
+    enum Orders {
+        Table,
+        Id,
+        ProductId,
+        StoreId,
+        BuyerDeviceId,
+        SellerDeviceId,
+        Quantity,
+        UnitPrice,
+        Total,
+        ProductName,
+        CreatedAt,
+    }
+
+    #[derive(Iden)]
+    enum Products {
+        Table,
+        Id,
+    }
+
+    #[derive(Iden)]
+    enum Stores {
+        Table,
+        Id,
     }
 }
