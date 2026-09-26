@@ -26,6 +26,20 @@ const resources = {
       edit: "Edit",
       create: "Create",
       update: "Update",
+
+      // Notifications (seller)
+      notifications: "Notifications",
+      noNotifications: "No notifications yet.",
+      markAllRead: "Mark all read",
+      markRead: "Mark as read",
+      notificationsLoadError: "Unable to load notifications.",
+
+      // Buyer order placement
+      quantity: "Quantity",
+      placeOrder: "Place order",
+      placing: "Placing...",
+      orderPlaced: "Order placed! The seller has been notified.",
+      orderFailed: "Unable to place order. Please try again.",
     },
   },
 };

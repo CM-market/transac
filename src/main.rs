@@ -212,6 +212,8 @@ async fn main() -> anyhow::Result<()> {
         .nest_service("/api/v1", api::stores::router(pool.clone()))
         .nest_service("/api/v1", api::reviews::router(pool.clone()))
         .nest_service("/api/v1", api::profiles::router(pool.clone()))
+        .nest_service("/api/v1", api::notifications::router(pool.clone()))
+        .nest_service("/api/v1", api::orders::router(pool.clone()))
         .nest_service("/api/v1", api::products::router(pool))
         .nest_service("/api/v1", api::pwa::router())
         .nest_service("/api/v1", metrics::router(api_context.active_users.clone()))
@@ -289,6 +291,11 @@ async fn main() -> anyhow::Result<()> {
         api::stores::update_store_verification,
         api::profiles::get_my_profile,
         api::profiles::upsert_my_profile,
+        api::notifications::list_notifications,
+        api::notifications::unread_count,
+        api::notifications::mark_read,
+        api::notifications::mark_all_read,
+        api::orders::create_order,
         api::pwa::manifest,
         api::pwa::service_worker,
         api::pwa::offline,
@@ -315,8 +322,16 @@ async fn main() -> anyhow::Result<()> {
             metrics::ActiveUsersResponse,
             api::profiles::ProfileResponse,
             api::profiles::UpsertProfileRequest,
+            api::notifications::NotificationsListResponse,
+            api::notifications::UnreadCountResponse,
+            api::notifications::MarkReadResponse,
+            api::notifications::MarkAllReadResponse,
+            api::orders::CreateOrderRequest,
+            api::orders::CreateOrderResponse,
             entity::profile::Model,
             entity::product::Model,
+            entity::notification::Model,
+            entity::order::Model,
         )
     ),
     tags(
@@ -326,6 +341,8 @@ async fn main() -> anyhow::Result<()> {
         (name = "Reviews", description = "Store rating and review endpoints"),
         (name = "Stores", description = "Store management endpoints"),
         (name = "Profiles", description = "User profile management endpoints"),
+        (name = "Notifications", description = "Seller notification endpoints"),
+        (name = "Orders", description = "Buyer order placement endpoints"),
         (name = "PWA", description = "Progressive Web App endpoints"),
         (name = "Metrics", description = "System metrics and analytics endpoints")
     ),

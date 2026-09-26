@@ -1,3 +1,5 @@
+pub mod notifications;
+pub mod orders;
 pub mod products;
 pub mod profiles;
 pub mod reviews;

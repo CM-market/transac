@@ -1,6 +1,8 @@
 pub mod api {
     pub mod image_analysis;
     pub mod media_storage;
+    pub mod notifications;
+    pub mod orders;
     pub mod products;
     pub mod profiles;
     pub mod pwa;
@@ -11,6 +13,8 @@ pub mod api {
 pub mod auth;
 pub mod db; // expose entire db module including create_connection
 pub mod entity {
+    pub mod notification;
+    pub mod order;
     pub mod product;
     pub mod profile;
     pub mod review;

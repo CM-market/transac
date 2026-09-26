@@ -65,6 +65,11 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewError, setReviewError] = useState<string>("");
   const [reviewMessage, setReviewMessage] = useState<string>("");
+  // Per-product order quantities and placement state.
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [placingOrder, setPlacingOrder] = useState<string | null>(null);
+  const [orderMessage, setOrderMessage] = useState<string>("");
+  const [orderError, setOrderError] = useState<string>("");
 
   useEffect(() => {
     if (store) {
@@ -165,10 +170,45 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
     }
   };
 
+  const placeOrder = async (product: ProductLite) => {
+    const quantity = quantities[product.id] || 1;
+    setOrderMessage("");
+    setOrderError("");
+    setPlacingOrder(product.id);
+    try {
+      const response = await fetch(`/api/v1/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders(),
+        },
+        body: JSON.stringify({ product_id: product.id, quantity }),
+      });
+      if (response.ok) {
+        setOrderMessage(
+          t("orderPlaced", "Order placed! The seller has been notified."),
+        );
+        // Refresh products so the stock count reflects the order.
+        await fetchStoreProducts();
+      } else {
+        const text = await response.text();
+        setOrderError(
+          text || t("orderFailed", "Unable to place order. Please try again."),
+        );
+      }
+    } catch (err) {
+      console.error("Error placing order:", err);
+      setOrderError(
+        t("orderFailed", "Unable to place order. Please try again."),
+      );
+    } finally {
+      setPlacingOrder(null);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("fr-CM");
   };
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-CM", {
       style: "currency",
@@ -389,9 +429,61 @@ const StoreViewModal: React.FC<StoreViewModalProps> = ({
                     </span>
                     <span>{formatDate(product.created_at)}</span>
                   </div>
+
+                  {/* Buyer order controls */}
+                  {product.quantity_available > 0 && (
+                    <div className="flex items-center gap-2 mt-3">
+                      <input
+                        type="number"
+                        min={1}
+                        max={product.quantity_available}
+                        value={quantities[product.id] || 1}
+                        onChange={(e) =>
+                          setQuantities((prev) => ({
+                            ...prev,
+                            [product.id]: Math.max(
+                              1,
+                              Math.min(
+                                product.quantity_available,
+                                Number(e.target.value) || 1,
+                              ),
+                            ),
+                          }))
+                        }
+                        data-testid={`order-qty-${product.id}`}
+                        aria-label={t("quantity", "Quantity")}
+                        className="w-16 border border-gray-300 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        onClick={() => placeOrder(product)}
+                        disabled={placingOrder === product.id}
+                        data-testid={`place-order-${product.id}`}
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                      >
+                        {placingOrder === product.id
+                          ? t("placing", "Placing...")
+                          : t("placeOrder", "Place order")}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
+          )}
+
+          {/* Order feedback */}
+          {orderMessage && (
+            <p
+              className="mt-4 text-sm text-emerald-600 font-medium"
+              data-testid="order-message"
+            >
+              {orderMessage}
+            </p>
+          )}
+          {orderError && (
+            <p className="mt-4 text-sm text-red-600" data-testid="order-error">
+              {orderError}
+            </p>
           )}
         </div>
       </div>
