@@ -19,6 +19,7 @@ export default defineConfig({
       "src/components/SellerDashboard.test.tsx",
       "src/components/StoreViewModal.test.tsx",
       "src/components/Profile.test.tsx",
+      "src/components/BuyerDashboard.test.tsx",
       "src/contexts/CartContext.test.tsx",
       "src/pages/ProductDetailPage.test.tsx",
       "src/pages/CartPage.test.tsx",
