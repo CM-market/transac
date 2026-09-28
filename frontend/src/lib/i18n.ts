@@ -84,6 +84,15 @@ const resources = {
       pageLabel: "Page {{page}} of {{totalPages}}",
       previousPage: "Previous",
       nextPage: "Next",
+
+      // Buyer dashboard
+      dashboardTitle: "Dashboard",
+      dashboardLoadError: "Unable to load the dashboard. Please try again.",
+      featuredCategories: "Featured Categories",
+      storesTitle: "Stores",
+      noStores: "No stores yet.",
+      trendingTitle: "Trending Products",
+      productsCount: "{{count}} products",
     },
   },
 };

@@ -22,7 +22,7 @@ function App() {
 
   // Handle marketplace actions
   const handleBuy = useCallback(() => {
-    navigate("/browse");
+    navigate("/buyer-dashboard");
   }, [navigate]);
 
   const handleSell = useCallback(() => {

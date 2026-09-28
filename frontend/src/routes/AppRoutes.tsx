@@ -12,6 +12,7 @@ import {
 import PowScreen from "../components/PowScreen";
 import MarketplaceWelcome from "../components/MarketplaceWelcome";
 import SellerDashboard from "../components/SellerDashboard";
+import BuyerDashboard from "../components/BuyerDashboard";
 import type { AuthenticationStatus } from "../hooks/useSimplifiedAuthFlow";
 
 interface AppRoutesProps {
@@ -60,6 +61,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           path="/seller-dashboard"
           element={<SellerDashboard onBack={() => window.history.back()} />}
         />
+        <Route path="/buyer-dashboard" element={<BuyerDashboard />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />
         <Route path="/cart" element={<CartPage />} />
