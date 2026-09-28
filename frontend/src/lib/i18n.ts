@@ -53,6 +53,19 @@ const resources = {
       sellerInfo: "Seller",
       verified: "Verified",
       contactSeller: "Contact seller on WhatsApp",
+
+      // Cart
+      back: "Back",
+      yourCart: "Your Cart",
+      clearCart: "Clear cart",
+      cartEmpty: "Your cart is empty",
+      cartEmptyDesc: "Add some products to get started.",
+      browseProducts: "Browse products",
+      continueShopping: "Continue shopping",
+      decreaseQty: "Decrease quantity",
+      increaseQty: "Increase quantity",
+      removeItem: "Remove item",
+      cartCount: "{{count}} item(s)",
     },
   },
 };
