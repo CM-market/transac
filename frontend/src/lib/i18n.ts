@@ -40,6 +40,19 @@ const resources = {
       placing: "Placing...",
       orderPlaced: "Order placed! The seller has been notified.",
       orderFailed: "Unable to place order. Please try again.",
+
+      // Buyer product details
+      loadingProduct: "Loading product...",
+      productNotFound: "Product not found.",
+      productLoadError: "Unable to load this product.",
+      goBack: "Go back",
+      inStock: "{{count}} in stock",
+      outOfStock: "Out of stock",
+      addToCart: "Add to Cart",
+      addedToCart: "Added to cart!",
+      sellerInfo: "Seller",
+      verified: "Verified",
+      contactSeller: "Contact seller on WhatsApp",
     },
   },
 };
