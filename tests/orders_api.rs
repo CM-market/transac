@@ -79,6 +79,7 @@ async fn create_test_product(db: &sea_orm::DatabaseConnection, store_id: Uuid) -
         sku: Set(None),
         name: Set("Widget".to_owned()),
         description: Set(None),
+        category: Set(None),
         price: Set(1000.0),
         quantity_available: Set(10),
         image_id: Set(None),

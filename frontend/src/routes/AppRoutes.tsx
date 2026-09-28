@@ -7,6 +7,7 @@ import {
   Profile,
   ProductDetailPage,
   CartPage,
+  BrowsePage,
 } from "../pages";
 import PowScreen from "../components/PowScreen";
 import MarketplaceWelcome from "../components/MarketplaceWelcome";
@@ -62,6 +63,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
         <Route path="/profile" element={<Profile />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/browse" element={<BrowsePage />} />
         {/* Default redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
