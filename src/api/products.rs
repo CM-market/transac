@@ -1,7 +1,7 @@
 use crate::api::image_analysis::ImageAnalysisService;
 use crate::api::media_storage::{MediaStorage, S3MediaStorage, StubMediaStorage};
 use crate::auth::JwtService;
-use crate::db::products::Product;
+use crate::db::products::{Product, ProductSearch, SearchResult};
 use crate::entity::product::Model as ProductModel;
 use crate::events::{
     create_event, EventDispatcher, EventType, LoggingEventHandler, WebSocketEventHandler,
@@ -28,6 +28,7 @@ pub struct CreateProductRequest {
     pub sku: Option<String>,
     pub name: String,
     pub description: Option<String>,
+    pub category: Option<String>,
     #[schema(value_type = String, format = "uuid")]
     pub image_id: Option<Uuid>,
     pub price: f64,
@@ -40,6 +41,7 @@ pub struct UpdateProductRequest {
     pub sku: Option<String>,
     pub name: String,
     pub description: Option<String>,
+    pub category: Option<String>,
     #[schema(value_type = String, format = "uuid")]
     pub image_id: Option<Uuid>,
     pub price: f64,
@@ -51,6 +53,48 @@ pub struct UpdateProductRequest {
 pub struct ListProductsQuery {
     #[schema(value_type = String, format = "uuid")]
     pub store_id: Uuid,
+}
+
+/// Query parameters for the public product catalog search endpoint.
+#[derive(Debug, Default, Deserialize, ToSchema)]
+#[allow(dead_code)]
+pub struct SearchProductsQuery {
+    /// Case-insensitive keyword matched against product name and description.
+    pub q: Option<String>,
+    pub category: Option<String>,
+    pub min_price: Option<f64>,
+    pub max_price: Option<f64>,
+    /// Case-insensitive partial match against the owning store's location.
+    pub location: Option<String>,
+    /// 1-based page number (default: 1).
+    #[schema(default = 1)]
+    pub page: Option<u64>,
+    /// Items per page (default: 20, max: 100).
+    #[schema(default = 20)]
+    pub page_size: Option<u64>,
+}
+
+/// Paginated product search response.
+#[derive(Serialize, ToSchema)]
+#[allow(dead_code)]
+pub struct SearchProductsResponse {
+    pub items: Vec<ProductModel>,
+    pub total: u64,
+    pub page: u64,
+    pub page_size: u64,
+    pub total_pages: u64,
+}
+
+impl From<SearchResult> for SearchProductsResponse {
+    fn from(result: SearchResult) -> Self {
+        Self {
+            items: result.items,
+            total: result.total,
+            page: result.page,
+            page_size: result.page_size,
+            total_pages: result.total_pages,
+        }
+    }
 }
 #[allow(dead_code)]
 pub fn router(db: DatabaseConnection) -> Router<()> {
@@ -67,6 +111,7 @@ pub fn router(db: DatabaseConnection) -> Router<()> {
 
     Router::new()
         .route("/api/v1/products", post(create_product).get(list_products))
+        .route("/api/v1/products/search", get(search_products))
         .route(
             "/api/v1/products/:id",
             get(get_product).put(update_product).delete(delete_product),
@@ -115,6 +160,7 @@ async fn create_product(
         payload.sku.as_deref(),
         &payload.name,
         payload.description.as_deref(),
+        payload.category.as_deref(),
         payload.price,
         payload.quantity_available,
         payload.image_id,
@@ -186,6 +232,47 @@ async fn list_products(
     }
 }
 
+/// Search and filter the public product catalog (server-side).
+/// Supports keyword search, category / price / location filters, and pagination.
+#[utoipa::path(
+    get,
+    path = "/api/v1/products/search",
+    params(
+        ("q" = Option<String>, Query, description = "Keyword search over name and description"),
+        ("category" = Option<String>, Query, description = "Filter by exact product category"),
+        ("min_price" = Option<f64>, Query, description = "Lower price bound"),
+        ("max_price" = Option<f64>, Query, description = "Upper price bound"),
+        ("location" = Option<String>, Query, description = "Filter by store location"),
+        ("page" = Option<u64>, Query, description = "1-based page number"),
+        ("page_size" = Option<u64>, Query, description = "Items per page")
+    ),
+    responses(
+        (status = 200, description = "Paginated matching products", body = SearchProductsResponse),
+        (status = 400, description = "Bad request - invalid query parameters")
+    ),
+    tag = "Products"
+)]
+async fn search_products(
+    State(state): State<ProductApiState>,
+    Query(query): Query<SearchProductsQuery>,
+) -> impl IntoResponse {
+    let page = query.page.unwrap_or(1).max(1);
+    let page_size = query.page_size.unwrap_or(20).clamp(1, 100);
+
+    let filters = ProductSearch {
+        q: query.q,
+        category: query.category,
+        min_price: query.min_price,
+        max_price: query.max_price,
+        location: query.location,
+    };
+
+    match Product::search(&state.db, &filters, page, page_size).await {
+        Ok(result) => Json::<SearchProductsResponse>(result.into()).into_response(),
+        Err(e) => (axum::http::StatusCode::BAD_REQUEST, e).into_response(),
+    }
+}
+
 /// Update a product by ID
 #[utoipa::path(
     put,
@@ -212,6 +299,7 @@ async fn update_product(
         payload.sku.as_deref(),
         &payload.name,
         payload.description.as_deref(),
+        payload.category.as_deref(),
         payload.price,
         payload.quantity_available,
         payload.image_id,

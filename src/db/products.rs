@@ -1,13 +1,39 @@
 use crate::entity::product::{
     self, ActiveModel as ProductActiveModel, Entity as ProductEntity, Model as ProductModel,
 };
+use crate::entity::store::{self as store_entity, Entity as StoreEntity};
+use sea_orm::sea_query::extension::postgres::PgExpr;
+use sea_orm::sea_query::Expr;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder, Set,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
+    QueryOrder, Set,
 };
 use tracing::{debug, error};
 use uuid::Uuid;
 
 pub struct Product;
+
+/// Optional filters for server-side product search.
+#[derive(Debug, Default, Clone)]
+pub struct ProductSearch {
+    /// Case-insensitive keyword matched against name and description.
+    pub q: Option<String>,
+    pub category: Option<String>,
+    pub min_price: Option<f64>,
+    pub max_price: Option<f64>,
+    /// Matches the owning store's location (case-insensitive partial match).
+    pub location: Option<String>,
+}
+
+/// Paginated search result envelope.
+#[derive(Debug, Clone)]
+pub struct SearchResult {
+    pub items: Vec<ProductModel>,
+    pub total: u64,
+    pub page: u64,
+    pub page_size: u64,
+    pub total_pages: u64,
+}
 
 #[allow(clippy::too_many_arguments)]
 impl Product {
@@ -17,6 +43,7 @@ impl Product {
         sku: Option<&str>,
         name: &str,
         description: Option<&str>,
+        category: Option<&str>,
         price: f64,
         quantity_available: i32,
         image_id: Option<Uuid>,
@@ -32,6 +59,7 @@ impl Product {
             sku: Set(sku.map(|s| s.to_owned())),
             name: Set(name.to_owned()),
             description: Set(description.map(|d| d.to_owned())),
+            category: Set(category.map(|c| c.to_owned())),
             price: Set(price),
             quantity_available: Set(quantity_available),
             image_id: Set(image_id),
@@ -88,12 +116,91 @@ impl Product {
             })?;
         Ok(products)
     }
+
+    /// Server-side filtered, keyword-searchable, paginated product listing.
+    /// Filters are applied at the database level for performance on large datasets.
+    pub async fn search(
+        db: &DatabaseConnection,
+        filters: &ProductSearch,
+        page: u64,
+        page_size: u64,
+    ) -> Result<SearchResult, String> {
+        let mut query = ProductEntity::find()
+            .inner_join(StoreEntity)
+            .order_by_desc(product::Column::CreatedAt);
+
+        if let Some(q) = filters
+            .q
+            .as_ref()
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+        {
+            let pattern = format!("%{}%", q.to_lowercase());
+            query = query.filter(
+                Expr::col(product::Column::Name)
+                    .ilike(&pattern)
+                    .or(Expr::col(product::Column::Description).ilike(&pattern)),
+            );
+        }
+        if let Some(category) = filters
+            .category
+            .as_ref()
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+        {
+            query = query.filter(product::Column::Category.eq(category));
+        }
+        if let Some(min_price) = filters.min_price {
+            if min_price >= 0.0 {
+                query = query.filter(product::Column::Price.gte(min_price));
+            }
+        }
+        if let Some(max_price) = filters.max_price {
+            if max_price >= 0.0 {
+                query = query.filter(product::Column::Price.lte(max_price));
+            }
+        }
+        if let Some(location) = filters
+            .location
+            .as_ref()
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+        {
+            let pattern = format!("%{}%", location.to_lowercase());
+            query = query.filter(Expr::col(store_entity::Column::Location).ilike(&pattern));
+        }
+
+        let paginator = query.paginate(db, page_size);
+        let total = paginator.num_items().await.map_err(|e| {
+            error!("Failed to count products: {:?}", e);
+            "Failed to search products. Please try again later.".to_string()
+        })?;
+        let items: Vec<ProductModel> = paginator.fetch_page(page).await.map_err(|e| {
+            error!("Failed to fetch products page: {:?}", e);
+            "Failed to search products. Please try again later.".to_string()
+        })?;
+        let total_pages = if total == 0 {
+            0
+        } else {
+            total.div_ceil(page_size)
+        };
+
+        Ok(SearchResult {
+            items,
+            total,
+            page,
+            page_size,
+            total_pages,
+        })
+    }
+
     pub async fn update(
         db: &DatabaseConnection,
         id: Uuid,
         sku: Option<&str>,
         name: &str,
         description: Option<&str>,
+        category: Option<&str>,
         price: f64,
         quantity_available: i32,
         image_id: Option<Uuid>,
@@ -111,6 +218,7 @@ impl Product {
         active.sku = Set(sku.map(|s| s.to_owned()));
         active.name = Set(name.to_owned());
         active.description = Set(description.map(|d| d.to_owned()));
+        active.category = Set(category.map(|c| c.to_owned()));
         active.price = Set(price);
         active.quantity_available = Set(quantity_available);
         active.image_id = Set(image_id);

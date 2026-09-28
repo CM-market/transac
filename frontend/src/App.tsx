@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { BrowserRouter as Router } from "react-router-dom";
+import { BrowserRouter as Router, useNavigate } from "react-router-dom";
 
 import useSimplifiedAuthFlow from "./hooks/useSimplifiedAuthFlow";
 import AppRoutes from "./routes/AppRoutes";
@@ -13,6 +13,7 @@ import { queryClient } from "./lib/queryClient";
 function App() {
   // Use the simplified authentication flow (without registration)
   const authStatus = useSimplifiedAuthFlow();
+  const navigate = useNavigate();
 
   // Handle POW completion
   const handlePowComplete = useCallback(() => {
@@ -21,9 +22,8 @@ function App() {
 
   // Handle marketplace actions
   const handleBuy = useCallback(() => {
-    // TODO: Implement buy flow
-    console.log("Buy flow initiated");
-  }, []);
+    navigate("/browse");
+  }, [navigate]);
 
   const handleSell = useCallback(() => {
     // TODO: Implement sell flow

@@ -15,6 +15,7 @@ pub struct Model {
     pub sku: Option<String>,
     pub name: String,
     pub description: Option<String>,
+    pub category: Option<String>,
     pub price: f64,
     pub quantity_available: i32,
     #[schema(value_type = String, format = "uuid")]

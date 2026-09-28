@@ -14,7 +14,79 @@ impl MigratorTrait for Migrator {
             Box::new(m20251005_create_profiles::Migration),
             Box::new(m20251006_create_notifications::Migration),
             Box::new(m20251007_create_orders::Migration),
+            Box::new(m20251008_add_product_category::Migration),
         ]
+    }
+}
+
+mod m20251008_add_product_category {
+    use super::*;
+
+    pub struct Migration;
+
+    impl MigrationName for Migration {
+        fn name(&self) -> &str {
+            "m20251008_add_product_category"
+        }
+    }
+
+    #[async_trait::async_trait]
+    impl MigrationTrait for Migration {
+        async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+            // Add a nullable category column to the products table (free text).
+            manager
+                .alter_table(
+                    Table::alter()
+                        .table(Products::Table)
+                        .add_column_if_not_exists(
+                            ColumnDef::new(Products::Category).string_len(255),
+                        )
+                        .to_owned(),
+                )
+                .await?;
+
+            // Index on category for efficient server-side filtering.
+            manager
+                .create_index(
+                    Index::create()
+                        .if_not_exists()
+                        .name("idx_products_category")
+                        .table(Products::Table)
+                        .col(Products::Category)
+                        .to_owned(),
+                )
+                .await?;
+
+            Ok(())
+        }
+
+        async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+            manager
+                .drop_index(
+                    Index::drop()
+                        .name("idx_products_category")
+                        .table(Products::Table)
+                        .to_owned(),
+                )
+                .await?;
+
+            manager
+                .alter_table(
+                    Table::alter()
+                        .table(Products::Table)
+                        .drop_column(Products::Category)
+                        .to_owned(),
+                )
+                .await?;
+
+            Ok(())
+        }
+    }
+
+    #[derive(Iden)]
+    enum Products {
+        Table,
+        Category,
     }
 }
 

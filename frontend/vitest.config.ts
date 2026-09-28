@@ -22,6 +22,7 @@ export default defineConfig({
       "src/contexts/CartContext.test.tsx",
       "src/pages/ProductDetailPage.test.tsx",
       "src/pages/CartPage.test.tsx",
+      "src/pages/BrowsePage.test.tsx",
     ],
   },
 });
