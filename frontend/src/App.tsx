@@ -7,6 +7,7 @@ import useSimplifiedAuthFlow from "./hooks/useSimplifiedAuthFlow";
 import AppRoutes from "./routes/AppRoutes";
 import { ToastProvider } from "./components/ToastContainer";
 import { PWAStatusIndicator } from "./components/PWAInstallPrompt";
+import { CartProvider } from "./contexts/CartContext";
 import { queryClient } from "./lib/queryClient";
 
 function App() {
@@ -49,11 +50,13 @@ function AppWithRouter() {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <Router>
-          <App />
-          <PWAStatusIndicator />
-        </Router>
-        <ReactQueryDevtools initialIsOpen={false} />
+        <CartProvider>
+          <Router>
+            <App />
+            <PWAStatusIndicator />
+          </Router>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </CartProvider>
       </ToastProvider>
     </QueryClientProvider>
   );

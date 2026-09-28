@@ -40,6 +40,32 @@ const resources = {
       placing: "Placing...",
       orderPlaced: "Order placed! The seller has been notified.",
       orderFailed: "Unable to place order. Please try again.",
+
+      // Buyer product details
+      loadingProduct: "Loading product...",
+      productNotFound: "Product not found.",
+      productLoadError: "Unable to load this product.",
+      goBack: "Go back",
+      inStock: "{{count}} in stock",
+      outOfStock: "Out of stock",
+      addToCart: "Add to Cart",
+      addedToCart: "Added to cart!",
+      sellerInfo: "Seller",
+      verified: "Verified",
+      contactSeller: "Contact seller on WhatsApp",
+
+      // Cart
+      back: "Back",
+      yourCart: "Your Cart",
+      clearCart: "Clear cart",
+      cartEmpty: "Your cart is empty",
+      cartEmptyDesc: "Add some products to get started.",
+      browseProducts: "Browse products",
+      continueShopping: "Continue shopping",
+      decreaseQty: "Decrease quantity",
+      increaseQty: "Increase quantity",
+      removeItem: "Remove item",
+      cartCount: "{{count}} item(s)",
     },
   },
 };
