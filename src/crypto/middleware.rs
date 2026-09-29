@@ -73,9 +73,7 @@ pub async fn crypto_validation_middleware(
         debug!(path = %path, "Detected bearer token, validating");
 
         // Validate JWT using JwtService (env-based secret)
-        let jwt = JwtService::new()
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
-            .unwrap();
+        let jwt = JwtService::new().map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
         match jwt.validate_token(&token) {
             Ok(claims) => {
                 info!(path = %path, relay_id = %claims.relay_id, "Authenticated request");
