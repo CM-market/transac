@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  performProofOfWork,
-  validateProofOfWork,
-} from "./proofOfWork";
+import { performProofOfWork, validateProofOfWork } from "./proofOfWork";
 
 describe("performProofOfWork", () => {
   it("computes a solution whose hash meets the requested difficulty", async () => {
@@ -59,12 +56,7 @@ describe("validateProofOfWork", () => {
     // Same hash but for this challenge the nonce recomputes differently is
     // valid; instead verify a mismatch: use a hash for a different challenge.
     const otherChallenge = "b3RoZXItY2hhbGxlbmdl";
-    const wrong = validateProofOfWork(
-      otherChallenge,
-      nonce,
-      hash,
-      difficulty,
-    );
+    const wrong = validateProofOfWork(otherChallenge, nonce, hash, difficulty);
     // Validate against the wrong challenge must fail because the recomputed
     // hash for otherChallenge won't equal our hash.
     expect(wrong).toBe(false);
