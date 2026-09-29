@@ -7,20 +7,33 @@ use axum::{
 };
 use tracing::{debug, info, warn};
 
+/// Public path prefixes that must remain reachable without a device certificate.
+/// These are platform bootstrap and asset endpoints that run before (or do not
+/// require) Proof of Work verification.
+const PUBLIC_PATH_PREFIXES: &[&str] = &[
+    // Liveness probe
+    "/healthz",
+    // OpenAPI documentation UI
+    "/swagger-ui",
+    "/api-docs",
+    // PoW bootstrap endpoints used to obtain a challenge and certificate
+    "/api/v1/pow/challenge",
+    "/api/v1/pow/verify",
+    // PWA public web-app assets (manifest, service worker, offline page)
+    "/api/v1/manifest.json",
+    "/api/v1/sw.js",
+    "/api/v1/offline",
+    // Public product media served directly to browsers via <img> tags
+    "/api/v1/media",
+];
+
 /// Determine if cryptographic validation should be skipped for a given path
 pub fn should_skip_validation(path: &str) -> bool {
-    // Public endpoints that don't require authentication
-    let public_paths = [
-        "/healthz",
-        // PoW challenge endpoint for obtaining challenges
-        "/api/v1/pow/challenge",
-        // PoW verification endpoint for obtaining certificates
-        "/api/v1/pow/verify",
-    ];
-
-    public_paths
+    // Any other path (e.g. authenticated business API) requires a valid
+    // device certificate presented as a Bearer token.
+    PUBLIC_PATH_PREFIXES
         .iter()
-        .any(|&public_path| path == public_path || path.starts_with(&format!("{public_path}/")))
+        .any(|&prefix| path == prefix || path.starts_with(&format!("{prefix}/")))
 }
 
 /// Extract token from Authorization header
@@ -89,12 +102,74 @@ mod tests {
 
     #[test]
     fn test_should_skip_validation() {
+        // Public bootstrap / asset endpoints are exempt.
         assert!(should_skip_validation("/healthz"));
         assert!(should_skip_validation("/api/v1/pow/challenge"));
         assert!(should_skip_validation("/api/v1/pow/verify"));
+        assert!(should_skip_validation("/swagger-ui"));
+        assert!(should_skip_validation("/api-docs/openapi.json"));
+        assert!(should_skip_validation("/api/v1/manifest.json"));
+        assert!(should_skip_validation("/api/v1/sw.js"));
+        assert!(should_skip_validation("/api/v1/offline"));
+        assert!(should_skip_validation("/api/v1/media/abc123"));
 
+        // Everything else (the authenticated business API) requires a cert.
         assert!(!should_skip_validation("/api/v1/events"));
+        assert!(!should_skip_validation("/api/v1/products"));
+        assert!(!should_skip_validation("/api/v1/profiles/me"));
         assert!(!should_skip_validation("/some/other/path"));
+    }
+
+    // Build a minimal app that applies the crypto validation middleware so we
+    // can assert full-request behaviour (401 on missing/invalid cert).
+    fn build_test_app() -> axum::Router {
+        use axum::routing::get;
+
+        axum::Router::new()
+            .route("/protected", get(|| async { "ok" }))
+            .route("/public", get(|| async { "ok" }))
+            .layer(axum::middleware::from_fn(crypto_validation_middleware))
+    }
+
+    #[tokio::test]
+    async fn missing_certificate_is_rejected_with_401() {
+        use axum::body::Body;
+        use axum::http::Request;
+        use tower::ServiceExt;
+
+        let app = build_test_app();
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/protected")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn invalid_certificate_is_rejected_with_401() {
+        use axum::body::Body;
+        use axum::http::Request;
+        use tower::ServiceExt;
+
+        let app = build_test_app();
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/protected")
+                    .header("Authorization", "Bearer not-a-valid-jwt")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
     }
 
     #[test]
