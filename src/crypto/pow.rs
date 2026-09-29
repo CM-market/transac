@@ -164,6 +164,19 @@ mod tests {
         }
     }
 
+    /// Find a nonce whose hash does NOT meet the difficulty requirement, so the
+    /// resulting solution is deterministically rejected.
+    fn find_non_matching_nonce(challenge_data: &str, difficulty: u32) -> u64 {
+        let mut nonce = 0u64;
+        loop {
+            let hash = compute_hash(challenge_data, nonce);
+            if !hash_meets_difficulty(&hash, difficulty) {
+                return nonce;
+            }
+            nonce += 1;
+        }
+    }
+
     #[test]
     fn generate_challenge_returns_unique_challenge_with_difficulty() {
         let service = PowService::new(1, 10);
@@ -202,8 +215,8 @@ mod tests {
         let service = PowService::new(1, 10);
         let challenge = service.generate_challenge().expect("challenge");
 
-        let valid_nonce = find_valid_nonce(&challenge.challenge_data, challenge.difficulty);
-        let wrong_nonce = valid_nonce + 1;
+        // A nonce whose hash does not meet the difficulty must be rejected.
+        let wrong_nonce = find_non_matching_nonce(&challenge.challenge_data, challenge.difficulty);
         let hash = compute_hash(&challenge.challenge_data, wrong_nonce);
 
         let solution = PowSolution {
@@ -212,10 +225,10 @@ mod tests {
             hash,
         };
 
-        assert!(matches!(
-            service.verify_solution(&solution),
-            Err(AppError::Validation(_))
-        ));
+        match service.verify_solution(&solution) {
+            Err(AppError::Validation(msg)) => assert!(msg.contains("difficulty")),
+            other => panic!("expected difficulty Validation error, got {other:?}"),
+        }
     }
 
     #[test]

@@ -24,6 +24,7 @@ export default defineConfig({
       "src/pages/ProductDetailPage.test.tsx",
       "src/pages/CartPage.test.tsx",
       "src/pages/BrowsePage.test.tsx",
+      "src/services/computation/proofOfWork.test.ts",
     ],
   },
 });
