@@ -118,3 +118,184 @@ impl PowService {
         base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(&random_bytes)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::Utc;
+
+    /// Compute the SHA-256 hash the same way the service does, so tests can
+    /// derive a valid nonce for a known challenge.
+    fn compute_hash(challenge_data: &str, nonce: u64) -> String {
+        let mut hasher = Sha256::new();
+        hasher.update(challenge_data.as_bytes());
+        hasher.update(nonce.to_le_bytes());
+        let hash = hasher.finalize();
+        base64::engine::general_purpose::STANDARD.encode(hash)
+    }
+
+    /// Check whether a base64 hash meets the difficulty requirement, mirroring
+    /// the private `meets_difficulty` used by the service.
+    fn hash_meets_difficulty(hash: &str, difficulty: u32) -> bool {
+        let hash_bytes = base64::engine::general_purpose::STANDARD
+            .decode(hash)
+            .expect("valid base64 hash");
+        let mut leading_zeros = 0usize;
+        for byte in hash_bytes {
+            if byte == 0 {
+                leading_zeros += 8;
+            } else {
+                leading_zeros += byte.leading_zeros() as usize;
+                break;
+            }
+        }
+        leading_zeros >= difficulty as usize
+    }
+
+    /// Find a nonce whose hash meets the required difficulty for the challenge.
+    fn find_valid_nonce(challenge_data: &str, difficulty: u32) -> u64 {
+        let mut nonce = 0u64;
+        loop {
+            let hash = compute_hash(challenge_data, nonce);
+            if hash_meets_difficulty(&hash, difficulty) {
+                return nonce;
+            }
+            nonce += 1;
+        }
+    }
+
+    #[test]
+    fn generate_challenge_returns_unique_challenge_with_difficulty() {
+        let service = PowService::new(1, 10);
+
+        let c1 = service.generate_challenge().expect("challenge 1");
+        assert!(c1.expires_at > Utc::now());
+        assert!(c1.expires_at <= Utc::now() + Duration::minutes(10));
+        assert_eq!(c1.difficulty, 1);
+        assert!(!c1.challenge_id.is_empty());
+        assert!(!c1.challenge_data.is_empty());
+
+        let c2 = service.generate_challenge().expect("challenge 2");
+        assert_ne!(c1.challenge_id, c2.challenge_id);
+        assert_ne!(c1.challenge_data, c2.challenge_data);
+    }
+
+    #[test]
+    fn valid_solution_is_accepted() {
+        let service = PowService::new(1, 10);
+        let challenge = service.generate_challenge().expect("challenge");
+
+        let nonce = find_valid_nonce(&challenge.challenge_data, challenge.difficulty);
+        let hash = compute_hash(&challenge.challenge_data, nonce);
+
+        let solution = PowSolution {
+            challenge_id: challenge.challenge_id.clone(),
+            nonce,
+            hash,
+        };
+
+        service.verify_solution(&solution).expect("valid solution");
+    }
+
+    #[test]
+    fn invalid_nonce_is_rejected() {
+        let service = PowService::new(1, 10);
+        let challenge = service.generate_challenge().expect("challenge");
+
+        let valid_nonce = find_valid_nonce(&challenge.challenge_data, challenge.difficulty);
+        let wrong_nonce = valid_nonce + 1;
+        let hash = compute_hash(&challenge.challenge_data, wrong_nonce);
+
+        let solution = PowSolution {
+            challenge_id: challenge.challenge_id,
+            nonce: wrong_nonce,
+            hash,
+        };
+
+        assert!(matches!(
+            service.verify_solution(&solution),
+            Err(AppError::Validation(_))
+        ));
+    }
+
+    #[test]
+    fn tampered_hash_is_rejected() {
+        let service = PowService::new(1, 10);
+        let challenge = service.generate_challenge().expect("challenge");
+
+        let hash = compute_hash("unrelated-data", 0);
+        let solution = PowSolution {
+            challenge_id: challenge.challenge_id,
+            nonce: 0,
+            hash,
+        };
+
+        assert!(matches!(
+            service.verify_solution(&solution),
+            Err(AppError::Validation(_))
+        ));
+    }
+
+    #[test]
+    fn unknown_challenge_is_rejected() {
+        let service = PowService::new(1, 10);
+        let hash = compute_hash("data", 0);
+        let solution = PowSolution {
+            challenge_id: "does-not-exist".to_string(),
+            nonce: 0,
+            hash,
+        };
+
+        match service.verify_solution(&solution) {
+            Err(AppError::Validation(msg)) => assert!(msg.contains("Challenge not found")),
+            other => panic!("expected Validation error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn expired_challenge_is_rejected_and_removed() {
+        let service = PowService::new(1, -1);
+        let challenge = service.generate_challenge().expect("challenge");
+        assert!(challenge.expires_at < Utc::now());
+
+        let hash = compute_hash(&challenge.challenge_data, 0);
+        let solution = PowSolution {
+            challenge_id: challenge.challenge_id.clone(),
+            nonce: 0,
+            hash,
+        };
+
+        match service.verify_solution(&solution) {
+            Err(AppError::Validation(msg)) => assert!(msg.contains("expired")),
+            other => panic!("expected expired Validation error, got {other:?}"),
+        }
+
+        assert!(!service
+            .challenges
+            .lock()
+            .unwrap()
+            .contains_key(&challenge.challenge_id));
+    }
+
+    #[test]
+    fn replayed_solution_is_rejected() {
+        let service = PowService::new(1, 10);
+        let challenge = service.generate_challenge().expect("challenge");
+
+        let nonce = find_valid_nonce(&challenge.challenge_data, challenge.difficulty);
+        let hash = compute_hash(&challenge.challenge_data, nonce);
+        let solution = PowSolution {
+            challenge_id: challenge.challenge_id.clone(),
+            nonce,
+            hash,
+        };
+
+        service.verify_solution(&solution).expect("first verify");
+
+        // The challenge was consumed, so replaying the same solution must fail.
+        assert!(matches!(
+            service.verify_solution(&solution),
+            Err(AppError::Validation(_))
+        ));
+    }
+}
