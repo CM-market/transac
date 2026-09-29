@@ -61,8 +61,11 @@ export async function performProofOfWork(
 }
 
 /**
- * Check if hash meets difficulty requirement (number of leading zeros)
- * This matches the backend's meets_difficulty function
+ * Check if hash meets difficulty requirement (number of leading zero BITS).
+ * This matches the backend's meets_difficulty exactly: each all-zero byte
+ * contributes 8, otherwise the byte's leading_zeros() count is added.
+ * @param hash - Base64-encoded SHA-256 of (challenge_data ‖ nonce.to_le_bytes())
+ * @param difficulty - number of leading zero bits required
  */
 function meetsDifficulty(hash: string, difficulty: number): boolean {
   try {
@@ -77,20 +80,28 @@ function meetsDifficulty(hash: string, difficulty: number): boolean {
       ]),
     );
 
-    let zeroCount = 0;
+    let zeroBits = 0;
 
     for (const byte of hashArray) {
       if (byte === 0) {
-        zeroCount += 2; // Each zero byte contributes 2 hex zeros
-      } else if (byte < 16) {
-        zeroCount += 1; // High nibble is zero
-        break;
+        zeroBits += 8; // All bits zero
       } else {
+        // Count leading zero bits of this byte (0x00..0x7F => >=1, 0x80.. => 0)
+        let b = byte;
+        let leading = 0;
+        while ((b & 0x80) === 0 && leading < 8) {
+          leading++;
+          b <<= 1;
+        }
+        zeroBits += leading;
+        break; // first non-zero byte ends the leading-zero run
+      }
+      if (zeroBits >= difficulty) {
         break;
       }
     }
 
-    return zeroCount >= difficulty;
+    return zeroBits >= difficulty;
   } catch (error) {
     return false;
   }
