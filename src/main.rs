@@ -205,10 +205,7 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .route("/healthz", get(healthz))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
-        .nest(
-            "/api/v1/pow",
-            pow_routes().layer(middleware::from_fn(crypto_validation_middleware)),
-        )
+        .nest("/api/v1/pow", pow_routes())
         .nest_service("/api/v1", api::stores::router(pool.clone()))
         .nest_service("/api/v1", api::reviews::router(pool.clone()))
         .nest_service("/api/v1", api::profiles::router(pool.clone()))
@@ -222,6 +219,7 @@ async fn main() -> anyhow::Result<()> {
             api_context.clone(),
             request_user_activity_middleware,
         ))
+        .layer(middleware::from_fn(crypto_validation_middleware))
         .layer(middleware::from_fn(
             request_middleware::request_logging_middleware,
         ))
