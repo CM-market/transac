@@ -107,7 +107,13 @@ jobs:
           bash -n scripts/deploy.sh
           bash -n scripts/check_env.sh
           ./scripts/check_env.sh
+          # docker compose config requires an env_file (.env) to resolve; the repo
+          # does not track .env (gitignored). Materialize a local .env from the
+          # committed example so `config --quiet` validates the bootability shape
+          # without real secrets (the server gets real values from repo secrets).
+          cp .env.production.example .env
           docker compose -f docker-compose.yml config --quiet
+          rm -f .env
           if command -v shellcheck >/dev/null 2>&1; then
             shellcheck scripts/deploy.sh scripts/check_env.sh
           else
@@ -235,7 +241,10 @@ jobs:
             POSTGRES_DB=transac_db
             POSTGRES_USER=transac_user
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD || 'password' }}
-            DATABASE_URL=postgres://transac_user:${{ secrets.POSTGRES_PASSWORD || 'password' }}@db:5432/transac_db
+            # Compose DATABASE_URL from POSTGRES_* so the tracked compose stays the
+            # single source of truth for the connection string (plan B3). The vars
+            # are escaped so they are written literally and resolved by compose.
+            DATABASE_URL=postgres://\${POSTGRES_USER}:\${POSTGRES_PASSWORD}@db:5432/\${POSTGRES_DB}
             POW_DIFFICULTY=4
             POW_TIMEOUT_MINUTES=10
             RUN_MIGRATIONS_ON_START=true
