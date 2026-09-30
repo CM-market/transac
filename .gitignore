@@ -50,3 +50,13 @@ SOLUTION.md
 *.tmp
 .claude/
 .env.local
+
+# Harness / agent provisioning (not product source)
+.agents/
+AGENTS.md
+forge.agent.md
+CODING.md
+REVIEW.md
+SECURITY.md
+REWORK_BRANCH_MISMATCH.md
+PLAN.md
