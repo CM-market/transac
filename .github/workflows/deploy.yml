@@ -97,76 +97,22 @@ jobs:
           echo "IMAGE_NAME_BACKEND=$REPO_LOWER/backend" >> $GITHUB_ENV
           echo "GIT_SHA=${{ needs.build-and-push.outputs.git-sha }}" >> $GITHUB_ENV
 
-      - name: Generate docker-compose.yml
+      - name: Validate deployment config (single source of truth)
         run: |
-          # Use latest tag for main branch, SHA tag for other branches
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            IMAGE_TAG="latest"
+          # The tracked docker-compose.yml is the single source of truth for the
+          # deployed microservice stack (db, minio, minio-mc, backend, frontend,
+          # certbot). We DO NOT generate a divergent compose here: the server
+          # pulls the repo's compose via `git pull` and runs it directly. We
+          # validate the scripts and compose before proceeding.
+          bash -n scripts/deploy.sh
+          bash -n scripts/check_env.sh
+          ./scripts/check_env.sh
+          docker compose -f docker-compose.yml config --quiet
+          if command -v shellcheck >/dev/null 2>&1; then
+            shellcheck scripts/deploy.sh scripts/check_env.sh
           else
-            IMAGE_TAG="${{ env.GIT_SHA }}"
+            echo "shellcheck not present; relying on bash -n + compose config"
           fi
-          
-          cat > docker-compose.yml <<EOF
-          version: "3.9"
-          services:
-            frontend:
-              image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${IMAGE_TAG}
-              restart: unless-stopped
-              ports:
-                - "80:80"
-                - "443:443"
-              environment:
-                - VITE_TRANSAC_WEBAUTH_RP_ID=${{ secrets.VITE_TRANSAC_WEBAUTH_RP_ID || 'prod-id' }}
-                - VITE_TRANSAC_WEBAUTH_RP_NAME=${{ secrets.VITE_TRANSAC_WEBAUTH_RP_NAME || 'prod-name' }}
-              volumes:
-                - /etc/ssl/certs/transac.site:/etc/letsencrypt/live/transac.site:ro
-              user: "0:0"
-              depends_on:
-                - backend
-                - minio
-              ulimits:
-                nofile:
-                  soft: 65536
-                  hard: 65536
-
-            backend:
-              image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${IMAGE_TAG}
-              restart: unless-stopped
-              environment:
-                - DATABASE_URL=postgres://user:password@db:5432/transac_db
-                - POW_DIFFICULTY=4
-                - POW_TIMEOUT_MINUTES=10
-                - S3_BUCKET_NAME=transac-media
-                - JWT_SECRET=${{ secrets.JWT_SECRET || 'your-secret-key-change-in-production' }}
-              ports:
-                - "3001:3001"
-              depends_on:
-                - db
-
-            minio:
-              image: minio/minio:latest
-              ports:
-                - "9000:9000"
-                - "9001:9001"
-              volumes:
-                - minio_data:/data
-              environment:
-                - MINIO_ROOT_USER=${{ secrets.MINIO_ACCESS_KEY || 'minioadmin' }}
-                - MINIO_ROOT_PASSWORD=${{ secrets.MINIO_SECRET_KEY || 'minioadmin123' }}
-              command: server /data --console-address ":9001"
-              restart: unless-stopped
-              healthcheck:
-                test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-                interval: 30s
-                timeout: 20s
-                retries: 3
-
-          volumes:
-            minio_data:
-          EOF
-          
-          # Verify the creation of docker-compose.yml
-          ls -la docker-compose.yml
 
       - name: Validate deployment environment
         uses: appleboy/ssh-action@v0.1.10
@@ -266,6 +212,48 @@ jobs:
               fi
             '
 
+      - name: Provision server .env from secrets
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER || 'ubuntu' }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            APP_DIR="${EC2_APP_DIR:-transac}"
+            DOMAIN="${DOMAIN:-transac.site}"
+            
+            # Compose the tracked docker-compose.yml requires .env with the
+            # secret-derived values. Build it on the server from repo secrets.
+            sudo bash -c '
+              cd /root/'"$APP_DIR"'
+              cat > .env <<ENVEOF
+            DOMAIN='"$DOMAIN"'
+            ENVIRONMENT=production
+            SERVER_NAME='"$DOMAIN"'
+            VITE_TRANSAC_WEBAUTH_RP_ID='"$DOMAIN"'
+            VITE_TRANSAC_WEBAUTH_RP_NAME=Transac
+            POSTGRES_DB=transac_db
+            POSTGRES_USER=transac_user
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD || 'password' }}
+            DATABASE_URL=postgres://transac_user:${{ secrets.POSTGRES_PASSWORD || 'password' }}@db:5432/transac_db
+            POW_DIFFICULTY=4
+            POW_TIMEOUT_MINUTES=10
+            RUN_MIGRATIONS_ON_START=true
+            RUST_LOG=transac=info,tower_http=info
+            JWT_SECRET=${{ secrets.JWT_SECRET || 'your-secret-key-change-in-production' }}
+            S3_BUCKET_NAME=transac-media
+            MINIO_ROOT_USER=${{ secrets.MINIO_ACCESS_KEY || 'minioadmin' }}
+            MINIO_ROOT_PASSWORD=${{ secrets.MINIO_SECRET_KEY || 'minioadmin123' }}
+            AWS_REGION=us-east-1
+            AWS_ACCESS_KEY_ID=${{ secrets.MINIO_ACCESS_KEY || 'minioadmin' }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.MINIO_SECRET_KEY || 'minioadmin123' }}
+            AWS_ENDPOINT_URL=http://minio:9000
+            LETSENCRYPT_EMAIL=${{ secrets.LETSENCRYPT_EMAIL || '' }}
+            ENVEOF
+              chmod 600 .env
+              echo ".env written on server"
+            '
+
       - name: Deploy with proper rollback
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -312,11 +300,11 @@ jobs:
               if ! curl -f -s --max-time 10 "'"$HEALTH_CHECK_URL"'" > /dev/null; then
                 echo "Health check failed! Attempting rollback..."
                 docker compose -f docker-compose.yml down
-              
+            
                 if [ -f "docker-compose.rollback.yml" ]; then
                   echo "Rolling back to previous deployment..."
                   docker compose -f docker-compose.rollback.yml up -d --no-deps
-              
+            
                   # Wait and check if rollback was successful
                   sleep 30
                   if curl -f -s --max-time 10 "'"$HEALTH_CHECK_URL"'" > /dev/null; then
@@ -331,7 +319,7 @@ jobs:
                   # Try to restart with the same compose file but force pull latest
                   docker compose -f docker-compose.yml pull
                   docker compose -f docker-compose.yml up -d --no-deps
-              
+            
                   # Wait and check again
                   sleep 30
                   if curl -f -s --max-time 10 "'"$HEALTH_CHECK_URL"'" > /dev/null; then

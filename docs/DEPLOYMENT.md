@@ -29,11 +29,16 @@ This guide explains how to deploy the Transac application using the provided Git
 
 - The workflow will:
   - SSH into your production server
-  - Pull the latest code and images
-  - Generate `docker-compose.prod.yml` with correct image tags and environment
+  - Pull the latest code and the repo's tracked `docker-compose.yml` (the single
+    source of truth for the microservice stack: `db`, `minio`, `minio-mc`,
+    `backend`, `frontend`, `certbot`)
+  - Provision a `.env` on the server from GitHub secrets (DB/MinIO/JWT/AWS)
   - Mount SSL certs for HTTPS
   - Start all services with Docker Compose
   - Perform a health check and rollback if needed
+
+> Note: the deploy pipeline does **not** generate a divergent `docker-compose.prod.yml`
+> (that was removed). It deploys the tracked `docker-compose.yml` from the repository.
 
 ---
 
@@ -80,8 +85,39 @@ If you need to deploy manually or troubleshoot:
 - **Frontend**: React app served by Nginx, HTTPS enabled via mounted certs.
 - **Backend**: Rust API, listens on port 3001.
 - **Database**: Postgres, internal only.
-- **MinIO**: S3-compatible storage, internal only.
+- **MinIO**: S3-compatible storage, internal only (`minio-mc` provisions the
+  `transac-media` bucket and exposes it for public downloads).
 - **Certbot/letsencrypt**: Used for certificate renewal (if configured).
+
+### Public link
+
+The public URL for the deployed marketplace is **`https://transac.site`**
+(frontend and API served by the nginx `frontend` service on ports 80/443), with
+`transac.site` resolving to the deployment server (EC2).
+
+After the `main` CI deploy (`deploy.yml`) completes, verify the public link from
+an **external host** with:
+
+```sh
+curl -fsS --max-time 10 https://transac.site/       # frontend returns 2xx
+curl -fsS --max-time 10 https://transac.site/api/   # backend proxy reachable
+```
+
+**Prerequisites for a live public link** (external, provisioned outside this
+repo's code):
+
+- `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY` repo secrets pointing at a Docker-capable
+  server, with `transac.site` DNS resolving to it.
+- TLS certificates mounted at `/etc/ssl/certs/transac.site/` on the server
+  (mapped into the `frontend` container as `/etc/letsencrypt/live/transac.site`).
+- DB/MinIO/JWT secrets configured as repo secrets (they populate the server
+  `.env`; never commit secrets).
+
+To stand the stack up on **any** Docker-capable host for an ephemeral public
+link, run `./scripts/deploy.sh` (it validates the compose, starts the stack,
+health-checks the backend, and prints the URL + acceptance `curl`). Expose the
+`frontend` service (80/443) via your host's public IP or a tunnel such as
+cloudflared/ngrok.
 
 ---
 

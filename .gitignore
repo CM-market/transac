@@ -9,6 +9,7 @@ target/
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 # IDE/editor
 .idea/
