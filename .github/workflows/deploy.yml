@@ -274,7 +274,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             APP_DIR="${EC2_APP_DIR:-transac}"
-            HEALTH_CHECK_URL="https://transac.site/api"
+            HEALTH_CHECK_URL="http://localhost:3001/healthz"
             
             sudo bash -c '
               echo "=== DEPLOYMENT DEBUGGING ==="
