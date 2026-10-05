@@ -266,6 +266,27 @@ jobs:
               fi
             '
 
+      - name: Copy docker-compose.yml to EC2 host
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER || 'ubuntu' }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: docker-compose.yml
+          target: /tmp
+
+      - name: Install docker-compose.yml into app directory
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER || 'ubuntu' }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            APP_DIR="${EC2_APP_DIR:-transac}"
+
+            sudo cp /tmp/docker-compose.yml "/root/${APP_DIR}/docker-compose.yml"
+            sudo test -f "/root/${APP_DIR}/docker-compose.yml" && echo "docker-compose.yml installed successfully"
+
       - name: Deploy with proper rollback
         uses: appleboy/ssh-action@v0.1.10
         with:
