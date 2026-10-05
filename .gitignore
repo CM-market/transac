@@ -49,3 +49,12 @@ SOLUTION.md
 *.tmp
 .claude/
 .env.local
+
+# Harness-provisioned agent workspace files (not part of the repository)
+.agents/
+AGENTS.md
+CODING.md
+REVIEW.md
+REWORK_BRANCH_MISMATCH.md
+SECURITY.md
+forge.agent.md
