@@ -4,7 +4,11 @@
 Transac is a marketplace platform with buyer and seller functionality.
 
 ## Getting Started
-See the documentation in the `docs` folder for detailed information about the project.
+
+- **[Run Locally for Testing](docs/LOCAL_RUN.md)** — install the app and run it on your own
+  PC: prerequisites, Docker Compose full-stack setup, and local development (backend + frontend)
+  instructions with ports, environment variables, migrations, verification, and troubleshooting.
+- See the documentation in the `docs` folder for detailed information about the project.
 
 ## Database Migrations
 If you encounter database-related errors, you may need to run migrations:
