@@ -49,3 +49,11 @@ SOLUTION.md
 *.tmp
 .claude/
 .env.local
+
+# Agent harness provisioning files (workspace-injected; not part of the product repo)
+.agents/
+AGENTS.md
+forge.agent.md
+CODING.md
+REVIEW.md
+SECURITY.md
