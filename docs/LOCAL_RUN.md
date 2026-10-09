@@ -59,9 +59,15 @@ the backend, and the frontend together.
 2. **Set the required variables** in `.env`. At minimum make sure these are present and
    consistent so the Compose services can talk to each other:
 
-   - `DATABASE_URL` — used by the backend inside Compose; the Compose file derives a sensible
-     default, but set it explicitly to `postgres://user:password@db:5432/transac_db` to match
-     the `db` service defaults.
+   - `DATABASE_URL` — used by the backend inside Compose. The Compose file derives a sensible
+     default, but the `.env.example` you just copied ships
+     `DATABASE_URL=postgres://transac_user:password@localhost:5432/transac_db`, whose user and
+     host do **not** match the `db` service. Set it explicitly to the exact value below so the
+     backend reaches the in-network `db` host with the Compose-provisioned credentials:
+
+     ```
+     DATABASE_URL=postgres://user:password@db:5432/transac_db
+     ```
    - `POSTGRES_USER` / `POSTGRES_PASSWORD` — default to `user` / `password` in the Compose
      files. Keep these consistent with `DATABASE_URL`.
    - MinIO / S3 variables — `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`, `AWS_ACCESS_KEY_ID`,
@@ -136,7 +142,8 @@ Edit `.env`:
 - Set `DATABASE_URL=postgres://user:password@localhost:5432/transac_db`
   (note the host is `localhost`, not `db`, because the backend runs on your host).
 - Set `RUN_MIGRATIONS_ON_START=true` so the backend applies schema migrations automatically on
-  startup. (The default in the code is `true`, but set it explicitly to be safe.)
+  startup. The code default is `false` (`src/config.rs`) — for a host-run backend you **must** set
+  it to `true` explicitly or the schema will not be created and the app will fail on first use.
 - MinIO defaults (`AWS_ACCESS_KEY_ID=minioadmin`, `AWS_SECRET_ACCESS_KEY=minioadmin`,
   `AWS_ENDPOINT_URL=http://localhost:9000`, `S3_BUCKET_NAME=transac-media`) work as-is.
 - Set `JWT_SECRET` to any value for local testing.
